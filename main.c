@@ -82,6 +82,8 @@
 #include "nrf_log_ctrl.h"
 #include "nrf_log_default_backends.h"
 
+#include "nrf_drv_twi.h"
+
 
 #define DEVICE_NAME                     "Nordic_HTS"                                /**< Name of device. Will be included in the advertising data. */
 #define MANUFACTURER_NAME               "NordicSemiconductor"                       /**< Manufacturer. Will be passed to Device Information Service. */
@@ -127,6 +129,7 @@
 
 #define DEAD_BEEF                       0xDEADBEEF                                  /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
 
+#define TWI_INSTANCE_ID     0 // twi instance
 
 APP_TIMER_DEF(m_battery_timer_id);                                                  /**< Battery timer. */
 BLE_BAS_DEF(m_bas);                                                                 /**< Structure used to identify the battery service. */
@@ -155,6 +158,8 @@ static ble_uuid_t m_adv_uuids[] =                                               
 
 static void advertising_start(bool erase_bonds);
 static void temperature_measurement_send(void);
+
+static const nrf_drv_twi_t m_twi = NRF_DRV_TWI_INSTANCE(TWI_INSTANCE_ID);  // give device twi id
 
 
 /**@brief Callback function for asserts in the SoftDevice.
@@ -915,6 +920,30 @@ static void advertising_start(bool erase_bonds)
         APP_ERROR_CHECK(err_code);
     }
 }
+
+void twi_init(void)
+{
+  ret_code_t err_code;
+
+  // create some configurations, save in stuct, pass into init function
+  const nrf_drv_twi_config_t twi_config = {
+    .scl                = 27,                     // pin 27 to scl
+    .sda                = 26,                     // pin 26 to sda
+    .frequency          = NRF_DRV_TWI_FREQ_400K,  // 100kHz, could also be 250k or 400k
+    .interrupt_priority = APP_IRQ_PRIORITY_HIGH  // not using softdevice so priority is not changed (would have to be changed if using one)
+    //.clear_bus_init     = false                   // 
+
+  };
+
+  // initialize
+  err_code = nrf_drv_twi_init(&m_twi, &twi_config, NULL, NULL); // pass address of instance and config, null event handler and something else
+  APP_ERROR_CHECK(err_code);  // check err_code
+  
+  // enable
+  nrf_drv_twi_enable(&m_twi);  
+}
+
+
 
 
 /**@brief Function for application main entry.

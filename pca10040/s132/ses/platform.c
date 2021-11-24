@@ -69,6 +69,8 @@ uint8_t RdByte(
 		uint8_t *p_value)
 {
 	uint16_t status = 255;
+
+        //uint8_t [] write_
 	
 	/* Need to be implemented by customer. This function returns 0 if OK */
         status = nrf_drv_twi_rx(&(p_platform->m_twi), p_platform->address, p_value, sizeof(*p_value));  // recieve data from i2c bus
@@ -98,7 +100,16 @@ uint8_t WrMulti(
 	uint8_t status = 255;
 	
 		/* Need to be implemented by customer. This function returns 0 if OK */
-        //status = nrf_drv_twi_tx(&(p_platform->m_twi), p_platform->address, p_value, sizeof(*p_value), false);  // send data to i2c bus
+        //uint32_t length = size;
+        uint32_t i;
+        if(size >= 255){
+          for(i = 0; i < size-255; i = i+255){
+            status |= nrf_drv_twi_tx(&(p_platform->m_twi), p_platform->address, &(p_values[i]), 255, true);
+          }
+          status |= nrf_drv_twi_tx(&(p_platform->m_twi), p_platform->address, &(p_values[i]), size-i, false);
+
+        } else
+         status = nrf_drv_twi_tx(&(p_platform->m_twi), p_platform->address, p_values, size, false);
 
 	return status;
 }
@@ -112,7 +123,17 @@ uint8_t RdMulti(
 	uint8_t status = 255;
 	
 	/* Need to be implemented by customer. This function returns 0 if OK */
-	
+        //uint32_t length = size;
+        uint32_t i;
+        if(size >= 255){
+          for(i = 0; i < size-255; i = i+255){
+            status |= nrf_drv_twi_rx(&(p_platform->m_twi), p_platform->address, &(p_values[i]), 255);
+          }
+          status |= nrf_drv_twi_rx(&(p_platform->m_twi), p_platform->address, &(p_values[i]), size-i);
+
+        } else
+         status = nrf_drv_twi_rx(&(p_platform->m_twi), p_platform->address, p_values, size);
+
 	return status;
 }
 

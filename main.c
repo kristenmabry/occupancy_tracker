@@ -969,7 +969,7 @@ void vl53l5cx_sensor_init(void)
   uint8_t isAlive;
   uint8_t status;
  
-  status = vl53l5cx_is_alive(&sensor_config, &isAlive);
+  status |= vl53l5cx_is_alive(&sensor_config, &isAlive);
 
   if (!isAlive || status)
   {
@@ -980,7 +980,7 @@ void vl53l5cx_sensor_init(void)
     NRF_LOG_INFO("sensor alive");
   }
 
-  //vl53l5cx_init(&sensor_config);
+  status |= vl53l5cx_init(&sensor_config);
 }
 
 

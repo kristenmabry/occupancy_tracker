@@ -71,10 +71,15 @@ uint8_t RdByte(
 {
 	uint16_t status = 255;
 
-        //uint8_t [] write_
+        uint8_t data_write[2];
+
+        data_write[0] = (RegisterAdress >> 8) & 0xff;
+        data_write[1] = RegisterAdress & 0xff;
+
+        status = nrf_drv_twi_tx(&(p_platform->m_twi), p_platform->address, data_write, 2, true);
 	
 	/* Need to be implemented by customer. This function returns 0 if OK */
-        status = nrf_drv_twi_rx(&(p_platform->m_twi), p_platform->address, p_value, sizeof(*p_value));  // recieve data from i2c bus
+        status |= nrf_drv_twi_rx(&(p_platform->m_twi), p_platform->address, p_value, sizeof(*p_value));  // recieve data from i2c bus
 
 	return status;
 }
@@ -85,9 +90,14 @@ uint8_t WrByte(
 		uint8_t value)
 {
 	uint16_t status = 255;
+        uint8_t data_write[3];
+
+        data_write[0] = (RegisterAdress >> 8) & 0xff;
+        data_write[1] = RegisterAdress & 0xff;
+        data_write[2] = value;
 
 	/* Need to be implemented by customer. This function returns 0 if OK */
-        status = nrf_drv_twi_tx(&(p_platform->m_twi), p_platform->address, &value, sizeof(value), false);  // send data to i2c bus
+        status = nrf_drv_twi_tx(&(p_platform->m_twi), p_platform->address, data_write, sizeof(value)+2, false);  // send data to i2c bus
 
 	return status;
 }
@@ -98,11 +108,16 @@ uint8_t WrMulti(
 		uint8_t *p_values,
 		uint32_t size)
 {
-	uint8_t status = 0;
+	uint8_t status = 255;
 	
 		/* Need to be implemented by customer. This function returns 0 if OK */
         //uint32_t length = size;
         uint32_t i;
+        uint8_t data_write[2];
+        data_write[0] = (RegisterAdress >> 8) & 0xff;
+        data_write[1] = RegisterAdress & 0xff;
+        status = nrf_drv_twi_tx(&(p_platform->m_twi), p_platform->address, data_write, 2, true); // write register address
+
         if(size >= 255){
           for(i = 0; i < size-255; i = i+255){
             status |= nrf_drv_twi_tx(&(p_platform->m_twi), p_platform->address, &(p_values[i]), 255, true);
@@ -121,10 +136,14 @@ uint8_t RdMulti(
 		uint8_t *p_values,
 		uint32_t size)
 {
-	uint8_t status = 0;
+	uint8_t status = 255;
 	
 	/* Need to be implemented by customer. This function returns 0 if OK */
-        //uint32_t length = size;
+        uint8_t data_write[2];
+        data_write[0] = (RegisterAdress >> 8) & 0xff;
+        data_write[1] = RegisterAdress & 0xff;
+        status = nrf_drv_twi_tx(&(p_platform->m_twi), p_platform->address, data_write, 2, true);  // Register Address
+
         uint32_t i;
         if(size >= 255){
           for(i = 0; i < size-255; i = i+255){

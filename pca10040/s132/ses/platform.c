@@ -62,6 +62,7 @@
 
 
 #include "platform.h"
+#include "nrf_delay.h"
 
 uint8_t RdByte(
 		VL53L5CX_Platform *p_platform,
@@ -97,7 +98,7 @@ uint8_t WrMulti(
 		uint8_t *p_values,
 		uint32_t size)
 {
-	uint8_t status = 255;
+	uint8_t status = 0;
 	
 		/* Need to be implemented by customer. This function returns 0 if OK */
         //uint32_t length = size;
@@ -120,7 +121,7 @@ uint8_t RdMulti(
 		uint8_t *p_values,
 		uint32_t size)
 {
-	uint8_t status = 255;
+	uint8_t status = 0;
 	
 	/* Need to be implemented by customer. This function returns 0 if OK */
         //uint32_t length = size;
@@ -180,9 +181,10 @@ uint8_t WaitMs(
 		VL53L5CX_Platform *p_platform,
 		uint32_t TimeMs)
 {
-	uint8_t status = 255;
+	uint8_t status = 0;
 
 	/* Need to be implemented by customer. This function returns 0 if OK */
-	
+	nrf_delay_ms(TimeMs);
+
 	return status;
 }

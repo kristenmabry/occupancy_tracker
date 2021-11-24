@@ -981,6 +981,14 @@ void vl53l5cx_sensor_init(void)
   }
 
   status |= vl53l5cx_init(&sensor_config);
+  if (status)
+  {
+    NRF_LOG_INFO("not init");
+  }
+  else
+  {
+    NRF_LOG_INFO("sensor init");
+  }
 }
 
 

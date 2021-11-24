@@ -68,9 +68,10 @@ uint8_t RdByte(
 		uint16_t RegisterAdress,
 		uint8_t *p_value)
 {
-	uint8_t status = 255;
+	uint16_t status = 255;
 	
 	/* Need to be implemented by customer. This function returns 0 if OK */
+        status = nrf_drv_twi_rx(&(p_platform->m_twi), p_platform->address, p_value, sizeof(*p_value));  // recieve data from i2c bus
 
 	return status;
 }
@@ -80,9 +81,10 @@ uint8_t WrByte(
 		uint16_t RegisterAdress,
 		uint8_t value)
 {
-	uint8_t status = 255;
+	uint16_t status = 255;
 
 	/* Need to be implemented by customer. This function returns 0 if OK */
+        status = nrf_drv_twi_tx(&(p_platform->m_twi), p_platform->address, &value, sizeof(value), false);  // send data to i2c bus
 
 	return status;
 }
@@ -96,6 +98,7 @@ uint8_t WrMulti(
 	uint8_t status = 255;
 	
 		/* Need to be implemented by customer. This function returns 0 if OK */
+        //status = nrf_drv_twi_tx(&(p_platform->m_twi), p_platform->address, p_value, sizeof(*p_value), false);  // send data to i2c bus
 
 	return status;
 }

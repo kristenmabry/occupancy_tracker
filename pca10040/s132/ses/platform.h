@@ -66,6 +66,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include "nrf_drv_twi.h"
 
 /**
  * @brief Structure VL53L5CX_Platform needs to be filled by the customer,
@@ -81,6 +82,8 @@ typedef struct
 	 * needs to be added */
 	/* Example for most standard platform : I2C address of sensor */
     uint16_t  			address;
+
+    nrf_drv_twi_t               m_twi;
 
 } VL53L5CX_Platform;
 

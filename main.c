@@ -84,6 +84,8 @@
 
 #include "nrf_drv_twi.h"
 
+#include "vl53l5cx_api.h"
+
 
 #define DEVICE_NAME                     "Nordic_HTS"                                /**< Name of device. Will be included in the advertising data. */
 #define MANUFACTURER_NAME               "NordicSemiconductor"                       /**< Manufacturer. Will be passed to Device Information Service. */
@@ -943,6 +945,44 @@ void twi_init(void)
   nrf_drv_twi_enable(&m_twi);  
 }
 
+void vl53l5cx_sensor_init(void)
+{
+  //uint8_t streamcount = 0;
+  VL53L5CX_Configuration sensor_config = {
+      /* Platform, filled by customer into the 'platform.h' file */
+        .platform = {
+          .address = 0x29,
+          .m_twi = m_twi,
+        },
+	/* Results streamcount, value auto-incremented at each range */
+	//.streamcount = 0,
+	/* Size of data read though I2C */
+	//uint32_t	        data_read_size;
+	/* Offset buffer */
+	//uint8_t		        offset_data[VL53L5CX_OFFSET_BUFFER_SIZE];
+	/* Xtalk buffer */
+	//uint8_t		        xtalk_data[VL53L5CX_XTALK_BUFFER_SIZE];
+	/* Temporary buffer used for internal driver processing */
+	 //uint8_t	        temp_buffer[VL53L5CX_TEMPORARY_BUFFER_SIZE];
+  };
+  
+  uint8_t isAlive;
+  uint8_t status;
+ 
+  status = vl53l5cx_is_alive(&sensor_config, &isAlive);
+
+  if (!isAlive || status)
+  {
+    NRF_LOG_INFO("not alive");
+  }
+  else
+  {
+    NRF_LOG_INFO("sensor alive");
+  }
+
+  //vl53l5cx_init(&sensor_config);
+}
+
 
 
 
@@ -952,7 +992,7 @@ int main(void)
 {
     bool erase_bonds;
 
-    // Initialize.
+    // BLE init
     log_init();
     timers_init();
     buttons_leds_init(&erase_bonds);
@@ -965,6 +1005,16 @@ int main(void)
     sensor_simulator_init();
     conn_params_init();
     peer_manager_init();
+
+    // Sensor init
+    twi_init();
+
+    nrf_gpio_cfg_output(25); // LPn
+    nrf_gpio_pin_set(25);
+    nrf_gpio_cfg_output(24); // PwrEn
+    nrf_gpio_pin_set(24);
+    vl53l5cx_sensor_init();
+    
 
     // Start execution.
     NRF_LOG_INFO("Health Thermometer example started.");

@@ -85,6 +85,7 @@
 #include "nrf_drv_twi.h"
 
 #include "vl53l5cx_api.h"
+#include "platform.h"
 
 
 #define DEVICE_NAME                     "Nordic_HTS"                                /**< Name of device. Will be included in the advertising data. */
@@ -968,6 +969,8 @@ void vl53l5cx_sensor_init(void)
   
   uint8_t isAlive;
   uint8_t status;
+
+  Reset_Sensor(&(sensor_config.platform));
  
   status |= vl53l5cx_is_alive(&sensor_config, &isAlive);
 
@@ -988,6 +991,28 @@ void vl53l5cx_sensor_init(void)
   else
   {
     NRF_LOG_INFO("sensor init");
+  }
+
+  status |= vl53l5cx_start_ranging(&sensor_config);
+  if (status)
+  {
+    NRF_LOG_INFO("not ranging");
+  }
+  else
+  {
+    NRF_LOG_INFO("sensor ranging");
+  }
+
+  VL53L5CX_ResultsData results = {};
+
+  status |= vl53l5cx_get_ranging_data(&sensor_config, &results);
+  if (status)
+  {
+    NRF_LOG_INFO("data error");
+  }
+  else
+  {
+    NRF_LOG_INFO("sensor data retrieved");
   }
 }
 

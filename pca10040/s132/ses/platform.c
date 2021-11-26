@@ -63,6 +63,7 @@
 
 #include "platform.h"
 #include "nrf_delay.h"
+#include "nrf_gpio.h"
 
 uint8_t RdByte(
 		VL53L5CX_Platform *p_platform,
@@ -71,12 +72,12 @@ uint8_t RdByte(
 {
 	uint16_t status = 255;
 
-        uint8_t data_write[2];
+        uint8_t data_write[2] = {};
 
         data_write[0] = (RegisterAdress >> 8) & 0xff;
         data_write[1] = RegisterAdress & 0xff;
 
-        status = nrf_drv_twi_tx(&(p_platform->m_twi), p_platform->address, data_write, 2, true);
+        status = nrf_drv_twi_tx(&(p_platform->m_twi), p_platform->address, data_write, 2, false);
 	
 	/* Need to be implemented by customer. This function returns 0 if OK */
         status |= nrf_drv_twi_rx(&(p_platform->m_twi), p_platform->address, p_value, sizeof(*p_value));  // recieve data from i2c bus
@@ -90,7 +91,7 @@ uint8_t WrByte(
 		uint8_t value)
 {
 	uint16_t status = 255;
-        uint8_t data_write[3];
+        uint8_t data_write[3] = {};
 
         data_write[0] = (RegisterAdress >> 8) & 0xff;
         data_write[1] = RegisterAdress & 0xff;
@@ -111,21 +112,14 @@ uint8_t WrMulti(
 	uint8_t status = 255;
 	
 		/* Need to be implemented by customer. This function returns 0 if OK */
-        //uint32_t length = size;
-        uint32_t i;
-        uint8_t data_write[2];
-        data_write[0] = (RegisterAdress >> 8) & 0xff;
-        data_write[1] = RegisterAdress & 0xff;
-        status = nrf_drv_twi_tx(&(p_platform->m_twi), p_platform->address, data_write, 2, true); // write register address
+        uint16_t tempAddress = RegisterAdress;
+       
+        for (int i = 0; i < size; i++)
+        {
+          status = WrByte(p_platform, tempAddress, p_values[i]);
+          tempAddress++;
+        }
 
-        if(size >= 255){
-          for(i = 0; i < size-255; i = i+255){
-            status |= nrf_drv_twi_tx(&(p_platform->m_twi), p_platform->address, &(p_values[i]), 255, true);
-          }
-          status |= nrf_drv_twi_tx(&(p_platform->m_twi), p_platform->address, &(p_values[i]), size-i, false);
-
-        } else
-         status = nrf_drv_twi_tx(&(p_platform->m_twi), p_platform->address, p_values, size, false);
 
 	return status;
 }
@@ -139,20 +133,16 @@ uint8_t RdMulti(
 	uint8_t status = 255;
 	
 	/* Need to be implemented by customer. This function returns 0 if OK */
-        uint8_t data_write[2];
-        data_write[0] = (RegisterAdress >> 8) & 0xff;
-        data_write[1] = RegisterAdress & 0xff;
-        status = nrf_drv_twi_tx(&(p_platform->m_twi), p_platform->address, data_write, 2, true);  // Register Address
+        uint16_t tempAddress = RegisterAdress;
+        uint8_t *saveAddress = p_values;
 
-        uint32_t i;
-        if(size >= 255){
-          for(i = 0; i < size-255; i = i+255){
-            status |= nrf_drv_twi_rx(&(p_platform->m_twi), p_platform->address, &(p_values[i]), 255);
-          }
-          status |= nrf_drv_twi_rx(&(p_platform->m_twi), p_platform->address, &(p_values[i]), size-i);
-
-        } else
-         status = nrf_drv_twi_rx(&(p_platform->m_twi), p_platform->address, p_values, size);
+        for (int i = 0; i < size; i++)
+        {
+          status = RdByte(p_platform, tempAddress, saveAddress);
+          tempAddress++;
+          saveAddress++;
+        }
+        
 
 	return status;
 }
@@ -167,12 +157,23 @@ uint8_t Reset_Sensor(
 	/* Set pin LPN to LOW */
 	/* Set pin AVDD to LOW */
 	/* Set pin VDDIO  to LOW */
+        nrf_gpio_cfg_output(25);
+        nrf_gpio_pin_clear(25);
+        nrf_gpio_cfg_output(24);
+        nrf_gpio_pin_clear(24);
+
 	WaitMs(p_platform, 100);
 
 	/* Set pin LPN of to HIGH */
 	/* Set pin AVDD of to HIGH */
 	/* Set pin VDDIO of  to HIGH */
+        nrf_gpio_cfg_output(25); // LPn
+        nrf_gpio_pin_set(25);
+        nrf_gpio_cfg_output(24); // PwrEn
+        nrf_gpio_pin_set(24);
+
 	WaitMs(p_platform, 100);
+
 
 	return status;
 }

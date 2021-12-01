@@ -1,5 +1,5 @@
 Output/Release/Obj/ble_app_hts_pca10040_s132/nrf_drv_twi.o: \
- C:\Nordic_Semi\nRF5_SDK_17.1.0_ddde560\examples\ble_peripheral\occupancy_tracker\pca10040\s132\ses\nrf_drv_twi.c \
+ F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\examples\ble_peripheral\occupancy_tracker\pca10040\s132\ses\nrf_drv_twi.c \
  ../../../../../../integration/nrfx/legacy/nrf_drv_twi.h \
  ../../../../../../modules/nrfx/nrfx.h \
  ../../../../../../integration/nrfx/nrfx_config.h ../config/sdk_config.h \

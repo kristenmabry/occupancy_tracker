@@ -965,11 +965,15 @@ void vl53l5cx_sensor_init(void)
 	/* Temporary buffer used for internal driver processing */
 	 //uint8_t	        temp_buffer[VL53L5CX_TEMPORARY_BUFFER_SIZE];
   };
+
+  VL53L5CX_ResultsData sensor_data = {
+    
+  };
   
   uint8_t isAlive;
   uint8_t status;
  
-  status = vl53l5cx_is_alive(&sensor_config, &isAlive);
+  status |= vl53l5cx_is_alive(&sensor_config, &isAlive);
 
   if (!isAlive || status)
   {
@@ -980,8 +984,74 @@ void vl53l5cx_sensor_init(void)
     NRF_LOG_INFO("sensor alive");
   }
 
-  //vl53l5cx_init(&sensor_config);
+  status |= vl53l5cx_init(&sensor_config);
+  if (status)
+  {
+    NRF_LOG_INFO("not init");
+  }
+  else
+  {
+    NRF_LOG_INFO("sensor init");
+  }
+
+  status |= vl53l5cx_start_ranging(&sensor_config); // returned ranging which is good
+  if (status)
+  {
+    NRF_LOG_INFO("not ranging");
+  }
+  else
+  {
+    NRF_LOG_INFO("ranging started");
+  }
+
+  status |= vl53l5cx_get_ranging_data(&sensor_config, &sensor_data);
+  if (status)
+  {
+    NRF_LOG_INFO("ranging failure");
+  }
+  else
+  {
+    NRF_LOG_INFO("ranging success");
+  }
+
+  status |= vl53l5cx_stop_ranging(&sensor_config); // returned not ranging which is good
+  if (status)
+  {
+    NRF_LOG_INFO("not ranging");
+  }
+  else
+  {
+    NRF_LOG_INFO("ranging started");
+  }
+  
+  status |= vl53l5cx_set_ranging_mode(&sensor_config, VL53L5CX_RANGING_MODE_AUTONOMOUS);
+  if (status)
+  {
+    NRF_LOG_INFO("mode not changed");
+  }
+  else
+  {
+    NRF_LOG_INFO("Mode set to continuous");
+  }
+
+  uint8_t temp_number;
+  status |= vl53l5cx_get_ranging_frequency_hz(&sensor_config, &temp_number);
+  if (status)
+  {
+    NRF_LOG_INFO("frequency not got");
+  }
+  else
+  {
+    NRF_LOG_INFO("frequency got");
+  }
+
 }
+
+//void in_pin_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action) // pin is which pin triggered it, actions is if it was a high to low or low to high interupt
+//{
+//    nrf_drv_gpiote_out_toggle(PIN_OUT);
+//}
+
 
 
 
@@ -994,17 +1064,17 @@ int main(void)
 
     // BLE init
     log_init();
-    timers_init();
-    buttons_leds_init(&erase_bonds);
-    power_management_init();
-    ble_stack_init();
-    gap_params_init();
-    gatt_init();
-    advertising_init();
-    services_init();
-    sensor_simulator_init();
-    conn_params_init();
-    peer_manager_init();
+    //timers_init();
+    //buttons_leds_init(&erase_bonds);
+    //power_management_init();
+    //ble_stack_init();
+    //gap_params_init();
+    //gatt_init();
+    //advertising_init();
+    //services_init();
+    //sensor_simulator_init();
+    //conn_params_init();
+    //peer_manager_init();
 
     // Sensor init
     twi_init();
@@ -1013,7 +1083,9 @@ int main(void)
     nrf_gpio_pin_set(25);
     nrf_gpio_cfg_output(24); // PwrEn
     nrf_gpio_pin_set(24);
+
     vl53l5cx_sensor_init();
+
     
 
     // Start execution.

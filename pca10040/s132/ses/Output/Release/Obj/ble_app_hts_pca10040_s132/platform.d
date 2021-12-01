@@ -1,6 +1,6 @@
 Output/Release/Obj/ble_app_hts_pca10040_s132/platform.o: \
- C:\Nordic_Semi\nRF5_SDK_17.1.0_ddde560\examples\ble_peripheral\occupancy_tracker\pca10040\s132\ses\platform.c \
- C:\Nordic_Semi\nRF5_SDK_17.1.0_ddde560\examples\ble_peripheral\occupancy_tracker\pca10040\s132\ses\platform.h \
+ F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\examples\ble_peripheral\occupancy_tracker\pca10040\s132\ses\platform.c \
+ F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\examples\ble_peripheral\occupancy_tracker\pca10040\s132\ses\platform.h \
  C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 5.64/include/stdint.h \
  C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 5.64/include/string.h \
  C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 5.64/include/__crossworks.h \
@@ -58,4 +58,6 @@ Output/Release/Obj/ble_app_hts_pca10040_s132/platform.o: \
  ../../../../../../modules/nrfx/drivers/include/nrfx_twi_twim.h \
  ../../../../../../modules/nrfx/hal/nrf_twim.h \
  ../../../../../../modules/nrfx/drivers/include/nrfx_twi.h \
- ../../../../../../modules/nrfx/hal/nrf_twi.h
+ ../../../../../../modules/nrfx/hal/nrf_twi.h \
+ ../../../../../../components/libraries/delay/nrf_delay.h \
+ ../../../../../../modules/nrfx/hal/nrf_gpio.h

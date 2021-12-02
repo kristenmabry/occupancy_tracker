@@ -1026,7 +1026,7 @@ void vl53l5cx_sensor_init(void)
   }
   
   uint8_t temp_number;
-  //vl53l5cx_get_ranging_mode(&sensor_config,  &temp_number);
+  vl53l5cx_get_ranging_mode(&sensor_config,  &temp_number);
 
   if(temp_number != VL53L5CX_RANGING_MODE_AUTONOMOUS) {
     status |= vl53l5cx_set_ranging_mode(&sensor_config, VL53L5CX_RANGING_MODE_AUTONOMOUS);  // PROBLEM AREA

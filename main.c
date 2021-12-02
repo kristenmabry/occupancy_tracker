@@ -83,8 +83,9 @@
 #include "nrf_log_default_backends.h"
 
 #include "nrf_drv_twi.h"
-
+#include "nrf_drv_gpiote.h"
 #include "vl53l5cx_api.h"
+
 
 
 #define DEVICE_NAME                     "Nordic_HTS"                                /**< Name of device. Will be included in the advertising data. */
@@ -994,7 +995,7 @@ void vl53l5cx_sensor_init(void)
     NRF_LOG_INFO("sensor init");
   }
 
-  status |= vl53l5cx_start_ranging(&sensor_config); // returned ranging which is good
+  status |= vl53l5cx_start_ranging(&sensor_config);
   if (status)
   {
     NRF_LOG_INFO("not ranging");
@@ -1014,17 +1015,22 @@ void vl53l5cx_sensor_init(void)
     NRF_LOG_INFO("ranging success");
   }
 
-  status |= vl53l5cx_stop_ranging(&sensor_config); // returned not ranging which is good
+  status |= vl53l5cx_stop_ranging(&sensor_config);
   if (status)
   {
     NRF_LOG_INFO("not ranging");
   }
   else
   {
-    NRF_LOG_INFO("ranging started");
+    NRF_LOG_INFO("ranging stopped");
   }
   
-  status |= vl53l5cx_set_ranging_mode(&sensor_config, VL53L5CX_RANGING_MODE_AUTONOMOUS);
+  uint8_t temp_number;
+  //vl53l5cx_get_ranging_mode(&sensor_config,  &temp_number);
+
+  if(temp_number != VL53L5CX_RANGING_MODE_AUTONOMOUS) {
+    status |= vl53l5cx_set_ranging_mode(&sensor_config, VL53L5CX_RANGING_MODE_AUTONOMOUS);  // PROBLEM AREA
+  }
   if (status)
   {
     NRF_LOG_INFO("mode not changed");
@@ -1033,8 +1039,8 @@ void vl53l5cx_sensor_init(void)
   {
     NRF_LOG_INFO("Mode set to continuous");
   }
+ 
 
-  uint8_t temp_number;
   status |= vl53l5cx_get_ranging_frequency_hz(&sensor_config, &temp_number);
   if (status)
   {
@@ -1042,17 +1048,108 @@ void vl53l5cx_sensor_init(void)
   }
   else
   {
-    NRF_LOG_INFO("frequency got");
+    NRF_LOG_INFO("frequency got: %d", temp_number);
   }
+
+	/* Start a ranging session */
+        status = vl53l5cx_set_integration_time_ms(&sensor_config, 20);  // 20ms
+   	status = vl53l5cx_start_ranging(&sensor_config);
+   	NRF_LOG_INFO("Start ranging autonomous\n");
+
+        uint8_t loop, isReady, i;
+        VL53L5CX_ResultsData 	Results;
+        loop = 0;
+  while(loop < 10)
+   	{
+   		status = vl53l5cx_check_data_ready(&sensor_config, &isReady);
+   		if(isReady)
+   		{
+   			vl53l5cx_get_ranging_data(&sensor_config, &Results);
+
+   			/* As the sensor is set in 4x4 mode by default, we have a total
+			 * of 16 zones to print. For this example, only the data of first zone are
+			 * print */
+   			NRF_LOG_INFO("Print data no : %3u\n", sensor_config.streamcount);
+   			for(i = 0; i < 16; i++)
+   			{
+				NRF_LOG_INFO("Zone : %3d, Status : %3u, Distance : %4d mm\n",
+					i,
+					Results.target_status[VL53L5CX_NB_TARGET_PER_ZONE*i],
+					Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*i]);
+   			}
+   			NRF_LOG_INFO("\n");
+   			loop++;
+   		}
+
+		/* Wait a few ms to avoid too high polling (function in platform
+		 * file, not in API) */
+   		WaitMs(&(sensor_config.platform), 100);
+   	}
 
 }
 
+
+// For INT PIN interupts
 //void in_pin_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action) // pin is which pin triggered it, actions is if it was a high to low or low to high interupt
 //{
-//    nrf_drv_gpiote_out_toggle(PIN_OUT);
+//  if(action == GPIOTE_CONFIG_POLARITY_LoToHi) {
+//        NRF_LOG_INFO("interupt occurred");
+//        NRF_LOG_FLUSH();
+//      }
 //}
 
+static void gpio_init()
+{
+  // static pins
+    nrf_gpio_cfg_output(25); // LPn
+    nrf_gpio_pin_set(25);
+    nrf_gpio_cfg_output(24); // PwrEn
+    nrf_gpio_pin_set(24);
 
+// interupt pin 12 = INT but int doesn't set currently
+  //ret_code_t err_code;
+
+  //err_code = nrf_drv_gpiote_init();
+  //APP_ERROR_CHECK(err_code);
+
+  //nrf_drv_gpiote_in_config_t in_config = GPIOTE_CONFIG_IN_SENSE_TOGGLE(true);
+  //in_config.pull = NRF_GPIO_PIN_PULLUP;
+
+  //err_code = nrf_drv_gpiote_in_init(12, &in_config, in_pin_handler);  // INT on pin 12
+  //APP_ERROR_CHECK(err_code);
+
+  //nrf_drv_gpiote_in_event_enable(12, true);
+}
+
+// FROM: https://github.com/NordicPlayground/nrf51-TIMER-examples/blob/master/timer_example_timer_mode/main.c
+//  https://devzone.nordicsemi.com/f/nordic-q-a/35230/timer-interrupts-nrf
+void start_timer(void)
+{		
+    NRF_TIMER0->TASKS_STOP = 1; // Stop timer
+    NRF_TIMER0->MODE = TIMER_MODE_MODE_Timer; // taken from Nordic dev zone
+    NRF_TIMER0->BITMODE = (TIMER_BITMODE_BITMODE_24Bit << TIMER_BITMODE_BITMODE_Pos);
+    NRF_TIMER0->PRESCALER = 8; // 1us resolution
+    NRF_TIMER0->TASKS_CLEAR = 1; // Clear timer
+    NRF_TIMER0->CC[0] = 62500;
+    NRF_TIMER0->INTENSET = TIMER_INTENSET_COMPARE0_Enabled << TIMER_INTENSET_COMPARE0_Pos; // taken from Nordic dev zone
+    NRF_TIMER0->SHORTS = (TIMER_SHORTS_COMPARE0_CLEAR_Enabled << TIMER_SHORTS_COMPARE0_CLEAR_Pos);
+    //attachInterrupt(TIMER1_IRQn, TIMER1_Interrupt); // also used in variant.cpp to configure the RTC1
+    NVIC_EnableIRQ(TIMER0_IRQn);
+    NRF_TIMER0->TASKS_START = 1; // Start TIMER
+}
+		
+/** TIMTER2 peripheral interrupt handler. This interrupt handler is called whenever there it a TIMER2 interrupt
+ */
+void TIMER0_IRQHandler(void)
+{
+            if (NRF_TIMER0->EVENTS_COMPARE[0] != 0)
+    {
+        NRF_TIMER0->EVENTS_COMPARE[0] = 0;
+    }        
+        NRF_LOG_INFO("interupt occurred");
+        NRF_LOG_FLUSH();
+        
+}
 
 
 
@@ -1079,24 +1176,26 @@ int main(void)
     // Sensor init
     twi_init();
 
-    nrf_gpio_cfg_output(25); // LPn
-    nrf_gpio_pin_set(25);
-    nrf_gpio_cfg_output(24); // PwrEn
-    nrf_gpio_pin_set(24);
+    gpio_init();
+        NRF_LOG_INFO("good to go");
+        NRF_LOG_FLUSH();
+
+
 
     vl53l5cx_sensor_init();
+    start_timer();
 
     
 
     // Start execution.
-    NRF_LOG_INFO("Health Thermometer example started.");
-    application_timers_start();
-    advertising_start(erase_bonds);
+    //NRF_LOG_INFO("Health Thermometer example started.");
+    //application_timers_start();
+    //advertising_start(erase_bonds);
 
     // Enter main loop.
-    for (;;)
+    while (1)
     {
-        idle_state_handle();
+        //idle_state_handle();
     }
 }
 

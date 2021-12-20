@@ -47,6 +47,12 @@
  * This file contains the source code for a sample application using the Health Thermometer service
  * It also includes the sample code for Battery and Device Information services.
  * This application uses the @ref srvlib_conn_params module.
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 #include <stdint.h>
@@ -86,7 +92,7 @@
 #include "nrf_drv_gpiote.h"
 #include "vl53l5cx_api.h"
 
-
+#include "vl53l5cx_plugin_detection_thresholds.h"
 
 #define DEVICE_NAME                     "Nordic_HTS"                                /**< Name of device. Will be included in the advertising data. */
 #define MANUFACTURER_NAME               "NordicSemiconductor"                       /**< Manufacturer. Will be passed to Device Information Service. */
@@ -930,9 +936,9 @@ void twi_init(void)
 
   // create some configurations, save in stuct, pass into init function
   const nrf_drv_twi_config_t twi_config = {
-    .scl                = 27,                     // pin 27 to scl
-    .sda                = 26,                     // pin 26 to sda
-    .frequency          = NRF_DRV_TWI_FREQ_400K,  // 100kHz, could also be 250k or 400k
+    .scl                = 17,                     // pin 17 to scl
+    .sda                = 16,                     // pin 16 to sda
+    .frequency          = NRF_DRV_TWI_FREQ_400K,  // 400kHz
     .interrupt_priority = APP_IRQ_PRIORITY_HIGH  // not using softdevice so priority is not changed (would have to be changed if using one)
     //.clear_bus_init     = false                   // 
 
@@ -1084,40 +1090,82 @@ void vl53l5cx_sensor_init(void)
 		 * file, not in API) */
    		WaitMs(&(sensor_config.platform), 1000);
    	}
+  
+  //// set up detection threshold
+  //VL53L5CX_DetectionThresholds thresholds[VL53L5CX_NB_THRESHOLDS];
+  //memset(&thresholds, 0, sizeof(thresholds));
+  //for(int i = 0; i < 16; i++){
+  //   /* The first wanted thresholds is GREATER_THAN mode. Please note that the
+  //   * first one must always be set with a mathematic_operation
+  //   * VL53L5CX_OPERATION_NONE.
+  //   * For this example, the signal thresholds is set to 150 kcps/spads
+  //   * (the format is automatically updated inside driver)
+  //   */
+  //  thresholds[2*i].zone_num = i;
+  //  thresholds[2*i].measurement = VL53L5CX_SIGNAL_PER_SPAD_KCPS;
+  //  thresholds[2*i].type = VL53L5CX_GREATER_THAN_MAX_CHECKER;
+  //  thresholds[2*i].mathematic_operation = VL53L5CX_OPERATION_NONE;
+  //  thresholds[2*i].param_low_thresh = 10;
+  //  thresholds[2*i].param_high_thresh = 10;
 
+  //  /* The second wanted checker is IN_WINDOW mode. We will set a
+  //   * mathematical thresholds VL53L5CX_OPERATION_OR, to add the previous
+  //   * checker to this one.
+  //   * For this example, distance thresholds are set between 200mm and
+  //   * 400mm (the format is automatically updated inside driver).
+  //   */
+  //  thresholds[2*i+1].zone_num = i;
+  //  thresholds[2*i+1].measurement = VL53L5CX_DISTANCE_MM;
+  //  thresholds[2*i+1].type = VL53L5CX_IN_WINDOW;
+  //  thresholds[2*i+1].mathematic_operation = VL53L5CX_OPERATION_OR;
+  //  thresholds[2*i+1].param_low_thresh = 100;
+  //  thresholds[2*i+1].param_high_thresh = 1000;
+  //  }
+
+  //  /* The last thresholds must be clearly indicated. As we have 32
+  //  * checkers (16 zones x 2), the last one is the 31 */
+  //  thresholds[31].zone_num = VL53L5CX_LAST_THRESHOLD | thresholds[31].zone_num;
+
+  //  /* Send array of thresholds to the sensor */
+  //  status |= vl53l5cx_set_detection_thresholds(&sensor_config, thresholds);
+
+  //  /* Enable detection thresholds */
+  //  status |= vl53l5cx_set_detection_thresholds_enable(&sensor_config, 1);
 }
 
 
 // For INT PIN interupts
-//void in_pin_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action) // pin is which pin triggered it, actions is if it was a high to low or low to high interupt
-//{
-//  if(action == GPIOTE_CONFIG_POLARITY_LoToHi) {
-//        NRF_LOG_INFO("interupt occurred");
-//        NRF_LOG_FLUSH();
-//      }
-//}
+void in_pin_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action) // pin is which pin triggered it, actions is if it was a high to low or low to high interupt
+{
+  //if(action == GPIOTE_CONFIG_POLARITY_LoToHi) {
+        NRF_LOG_INFO("interupt occurred");
+        NRF_LOG_FLUSH();
+      //}
+}
 
 static void gpio_init()
 {
   // static pins
-    nrf_gpio_cfg_output(25); // LPn
-    nrf_gpio_pin_set(25);
-    nrf_gpio_cfg_output(24); // PwrEn
-    nrf_gpio_pin_set(24);
+    nrf_gpio_cfg_output(15); // LPn
+    nrf_gpio_pin_set(15);
+    nrf_gpio_cfg_output(14); // PwrEn
+    nrf_gpio_pin_set(14);
+    nrf_gpio_cfg_output(13); // I2C_Rst
+    nrf_gpio_pin_clear(13);
 
-// interupt pin 12 = INT but int doesn't set currently
-  //ret_code_t err_code;
+ //interupt pin 12 = INT but int doesn't set currently
+  ret_code_t err_code;
 
-  //err_code = nrf_drv_gpiote_init();
-  //APP_ERROR_CHECK(err_code);
+  err_code = nrf_drv_gpiote_init();
+  APP_ERROR_CHECK(err_code);
 
-  //nrf_drv_gpiote_in_config_t in_config = GPIOTE_CONFIG_IN_SENSE_TOGGLE(true);
-  //in_config.pull = NRF_GPIO_PIN_PULLUP;
+  nrf_drv_gpiote_in_config_t in_config = GPIOTE_CONFIG_IN_SENSE_TOGGLE(true);
+  in_config.pull = NRF_GPIO_PIN_PULLDOWN;
 
-  //err_code = nrf_drv_gpiote_in_init(12, &in_config, in_pin_handler);  // INT on pin 12
-  //APP_ERROR_CHECK(err_code);
+  err_code = nrf_drv_gpiote_in_init(12, &in_config, in_pin_handler);  // INT on pin 12
+  APP_ERROR_CHECK(err_code);
 
-  //nrf_drv_gpiote_in_event_enable(12, true);
+  nrf_drv_gpiote_in_event_enable(12, true);
 }
 
 // FROM: https://github.com/NordicPlayground/nrf51-TIMER-examples/blob/master/timer_example_timer_mode/main.c
@@ -1145,7 +1193,7 @@ void TIMER0_IRQHandler(void)
     {
         NRF_TIMER0->EVENTS_COMPARE[0] = 0;
     }        
-        NRF_LOG_INFO("interupt occurred");
+        //NRF_LOG_INFO("interupt wrong");
         NRF_LOG_FLUSH();
         
 }

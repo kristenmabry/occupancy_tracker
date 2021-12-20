@@ -995,35 +995,35 @@ void vl53l5cx_sensor_init(void)
     NRF_LOG_INFO("sensor init");
   }
 
-  status |= vl53l5cx_start_ranging(&sensor_config);
-  if (status)
-  {
-    NRF_LOG_INFO("not ranging");
-  }
-  else
-  {
-    NRF_LOG_INFO("ranging started");
-  }
+  //status |= vl53l5cx_start_ranging(&sensor_config);
+  //if (status)
+  //{
+  //  NRF_LOG_INFO("not ranging");
+  //}
+  //else
+  //{
+  //  NRF_LOG_INFO("ranging started");
+  //}
 
-  status |= vl53l5cx_get_ranging_data(&sensor_config, &sensor_data);
-  if (status)
-  {
-    NRF_LOG_INFO("ranging failure");
-  }
-  else
-  {
-    NRF_LOG_INFO("ranging success");
-  }
+  //status |= vl53l5cx_get_ranging_data(&sensor_config, &sensor_data);
+  //if (status)
+  //{
+  //  NRF_LOG_INFO("ranging failure");
+  //}
+  //else
+  //{
+  //  NRF_LOG_INFO("ranging success");
+  //}
 
-  status |= vl53l5cx_stop_ranging(&sensor_config);
-  if (status)
-  {
-    NRF_LOG_INFO("not ranging");
-  }
-  else
-  {
-    NRF_LOG_INFO("ranging stopped");
-  }
+  //status |= vl53l5cx_stop_ranging(&sensor_config);
+  //if (status)
+  //{
+  //  NRF_LOG_INFO("not ranging");
+  //}
+  //else
+  //{
+  //  NRF_LOG_INFO("ranging stopped");
+  //}
   
   uint8_t temp_number;
   vl53l5cx_get_ranging_mode(&sensor_config,  &temp_number);
@@ -1054,7 +1054,7 @@ void vl53l5cx_sensor_init(void)
 	/* Start a ranging session */
         status = vl53l5cx_set_integration_time_ms(&sensor_config, 20);  // 20ms
    	status = vl53l5cx_start_ranging(&sensor_config);
-   	NRF_LOG_INFO("Start ranging autonomous\n");
+   	NRF_LOG_INFO("Start ranging loop\n");
 
         uint8_t loop, isReady, i;
         VL53L5CX_ResultsData 	Results;
@@ -1077,7 +1077,7 @@ void vl53l5cx_sensor_init(void)
 					Results.target_status[VL53L5CX_NB_TARGET_PER_ZONE*i],
 					Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*i]);
    			}
-   			NRF_LOG_INFO("\n");
+   			NRF_LOG_INFO("");
    			loop++;
    		}
 
@@ -1177,7 +1177,7 @@ int main(void)
     twi_init();
 
     gpio_init();
-        NRF_LOG_INFO("good to go");
+        NRF_LOG_INFO("GPIO initilized");
         NRF_LOG_FLUSH();
 
 

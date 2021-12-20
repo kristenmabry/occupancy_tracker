@@ -1040,7 +1040,6 @@ void vl53l5cx_sensor_init(void)
     NRF_LOG_INFO("Mode set to continuous");
   }
  
-
   status |= vl53l5cx_get_ranging_frequency_hz(&sensor_config, &temp_number);
   if (status)
   {
@@ -1051,15 +1050,15 @@ void vl53l5cx_sensor_init(void)
     NRF_LOG_INFO("frequency got: %d", temp_number);
   }
 
-	/* Start a ranging session */
-        status = vl53l5cx_set_integration_time_ms(&sensor_config, 20);  // 20ms
-   	status = vl53l5cx_start_ranging(&sensor_config);
-   	NRF_LOG_INFO("Start ranging loop\n");
+  /* Start a ranging session */
+  status = vl53l5cx_set_integration_time_ms(&sensor_config, 20);  // 20ms
+  status = vl53l5cx_start_ranging(&sensor_config);
+  NRF_LOG_INFO("Start ranging loop\n");
 
-        uint8_t loop, isReady, i;
-        VL53L5CX_ResultsData 	Results;
-        loop = 0;
-  while(loop < 10)
+  uint8_t loop, isReady, i = 0;
+  VL53L5CX_ResultsData 	Results;
+  loop = 0;
+  while(1)
    	{
    		status = vl53l5cx_check_data_ready(&sensor_config, &isReady);
    		if(isReady)
@@ -1069,7 +1068,7 @@ void vl53l5cx_sensor_init(void)
    			/* As the sensor is set in 4x4 mode by default, we have a total
 			 * of 16 zones to print. For this example, only the data of first zone are
 			 * print */
-   			NRF_LOG_INFO("Print data no : %3u\n", sensor_config.streamcount);
+   			// NRF_LOG_INFO("Print data no : %3u\n", sensor_config.streamcount);
    			for(i = 0; i < 16; i++)
    			{
 				NRF_LOG_INFO("Zone : %3d, Status : %3u, Distance : %4d mm\n",
@@ -1077,13 +1076,13 @@ void vl53l5cx_sensor_init(void)
 					Results.target_status[VL53L5CX_NB_TARGET_PER_ZONE*i],
 					Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*i]);
    			}
-   			NRF_LOG_INFO("");
+   			// NRF_LOG_INFO("");
    			loop++;
    		}
 
 		/* Wait a few ms to avoid too high polling (function in platform
 		 * file, not in API) */
-   		WaitMs(&(sensor_config.platform), 100);
+   		WaitMs(&(sensor_config.platform), 1000);
    	}
 
 }

@@ -1,8 +1,8 @@
 % NEW
 clc
 serialportlist("available") % find which ports are being open
-% s = serialport("COM5", 115200, "StopBits", 1);
-configureCallback(s,"terminator",@readSerialData) % callback function setup
+% s = serialport("COM3", 115200, "StopBits", 1);
+configureCallback(s,"byte",912,@readSerialData) % callback function setup
 %
 
 clc
@@ -31,4 +31,42 @@ end
 
 x = x+1
 
+end
+
+
+function readSerialData(src,~)
+    bar_array = [];
+    for i = 1:16
+        data = readline(src);
+        if (strlength(data) == 1)
+            data = readline(src);
+        end
+        disp(data);
+        k = 0;
+        k = strfind(data, "Zone");
+
+        if(k == 13) % Zone location for current ranging loop
+            b = data{1};
+            zone = str2num(b(20:22));
+            row = floor(zone/4) + 1;
+            col = mod(zone, 4) + 1;
+    %         disp(b(20:22)); % Zone
+            bar_array(row, col) = str2num(b(49:53));
+    %         disp(b(34:36)); % Status
+    %         disp(b(49:53)); % Distance
+        end
+    end
+    
+    figure(1);
+    graph = bar3(bar_array)
+    colorbar
+    caxis([0 4000]);
+    axis([0 5 0 5 0 4000]);
+
+    for i = 1:length(graph)
+        zdata = graph(i).ZData;
+        graph(i).CData = zdata;
+        graph(i).FaceColor = 'interp';
+    end
+    drawnow
 end

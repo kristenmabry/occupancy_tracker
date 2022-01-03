@@ -93,6 +93,7 @@
 #include "vl53l5cx_api.h"
 
 #include "vl53l5cx_plugin_detection_thresholds.h"
+#include "vl53l5cx_plugin_motion_indicator.h"
 
 #define DEVICE_NAME                     "Nordic_HTS"                                /**< Name of device. Will be included in the advertising data. */
 #define MANUFACTURER_NAME               "NordicSemiconductor"                       /**< Manufacturer. Will be passed to Device Information Service. */
@@ -138,7 +139,13 @@
 
 #define DEAD_BEEF                       0xDEADBEEF                                  /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
 
-#define TWI_INSTANCE_ID     0 // twi instance
+#define TWI_INSTANCE_ID     0     // twi instance
+#define CEILING_HEIGHT      3100// height from sensor to floor
+#define RANGING_FREQUENCY   10     // frequency (Hz) of new ranging data (1-15 for 8x8) (1-60 for 4x4)
+#define MOTION_MINIMUM      400   // minimum distance for motion indication (at least <400mm && 1500mm from maximum)
+#define MOTION_MAXIMUM      1800  // maximum distance for motion indication (max 4000mm && 1500mm from minimum
+#define PERSON_MIN_HEIGHT   1500  // minimum height to increase occupancy
+#define INTEGRATION_TIME    10    // 
 
 APP_TIMER_DEF(m_battery_timer_id);                                                  /**< Battery timer. */
 BLE_BAS_DEF(m_bas);                                                                 /**< Structure used to identify the battery service. */
@@ -156,6 +163,9 @@ static sensorsim_cfg_t   m_battery_sim_cfg;                                     
 static sensorsim_state_t m_battery_sim_state;                                       /**< Battery Level sensor simulator state. */
 static sensorsim_cfg_t   m_temp_celcius_sim_cfg;                                    /**< Temperature simulator configuration. */
 static sensorsim_state_t m_temp_celcius_sim_state;                                  /**< Temperature simulator state. */
+
+int count;
+
 
 static ble_uuid_t m_adv_uuids[] =                                                   /**< Universally unique service identifiers. */
 {
@@ -977,92 +987,132 @@ void vl53l5cx_sensor_init(void)
     
   };
   
+  /*********************************/
+  /*      Initialization           */
+  /*********************************/
+
   uint8_t isAlive;
   uint8_t status;
+  uint8_t ranging_started;
+  VL53L5CX_Motion_Configuration 	motion_config;	/* Motion configuration*/
  
   status |= vl53l5cx_is_alive(&sensor_config, &isAlive);
-
-  if (!isAlive || status)
-  {
-    NRF_LOG_INFO("not alive");
-  }
-  else
-  {
-    NRF_LOG_INFO("sensor alive");
-  }
+  //if (status) printf("Sensor failed alive test with: %u\n", status);
 
   status |= vl53l5cx_init(&sensor_config);
-  if (status)
-  {
-    NRF_LOG_INFO("not init");
-  }
-  else
-  {
-    NRF_LOG_INFO("sensor init");
-  }
+  //if (status) printf("Initialization failed with: %u\n", status);
+  
+  /**** Steps and order? ****/
+  /* Resolution
+  /* Ranging Mode
+  /* Ranging frequency
+  /* Target order
+  /* Integration time */
+  //status |= vl53l5cx_stop_ranging(&sensor_config);
 
-  //status |= vl53l5cx_start_ranging(&sensor_config);
-  //if (status)
-  //{
-  //  NRF_LOG_INFO("not ranging");
-  //}
-  //else
-  //{
-  //  NRF_LOG_INFO("ranging started");
-  //}
+  //status |= vl53l5cx_start_ranging(&sensor_config);   /* Test ranging with defaults */
+  //if (status) printf("Start Ranging Failed with: %u\n", status);
 
   //status |= vl53l5cx_get_ranging_data(&sensor_config, &sensor_data);
-  //if (status)
-  //{
-  //  NRF_LOG_INFO("ranging failure");
-  //}
-  //else
-  //{
-  //  NRF_LOG_INFO("ranging success");
-  //}
 
   //status |= vl53l5cx_stop_ranging(&sensor_config);
-  //if (status)
-  //{
-  //  NRF_LOG_INFO("not ranging");
-  //}
-  //else
-  //{
-  //  NRF_LOG_INFO("ranging stopped");
-  //}
-  
-  uint8_t temp_number;
+
+  /*********************************/
+  /*   Program motion indicator    */
+  /*********************************/
+
+  //status = vl53l5cx_motion_indicator_init(&sensor_config, &motion_config, VL53L5CX_RESOLUTION_4X4);
+  //  if(status)
+  //    printf("Motion indicator init failed with status : %u\n", status);
+
+  ///* (Optional) Change the min and max distance used to detect motions. The
+  // * difference between min and max must never be >1500mm, and minimum never be <400mm,
+  // * otherwise the function below returns error 127 */
+  //status = vl53l5cx_motion_indicator_set_distance_motion(&sensor_config, &motion_config, MOTION_MINIMUM, MOTION_MAXIMUM);
+  //  if(status)
+  //    printf("Motion indicator set distance motion failed with status : %u\n", status);
+
+  /* If user want to change the resolution, he also needs to update the motion indicator resolution */
+  //status = vl53l5cx_set_resolution(&sensor_config, VL53L5CX_RESOLUTION_4X4);
+  //status = vl53l5cx_motion_indicator_set_resolution(&sensor_config, &motion_config, VL53L5CX_RESOLUTION_4X4);
+
+  ///* Increase ranging frequency for the example */
+  status = vl53l5cx_set_ranging_frequency_hz(&sensor_config, RANGING_FREQUENCY); // Set ranging frequency
+    if(status)
+      printf("vl53l5cx_set_ranging_frequency_hz failed, status %u\n", status);
+
+  uint8_t temp_number; // stores return data from commands
   vl53l5cx_get_ranging_mode(&sensor_config,  &temp_number);
 
   if(temp_number != VL53L5CX_RANGING_MODE_AUTONOMOUS) {
     status |= vl53l5cx_set_ranging_mode(&sensor_config, VL53L5CX_RANGING_MODE_AUTONOMOUS);  // PROBLEM AREA
   }
-  if (status)
-  {
-    NRF_LOG_INFO("mode not changed");
-  }
-  else
-  {
-    NRF_LOG_INFO("Mode set to continuous");
-  }
+    if (status)
+      printf("Mode not changed: %u\n", status);
  
   status |= vl53l5cx_get_ranging_frequency_hz(&sensor_config, &temp_number);
-  if (status)
-  {
-    NRF_LOG_INFO("frequency not got");
-  }
-  else
-  {
-    NRF_LOG_INFO("frequency got: %d", temp_number);
-  }
+    if (status)
+      printf("Frequency get failed: %u\n", status);
 
+  /*********************************/
+  /*  Program detection thresholds */
+  /*********************************/
+
+  // set up detection threshold
+  VL53L5CX_DetectionThresholds thresholds[VL53L5CX_NB_THRESHOLDS];
+  memset(&thresholds, 0, sizeof(thresholds));
+
+//// 4x4
+//  for(int i = 0; i < 16; i++){
+//     /* The first wanted thresholds is GREATER_THAN mode. Please note that the
+//     * first one must always be set with a mathematic_operation
+//     * VL53L5CX_OPERATION_NONE.
+//     * For this example, the signal thresholds is set to 150 kcps/spads
+//     * (the format is automatically updated inside driver)
+//     */
+//    //thresholds[2*i].zone_num = i;
+//    //thresholds[2*i].measurement = VL53L5CX_SIGNAL_PER_SPAD_KCPS;
+//    //thresholds[2*i].type = VL53L5CX_GREATER_THAN_MAX_CHECKER;
+//    //thresholds[2*i].mathematic_operation = VL53L5CX_OPERATION_NONE;
+//    //thresholds[2*i].param_low_thresh = 10;
+//    //thresholds[2*i].param_high_thresh = 10;
+
+//    /* The second wanted checker is IN_WINDOW mode. We will set a
+//     * mathematical thresholds VL53L5CX_OPERATION_OR, to add the previous
+//     * checker to this one.
+//     * For this example, distance thresholds are set between 200mm and
+//     * 400mm (the format is automatically updated inside driver).
+//     */
+//    thresholds[2*i+1].zone_num = i;
+//    thresholds[2*i+1].measurement = VL53L5CX_DISTANCE_MM;
+//    thresholds[2*i+1].type = VL53L5CX_IN_WINDOW;
+//    thresholds[2*i+1].mathematic_operation = VL53L5CX_OPERATION_OR;
+//    thresholds[2*i+1].param_low_thresh = 100;
+//    thresholds[2*i+1].param_high_thresh = 500;
+//    }
+
+//    /* The last thresholds must be clearly indicated. As we have 32
+//    * checkers (16 zones x 2), the last one is the 31 */
+//    thresholds[31].zone_num = VL53L5CX_LAST_THRESHOLD | thresholds[16].zone_num;
+
+//    /* Send array of thresholds to the sensor */
+//    status |= vl53l5cx_set_detection_thresholds(&sensor_config, thresholds);
+
+//    /* Enable detection thresholds */
+//    status |= vl53l5cx_set_detection_thresholds_enable(&sensor_config, 1);
+
+
+  /*********************************/
+  /*         Ranging loop          */
+  /*********************************/
   /* Start a ranging session */
-  status = vl53l5cx_set_integration_time_ms(&sensor_config, 20);  // 20ms
+  status = vl53l5cx_set_integration_time_ms(&sensor_config, INTEGRATION_TIME);  // 10ms
   status = vl53l5cx_start_ranging(&sensor_config);
   NRF_LOG_INFO("Start ranging loop\n");
 
   uint8_t loop, isReady, i = 0;
   VL53L5CX_ResultsData 	Results;
+  uint8_t person_entry = 0, check = 1, person_exit = 0, person_entry_2, person_exit_2;
   loop = 0;
   while(1)
    	{
@@ -1076,61 +1126,160 @@ void vl53l5cx_sensor_init(void)
 			 * print */
    			// NRF_LOG_INFO("Print data no : %3u\n", sensor_config.streamcount);
    			for(i = 0; i < 16; i++)
-   			{
+   			{                  //"Zone : %3d, Status : %3u, Distance : %4d mm\n" Results.target_status
+                                           //"Zone : %3d, Motion : %3d, Distance : %4d mm\n" Results.motion_indicator.motion
 				NRF_LOG_INFO("Zone : %3d, Status : %3u, Distance : %4d mm\n",
 					i,
-					Results.target_status[VL53L5CX_NB_TARGET_PER_ZONE*i],
-					Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*i]);
+					 Results.target_status[VL53L5CX_NB_TARGET_PER_ZONE*i],
+					(CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*i]));
    			}
+                        /* Entry - not pin side to pin side */
+                        // person just in area 1
+                        if((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) > PERSON_MIN_HEIGHT || 
+                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*4]) > PERSON_MIN_HEIGHT ||
+                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*8]) > PERSON_MIN_HEIGHT ||
+                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*12]) > PERSON_MIN_HEIGHT)
+                          { // not in area 3
+                            if((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*3]) < PERSON_MIN_HEIGHT &&
+                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*7]) < PERSON_MIN_HEIGHT &&
+                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) < PERSON_MIN_HEIGHT &&
+                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) < PERSON_MIN_HEIGHT)
+                              {
+                                person_entry = 1;
+                              }
+                          }
+                        // person just in area 3                       
+                        if(((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*3]) > PERSON_MIN_HEIGHT || 
+                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*7]) > PERSON_MIN_HEIGHT ||
+                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) > PERSON_MIN_HEIGHT ||
+                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) > PERSON_MIN_HEIGHT)
+                          && person_entry == 1) 
+                          { // not in area 1 or 2
+                            if( /* 1 */ ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) < PERSON_MIN_HEIGHT &&
+                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*4]) < PERSON_MIN_HEIGHT &&
+                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*8]) < PERSON_MIN_HEIGHT &&
+                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*12]) < PERSON_MIN_HEIGHT) &&
+
+                               /* 2 */ ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*1]) < PERSON_MIN_HEIGHT &&
+                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*5]) < PERSON_MIN_HEIGHT &&
+                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*9]) < PERSON_MIN_HEIGHT &&
+                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*13]) < PERSON_MIN_HEIGHT) &&
+
+                              ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*2]) < PERSON_MIN_HEIGHT &&
+                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*6]) < PERSON_MIN_HEIGHT &&
+                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*10]) < PERSON_MIN_HEIGHT &&
+                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*14]) < PERSON_MIN_HEIGHT) )
+                              {
+                                person_exit = 1;
+                              }
+                          }
+
+                        // No person present - clear flags
+                        if(/* 3 */ 
+                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*3]) < PERSON_MIN_HEIGHT && 
+                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*7]) < PERSON_MIN_HEIGHT &&
+                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) < PERSON_MIN_HEIGHT &&
+                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) < PERSON_MIN_HEIGHT &&
+
+                          /* 1 */ ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) < PERSON_MIN_HEIGHT &&
+                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*4]) < PERSON_MIN_HEIGHT &&
+                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*8]) < PERSON_MIN_HEIGHT &&
+                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*12]) < PERSON_MIN_HEIGHT) &&
+
+                           /* 2 */ ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*1]) < PERSON_MIN_HEIGHT &&
+                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*5]) < PERSON_MIN_HEIGHT &&
+                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*9]) < PERSON_MIN_HEIGHT &&
+                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*13]) < PERSON_MIN_HEIGHT) &&
+
+                          ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*2]) < PERSON_MIN_HEIGHT &&
+                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*6]) < PERSON_MIN_HEIGHT &&
+                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*10]) < PERSON_MIN_HEIGHT &&
+                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*14]) < PERSON_MIN_HEIGHT) )
+                          {
+                            if(person_exit) count++; // person passed through and area is clear
+                            person_entry = 0;
+                            person_exit = 0;
+                          }
+
+                          /* Exit - pin side to non pin side */
+                        // person just in area 3
+                        if((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*3]) > PERSON_MIN_HEIGHT || 
+                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*7]) > PERSON_MIN_HEIGHT ||
+                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) > PERSON_MIN_HEIGHT ||
+                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) > PERSON_MIN_HEIGHT)
+                          { // not in area 1
+                            if((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) < PERSON_MIN_HEIGHT &&
+                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*4]) < PERSON_MIN_HEIGHT &&
+                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*8]) < PERSON_MIN_HEIGHT &&
+                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*12]) < PERSON_MIN_HEIGHT)
+                              {
+                                person_entry_2 = 1;
+                              }
+                          }
+                        // person just in area 1                       
+                        if(((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) > PERSON_MIN_HEIGHT || 
+                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*4]) > PERSON_MIN_HEIGHT ||
+                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*8]) > PERSON_MIN_HEIGHT ||
+                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*12]) > PERSON_MIN_HEIGHT)
+                          && person_entry_2 == 1) 
+                          { // not in area 3 or 2
+                            if( /* 3 */ ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*3]) < PERSON_MIN_HEIGHT &&
+                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*7]) < PERSON_MIN_HEIGHT &&
+                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) < PERSON_MIN_HEIGHT &&
+                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) < PERSON_MIN_HEIGHT) &&
+
+                               /* 2 */ ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*1]) < PERSON_MIN_HEIGHT &&
+                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*5]) < PERSON_MIN_HEIGHT &&
+                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*9]) < PERSON_MIN_HEIGHT &&
+                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*13]) < PERSON_MIN_HEIGHT) &&
+
+                              ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*2]) < PERSON_MIN_HEIGHT &&
+                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*6]) < PERSON_MIN_HEIGHT &&
+                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*10]) < PERSON_MIN_HEIGHT &&
+                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*14]) < PERSON_MIN_HEIGHT) )
+                              {
+                                person_exit_2 = 1;
+                              }
+                          }
+
+                        // No person present - clear flags
+                        if(/* 3 */ 
+                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*3]) < PERSON_MIN_HEIGHT && 
+                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*7]) < PERSON_MIN_HEIGHT &&
+                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) < PERSON_MIN_HEIGHT &&
+                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) < PERSON_MIN_HEIGHT &&
+
+                          /* 1 */ ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) < PERSON_MIN_HEIGHT &&
+                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*4]) < PERSON_MIN_HEIGHT &&
+                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*8]) < PERSON_MIN_HEIGHT &&
+                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*12]) < PERSON_MIN_HEIGHT) &&
+
+                           /* 2 */ ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*1]) < PERSON_MIN_HEIGHT &&
+                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*5]) < PERSON_MIN_HEIGHT &&
+                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*9]) < PERSON_MIN_HEIGHT &&
+                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*13]) < PERSON_MIN_HEIGHT) &&
+
+                          ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*2]) < PERSON_MIN_HEIGHT &&
+                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*6]) < PERSON_MIN_HEIGHT &&
+                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*10]) < PERSON_MIN_HEIGHT &&
+                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*14]) < PERSON_MIN_HEIGHT) )
+                          {
+                            if(person_exit_2)
+                             count--; // person passed through and area is clear
+                            person_entry_2 = 0;
+                            person_exit_2 = 0;
+                          }
+
    			// NRF_LOG_INFO("");
    			loop++;
    		}
 
 		/* Wait a few ms to avoid too high polling (function in platform
 		 * file, not in API) */
-   		WaitMs(&(sensor_config.platform), 1000);
+   		WaitMs(&(sensor_config.platform), 5);
    	}
-  
-  //// set up detection threshold
-  //VL53L5CX_DetectionThresholds thresholds[VL53L5CX_NB_THRESHOLDS];
-  //memset(&thresholds, 0, sizeof(thresholds));
-  //for(int i = 0; i < 16; i++){
-  //   /* The first wanted thresholds is GREATER_THAN mode. Please note that the
-  //   * first one must always be set with a mathematic_operation
-  //   * VL53L5CX_OPERATION_NONE.
-  //   * For this example, the signal thresholds is set to 150 kcps/spads
-  //   * (the format is automatically updated inside driver)
-  //   */
-  //  thresholds[2*i].zone_num = i;
-  //  thresholds[2*i].measurement = VL53L5CX_SIGNAL_PER_SPAD_KCPS;
-  //  thresholds[2*i].type = VL53L5CX_GREATER_THAN_MAX_CHECKER;
-  //  thresholds[2*i].mathematic_operation = VL53L5CX_OPERATION_NONE;
-  //  thresholds[2*i].param_low_thresh = 10;
-  //  thresholds[2*i].param_high_thresh = 10;
+  printf("done");
 
-  //  /* The second wanted checker is IN_WINDOW mode. We will set a
-  //   * mathematical thresholds VL53L5CX_OPERATION_OR, to add the previous
-  //   * checker to this one.
-  //   * For this example, distance thresholds are set between 200mm and
-  //   * 400mm (the format is automatically updated inside driver).
-  //   */
-  //  thresholds[2*i+1].zone_num = i;
-  //  thresholds[2*i+1].measurement = VL53L5CX_DISTANCE_MM;
-  //  thresholds[2*i+1].type = VL53L5CX_IN_WINDOW;
-  //  thresholds[2*i+1].mathematic_operation = VL53L5CX_OPERATION_OR;
-  //  thresholds[2*i+1].param_low_thresh = 100;
-  //  thresholds[2*i+1].param_high_thresh = 1000;
-  //  }
-
-  //  /* The last thresholds must be clearly indicated. As we have 32
-  //  * checkers (16 zones x 2), the last one is the 31 */
-  //  thresholds[31].zone_num = VL53L5CX_LAST_THRESHOLD | thresholds[31].zone_num;
-
-  //  /* Send array of thresholds to the sensor */
-  //  status |= vl53l5cx_set_detection_thresholds(&sensor_config, thresholds);
-
-  //  /* Enable detection thresholds */
-  //  status |= vl53l5cx_set_detection_thresholds_enable(&sensor_config, 1);
 }
 
 
@@ -1138,8 +1287,7 @@ void vl53l5cx_sensor_init(void)
 void in_pin_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action) // pin is which pin triggered it, actions is if it was a high to low or low to high interupt
 {
   //if(action == GPIOTE_CONFIG_POLARITY_LoToHi) {
-        NRF_LOG_INFO("interupt occurred");
-        NRF_LOG_FLUSH();
+        printf("interupt occurred");
       //}
 }
 
@@ -1198,8 +1346,6 @@ void TIMER0_IRQHandler(void)
         
 }
 
-
-
 /**@brief Function for application main entry.
  */
 int main(void)
@@ -1220,7 +1366,7 @@ int main(void)
     //conn_params_init();
     //peer_manager_init();
 
-    // Sensor init
+    /* Sensor init */
     twi_init();
 
     gpio_init();

@@ -95,7 +95,37 @@
 #include "vl53l5cx_plugin_detection_thresholds.h"
 #include "vl53l5cx_plugin_motion_indicator.h"
 
-#define DEVICE_NAME                     "Nordic_HTS"                                /**< Name of device. Will be included in the advertising data. */
+#include <nrfx_saadc.h>
+#include "core_cm4.h"
+#include "nrf_clock.h"
+#include "nrf_rtc.h"
+#include "bsp.h"
+#include "nrf52.h"
+//#include <nrfx_saadc_v2.h>
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+
+#include "nrf.h"
+#include "bsp.h"
+
+#include "nrf_delay.h"
+
+#include "nrf_clock.h"
+#include "nrf_rtc.h"
+#include "nrf_gpio.h"
+#include "ble_cus.h"
+
+#include <nrf_sdm.h>
+
+
+#include "nrf52.h"
+#include "core_cm4.h"
+
+
+
+#define DEVICE_NAME                     "Lidar"                                /**< Name of device. Will be included in the advertising data. */
 #define MANUFACTURER_NAME               "NordicSemiconductor"                       /**< Manufacturer. Will be passed to Device Information Service. */
 #define MODEL_NUM                       "NS-HTS-EXAMPLE"                            /**< Model number. Will be passed to Device Information Service. */
 #define MANUFACTURER_ID                 0x1122334455                                /**< Manufacturer ID, part of System ID. Will be passed to Device Information Service. */
@@ -108,7 +138,7 @@
 
 #define APP_ADV_DURATION                18000                                       /**< The advertising duration (180 seconds) in units of 10 milliseconds. */
 
-#define BATTERY_LEVEL_MEAS_INTERVAL     APP_TIMER_TICKS(2000)                       /**< Battery level measurement interval (ticks). */
+#define BATTERY_LEVEL_MEAS_INTERVAL     APP_TIMER_TICKS(500)                       /**< Battery level measurement interval (ticks). */
 #define MIN_BATTERY_LEVEL               81                                          /**< Minimum battery level as returned by the simulated measurement function. */
 #define MAX_BATTERY_LEVEL               100                                         /**< Maximum battery level as returned by the simulated measurement function. */
 #define BATTERY_LEVEL_INCREMENT         1                                           /**< Value by which the battery level is incremented/decremented for each call to the simulated measurement function. */
@@ -137,11 +167,13 @@
 #define SEC_PARAM_MIN_KEY_SIZE          7                                           /**< Minimum encryption key size. */
 #define SEC_PARAM_MAX_KEY_SIZE          16                                          /**< Maximum encryption key size. */
 
+#define READ_VL53L5CX_INTERVAL          APP_TIMER_TICKS(100)                        /**< Perform VL53L5CX read and update occupancy variable - 100ms*/
+
 #define DEAD_BEEF                       0xDEADBEEF                                  /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
 
 #define TWI_INSTANCE_ID     0     // twi instance
-#define CEILING_HEIGHT      3100// height from sensor to floor
-#define RANGING_FREQUENCY   10     // frequency (Hz) of new ranging data (1-15 for 8x8) (1-60 for 4x4)
+#define CEILING_HEIGHT      2100  // height from sensor to floor
+#define RANGING_FREQUENCY   8     // frequency (Hz) of new ranging data (1-15 for 8x8) (1-60 for 4x4)
 #define MOTION_MINIMUM      400   // minimum distance for motion indication (at least <400mm && 1500mm from maximum)
 #define MOTION_MAXIMUM      1800  // maximum distance for motion indication (max 4000mm && 1500mm from minimum
 #define PERSON_MIN_HEIGHT   1500  // minimum height to increase occupancy
@@ -156,6 +188,9 @@ BLE_ADVERTISING_DEF(m_advertising);                                             
 NRF_BLE_GQ_DEF(m_ble_gatt_queue,                                                    /**< BLE GATT Queue instance. */
                NRF_SDH_BLE_PERIPHERAL_LINK_COUNT,
                NRF_BLE_GQ_QUEUE_SIZE);
+APP_TIMER_DEF(m_vl53l5cx_timer_id);
+BLE_CUS_DEF(m_cus);                                                             /**< Context for the Queued Write module.*/
+
 
 static uint16_t          m_conn_handle = BLE_CONN_HANDLE_INVALID;                   /**< Handle of the current connection. */
 static bool              m_hts_meas_ind_conf_pending = false;                       /**< Flag to keep track of when an indication confirmation is pending. */
@@ -163,9 +198,6 @@ static sensorsim_cfg_t   m_battery_sim_cfg;                                     
 static sensorsim_state_t m_battery_sim_state;                                       /**< Battery Level sensor simulator state. */
 static sensorsim_cfg_t   m_temp_celcius_sim_cfg;                                    /**< Temperature simulator configuration. */
 static sensorsim_state_t m_temp_celcius_sim_state;                                  /**< Temperature simulator state. */
-
-int count;
-
 
 static ble_uuid_t m_adv_uuids[] =                                                   /**< Universally unique service identifiers. */
 {
@@ -179,6 +211,29 @@ static void advertising_start(bool erase_bonds);
 static void temperature_measurement_send(void);
 
 static const nrf_drv_twi_t m_twi = NRF_DRV_TWI_INSTANCE(TWI_INSTANCE_ID);  // give device twi id
+
+
+static uint8_t count, isReady;
+
+static uint8_t person_entry = 0, check = 1, person_exit = 0, person_entry_2, person_exit_2;
+
+static  VL53L5CX_Configuration sensor_config = {
+      /* Platform, filled by customer into the 'platform.h' file */
+        .platform = {
+          .address = 0x29,
+          .m_twi = m_twi,
+        },
+	/* Results streamcount, value auto-incremented at each range */
+	//.streamcount = 0,
+	/* Size of data read though I2C */
+	//uint32_t	        data_read_size;
+	/* Offset buffer */
+	//uint8_t		        offset_data[VL53L5CX_OFFSET_BUFFER_SIZE];
+	/* Xtalk buffer */
+	//uint8_t		        xtalk_data[VL53L5CX_XTALK_BUFFER_SIZE];
+	/* Temporary buffer used for internal driver processing */
+	 //uint8_t	        temp_buffer[VL53L5CX_TEMPORARY_BUFFER_SIZE];
+  };
 
 
 /**@brief Callback function for asserts in the SoftDevice.
@@ -247,17 +302,182 @@ static void pm_evt_handler(pm_evt_t const * p_evt)
     }
 }
 
+/** @brief Attempts to read new Vl53l5cx data, then check if occupancy should change 
+*
+*   @param
+*/
+void read_lidar_data() {
+  VL53L5CX_ResultsData 	Results;
+
+  vl53l5cx_check_data_ready(&sensor_config, &isReady);
+  if(isReady == 1) 
+  {
+    vl53l5cx_get_ranging_data(&sensor_config, &Results);
+
+    /* As the sensor is set in 4x4 mode by default, we have a total
+     * of 16 zones to print. For this example, only the data of first zone are
+     * print */
+    // NRF_LOG_INFO("Print data no : %3u\n", sensor_config.streamcount);
+    uint8_t i;
+    for(i = 0; i < 16; i++)
+    {                  //"Zone : %3d, Status : %3u, Distance : %4d mm\n" Results.target_status
+                       //"Zone : %3d, Motion : %3d, Distance : %4d mm\n" Results.motion_indicator.motion
+            NRF_LOG_INFO("Zone : %3d, Status : %3u, Distance : %4d mm\n",
+                    i,
+                     Results.target_status[VL53L5CX_NB_TARGET_PER_ZONE*i],
+                    (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*i]));
+    }
+    /* Entry - not pin side to pin side */
+    // person just in area 1
+    if((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) > PERSON_MIN_HEIGHT || 
+      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*4]) > PERSON_MIN_HEIGHT ||
+      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*8]) > PERSON_MIN_HEIGHT ||
+      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*12]) > PERSON_MIN_HEIGHT)
+      { // not in area 3
+        if((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*3]) < PERSON_MIN_HEIGHT &&
+          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*7]) < PERSON_MIN_HEIGHT &&
+          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) < PERSON_MIN_HEIGHT &&
+          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) < PERSON_MIN_HEIGHT)
+          {
+            person_entry = 1;
+          }
+      }
+    // person just in area 3                       
+    if(((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*3]) > PERSON_MIN_HEIGHT || 
+      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*7]) > PERSON_MIN_HEIGHT ||
+      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) > PERSON_MIN_HEIGHT ||
+      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) > PERSON_MIN_HEIGHT)
+      && person_entry == 1) 
+      { // not in area 1 or 2
+        if( /* 1 */ ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) < PERSON_MIN_HEIGHT &&
+          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*4]) < PERSON_MIN_HEIGHT &&
+          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*8]) < PERSON_MIN_HEIGHT &&
+          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*12]) < PERSON_MIN_HEIGHT) &&
+
+           /* 2 */ ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*1]) < PERSON_MIN_HEIGHT &&
+          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*5]) < PERSON_MIN_HEIGHT &&
+          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*9]) < PERSON_MIN_HEIGHT &&
+          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*13]) < PERSON_MIN_HEIGHT) &&
+
+          ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*2]) < PERSON_MIN_HEIGHT &&
+          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*6]) < PERSON_MIN_HEIGHT &&
+          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*10]) < PERSON_MIN_HEIGHT &&
+          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*14]) < PERSON_MIN_HEIGHT) )
+          {
+            person_exit = 1;
+          }
+      }
+
+    // No person present - clear flags
+    if(/* 3 */ 
+      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*3]) < PERSON_MIN_HEIGHT && 
+      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*7]) < PERSON_MIN_HEIGHT &&
+      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) < PERSON_MIN_HEIGHT &&
+      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) < PERSON_MIN_HEIGHT &&
+
+      /* 1 */ ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) < PERSON_MIN_HEIGHT &&
+      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*4]) < PERSON_MIN_HEIGHT &&
+      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*8]) < PERSON_MIN_HEIGHT &&
+      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*12]) < PERSON_MIN_HEIGHT) &&
+
+       /* 2 */ ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*1]) < PERSON_MIN_HEIGHT &&
+      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*5]) < PERSON_MIN_HEIGHT &&
+      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*9]) < PERSON_MIN_HEIGHT &&
+      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*13]) < PERSON_MIN_HEIGHT) &&
+
+      ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*2]) < PERSON_MIN_HEIGHT &&
+      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*6]) < PERSON_MIN_HEIGHT &&
+      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*10]) < PERSON_MIN_HEIGHT &&
+      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*14]) < PERSON_MIN_HEIGHT) )
+      {
+        if(person_exit) count++; // person passed through and area is clear
+        person_entry = 0;
+        person_exit = 0;
+      }
+
+      /* Exit - pin side to non pin side */
+    // person just in area 3
+    if((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*3]) > PERSON_MIN_HEIGHT || 
+      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*7]) > PERSON_MIN_HEIGHT ||
+      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) > PERSON_MIN_HEIGHT ||
+      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) > PERSON_MIN_HEIGHT)
+      { // not in area 1
+        if((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) < PERSON_MIN_HEIGHT &&
+          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*4]) < PERSON_MIN_HEIGHT &&
+          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*8]) < PERSON_MIN_HEIGHT &&
+          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*12]) < PERSON_MIN_HEIGHT)
+          {
+            person_entry_2 = 1;
+          }
+      }
+    // person just in area 1                       
+    if(((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) > PERSON_MIN_HEIGHT || 
+      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*4]) > PERSON_MIN_HEIGHT ||
+      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*8]) > PERSON_MIN_HEIGHT ||
+      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*12]) > PERSON_MIN_HEIGHT)
+      && person_entry_2 == 1) 
+      { // not in area 3 or 2
+        if( /* 3 */ ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*3]) < PERSON_MIN_HEIGHT &&
+          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*7]) < PERSON_MIN_HEIGHT &&
+          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) < PERSON_MIN_HEIGHT &&
+          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) < PERSON_MIN_HEIGHT) &&
+
+           /* 2 */ ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*1]) < PERSON_MIN_HEIGHT &&
+          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*5]) < PERSON_MIN_HEIGHT &&
+          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*9]) < PERSON_MIN_HEIGHT &&
+          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*13]) < PERSON_MIN_HEIGHT) &&
+
+          ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*2]) < PERSON_MIN_HEIGHT &&
+          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*6]) < PERSON_MIN_HEIGHT &&
+          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*10]) < PERSON_MIN_HEIGHT &&
+          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*14]) < PERSON_MIN_HEIGHT) )
+          {
+            person_exit_2 = 1;
+          }
+      }
+
+    // No person present - clear flags
+    if(/* 3 */ 
+      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*3]) < PERSON_MIN_HEIGHT && 
+      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*7]) < PERSON_MIN_HEIGHT &&
+      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) < PERSON_MIN_HEIGHT &&
+      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) < PERSON_MIN_HEIGHT &&
+
+      /* 1 */ ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) < PERSON_MIN_HEIGHT &&
+      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*4]) < PERSON_MIN_HEIGHT &&
+      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*8]) < PERSON_MIN_HEIGHT &&
+      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*12]) < PERSON_MIN_HEIGHT) &&
+
+       /* 2 */ ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*1]) < PERSON_MIN_HEIGHT &&
+      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*5]) < PERSON_MIN_HEIGHT &&
+      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*9]) < PERSON_MIN_HEIGHT &&
+      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*13]) < PERSON_MIN_HEIGHT) &&
+
+      ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*2]) < PERSON_MIN_HEIGHT &&
+      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*6]) < PERSON_MIN_HEIGHT &&
+      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*10]) < PERSON_MIN_HEIGHT &&
+      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*14]) < PERSON_MIN_HEIGHT) )
+      {
+        if(person_exit_2)
+         count--; // person passed through and area is clear
+        person_entry_2 = 0;
+        person_exit_2 = 0;
+      }
+  
+  }
+}
 
 /**@brief Function for performing a battery measurement, and update the Battery Level characteristic in the Battery Service.
  */
 static void battery_level_update(void)
 {
     ret_code_t err_code;
-    uint8_t  battery_level;
+    //uint8_t  battery_level;
 
-    battery_level = (uint8_t)sensorsim_measure(&m_battery_sim_state, &m_battery_sim_cfg);
+    //battery_level = (uint8_t)sensorsim_measure(&m_battery_sim_state, &m_battery_sim_cfg);
 
-    err_code = ble_bas_battery_level_update(&m_bas, battery_level, BLE_CONN_HANDLE_ALL);
+    err_code = ble_cus_custom_value_update(&m_cus, count);
+    //err_code = ble_bas_battery_level_update(&m_bas, count, BLE_CONN_HANDLE_ALL);
     if ((err_code != NRF_SUCCESS) &&
         (err_code != NRF_ERROR_INVALID_STATE) &&
         (err_code != NRF_ERROR_RESOURCES) &&
@@ -268,6 +488,7 @@ static void battery_level_update(void)
         APP_ERROR_HANDLER(err_code);
     }
 }
+
 
 
 /**@brief Function for handling the Battery measurement timer timeout.
@@ -281,6 +502,23 @@ static void battery_level_meas_timeout_handler(void * p_context)
 {
     UNUSED_PARAMETER(p_context);
     battery_level_update();
+
+}
+
+static void occupancy_meas_timeout_handler()
+{}
+
+/**@brief Function for handling the Battery measurement timer timeout.
+ *
+ * @details This function will be called each time the vl53l5cx_read timer expires
+ *
+ * @param[in] p_context  Pointer used for passing some arbitrary information (context) from the
+ *                       app_start_timer() call to the timeout handler.
+ */
+static void vl53l5cx_read_handler(void * p_context)
+{
+    read_lidar_data();    
+
 }
 
 
@@ -336,6 +574,8 @@ static void timers_init(void)
                                 APP_TIMER_MODE_REPEATED,
                                 battery_level_meas_timeout_handler);
     APP_ERROR_CHECK(err_code);
+
+    err_code = app_timer_create(&m_vl53l5cx_timer_id, APP_TIMER_MODE_REPEATED, vl53l5cx_read_handler);
 }
 
 
@@ -453,6 +693,45 @@ static void nrf_qwr_error_handler(uint32_t nrf_error)
     APP_ERROR_HANDLER(nrf_error);
 }
 
+/**@brief Function for handling the Custom Service Service events.
+ *
+ * @details This function will be called for all Custom Service events which are passed to
+ *          the application.
+ *
+ * @param[in]   p_cus_service  Custom Service structure.
+ * @param[in]   p_evt          Event received from the Custom Service.
+ *
+ */
+static void on_cus_evt(ble_cus_t     * p_cus_service,
+                       ble_cus_evt_t * p_evt)
+{
+    ret_code_t err_code;
+    
+    switch(p_evt->evt_type)
+    {
+        case BLE_CUS_EVT_NOTIFICATION_ENABLED:
+            
+             //err_code = app_timer_start(m_notification_timer_id, NOTIFICATION_INTERVAL, NULL);
+             APP_ERROR_CHECK(err_code);
+             break;
+
+        case BLE_CUS_EVT_NOTIFICATION_DISABLED:
+
+            //err_code = app_timer_stop(m_notification_timer_id);
+            APP_ERROR_CHECK(err_code);
+            break;
+
+        case BLE_CUS_EVT_CONNECTED:
+            break;
+
+        case BLE_CUS_EVT_DISCONNECTED:
+              break;
+
+        default:
+              // No implementation needed.
+              break;
+    }
+}
 
 /**@brief Function for initializing services that will be used by the application.
  *
@@ -466,6 +745,7 @@ static void services_init(void)
     ble_dis_init_t     dis_init;
     nrf_ble_qwr_init_t qwr_init = {0};
     ble_dis_sys_id_t   sys_id;
+    ble_cus_init_t      cus_init = {0};
 
     // Initialize Queued Write Module.
     qwr_init.error_handler = nrf_qwr_error_handler;
@@ -473,21 +753,33 @@ static void services_init(void)
     err_code = nrf_ble_qwr_init(&m_qwr, &qwr_init);
     APP_ERROR_CHECK(err_code);
 
-    // Initialize Health Thermometer Service
-    memset(&hts_init, 0, sizeof(hts_init));
+    // Initialize Occupancy Service
+     // Initialize CUS Service init structure to zero.
+    cus_init.evt_handler                = on_cus_evt;
 
-    hts_init.evt_handler                 = on_hts_evt;
-    hts_init.p_gatt_queue                = &m_ble_gatt_queue;
-    hts_init.error_handler               = service_error_handler;
-    hts_init.temp_type_as_characteristic = TEMP_TYPE_AS_CHARACTERISTIC;
-    hts_init.temp_type                   = BLE_HTS_TEMP_TYPE_BODY;
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cus_init.custom_value_char_attr_md.cccd_write_perm);
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cus_init.custom_value_char_attr_md.read_perm);
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cus_init.custom_value_char_attr_md.write_perm);
 
-    // Here the sec level for the Health Thermometer Service can be changed/increased.
-    hts_init.ht_meas_cccd_wr_sec = SEC_JUST_WORKS;
-    hts_init.ht_type_rd_sec      = SEC_OPEN;
+    err_code = ble_cus_init(&m_cus, &cus_init);
+    APP_ERROR_CHECK(err_code);    
 
-    err_code = ble_hts_init(&m_hts, &hts_init);
-    APP_ERROR_CHECK(err_code);
+
+    //// Initialize Health Thermometer Service
+    //memset(&hts_init, 0, sizeof(hts_init));
+
+    //hts_init.evt_handler                 = on_hts_evt;
+    //hts_init.p_gatt_queue                = &m_ble_gatt_queue;
+    //hts_init.error_handler               = service_error_handler;
+    //hts_init.temp_type_as_characteristic = TEMP_TYPE_AS_CHARACTERISTIC;
+    //hts_init.temp_type                   = BLE_HTS_TEMP_TYPE_BODY;
+
+    //// Here the sec level for the Health Thermometer Service can be changed/increased.
+    //hts_init.ht_meas_cccd_wr_sec = SEC_JUST_WORKS;
+    //hts_init.ht_type_rd_sec      = SEC_OPEN;
+
+    //err_code = ble_hts_init(&m_hts, &hts_init);
+    //APP_ERROR_CHECK(err_code);
 
     // Initialize Battery Service.
     memset(&bas_init, 0, sizeof(bas_init));
@@ -551,6 +843,7 @@ static void application_timers_start(void)
 
     // Start application timers.
     err_code = app_timer_start(m_battery_timer_id, BATTERY_LEVEL_MEAS_INTERVAL, NULL);
+    err_code |= app_timer_start(m_vl53l5cx_timer_id, READ_VL53L5CX_INTERVAL, NULL);
     APP_ERROR_CHECK(err_code);
 }
 
@@ -965,23 +1258,24 @@ void twi_init(void)
 void vl53l5cx_sensor_init(void)
 {
   //uint8_t streamcount = 0;
-  VL53L5CX_Configuration sensor_config = {
-      /* Platform, filled by customer into the 'platform.h' file */
-        .platform = {
-          .address = 0x29,
-          .m_twi = m_twi,
-        },
-	/* Results streamcount, value auto-incremented at each range */
-	//.streamcount = 0,
-	/* Size of data read though I2C */
-	//uint32_t	        data_read_size;
-	/* Offset buffer */
-	//uint8_t		        offset_data[VL53L5CX_OFFSET_BUFFER_SIZE];
-	/* Xtalk buffer */
-	//uint8_t		        xtalk_data[VL53L5CX_XTALK_BUFFER_SIZE];
-	/* Temporary buffer used for internal driver processing */
-	 //uint8_t	        temp_buffer[VL53L5CX_TEMPORARY_BUFFER_SIZE];
-  };
+  sensor_config.platform.address = 0x29;
+  sensor_config.platform.m_twi; 
+ //     /* Platform, filled by customer into the 'platform.h' file */
+ //       .platform = {
+ //         .address = 0x29,
+ //         .m_twi = m_twi,
+ //       },
+	///* Results streamcount, value auto-incremented at each range */
+	////.streamcount = 0,
+	///* Size of data read though I2C */
+	////uint32_t	        data_read_size;
+	///* Offset buffer */
+	////uint8_t		        offset_data[VL53L5CX_OFFSET_BUFFER_SIZE];
+	///* Xtalk buffer */
+	////uint8_t		        xtalk_data[VL53L5CX_XTALK_BUFFER_SIZE];
+	///* Temporary buffer used for internal driver processing */
+	// //uint8_t	        temp_buffer[VL53L5CX_TEMPORARY_BUFFER_SIZE];
+ // };
 
   VL53L5CX_ResultsData sensor_data = {
     
@@ -1110,14 +1404,14 @@ void vl53l5cx_sensor_init(void)
   status = vl53l5cx_start_ranging(&sensor_config);
   NRF_LOG_INFO("Start ranging loop\n");
 
-  uint8_t loop, isReady, i = 0;
+  uint8_t loop, i = 0;
   VL53L5CX_ResultsData 	Results;
-  uint8_t person_entry = 0, check = 1, person_exit = 0, person_entry_2, person_exit_2;
+  //uint8_t person_entry = 0, check = 1, person_exit = 0, person_entry_2, person_exit_2;
   loop = 0;
-  while(1)
+  while(loop == 0)
    	{
    		status = vl53l5cx_check_data_ready(&sensor_config, &isReady);
-   		if(isReady)
+   		if(isReady == 1)
    		{
    			vl53l5cx_get_ranging_data(&sensor_config, &Results);
 
@@ -1276,11 +1570,14 @@ void vl53l5cx_sensor_init(void)
 
 		/* Wait a few ms to avoid too high polling (function in platform
 		 * file, not in API) */
-   		WaitMs(&(sensor_config.platform), 5);
+   		WaitMs(&(sensor_config.platform), 10);
    	}
   printf("done");
 
 }
+
+
+
 
 
 // For INT PIN interupts
@@ -1302,49 +1599,127 @@ static void gpio_init()
     nrf_gpio_pin_clear(13);
 
  //interupt pin 12 = INT but int doesn't set currently
-  ret_code_t err_code;
+  //ret_code_t err_code;
 
-  err_code = nrf_drv_gpiote_init();
-  APP_ERROR_CHECK(err_code);
+  //err_code = nrf_drv_gpiote_init();
+  //APP_ERROR_CHECK(err_code);
 
-  nrf_drv_gpiote_in_config_t in_config = GPIOTE_CONFIG_IN_SENSE_TOGGLE(true);
-  in_config.pull = NRF_GPIO_PIN_PULLDOWN;
+  //nrf_drv_gpiote_in_config_t in_config = GPIOTE_CONFIG_IN_SENSE_TOGGLE(true);
+  //in_config.pull = NRF_GPIO_PIN_PULLDOWN;
 
-  err_code = nrf_drv_gpiote_in_init(12, &in_config, in_pin_handler);  // INT on pin 12
-  APP_ERROR_CHECK(err_code);
+  //err_code = nrf_drv_gpiote_in_init(12, &in_config, in_pin_handler);  // INT on pin 12
+  //APP_ERROR_CHECK(err_code);
 
-  nrf_drv_gpiote_in_event_enable(12, true);
+  //nrf_drv_gpiote_in_event_enable(12, true);
 }
 
 // FROM: https://github.com/NordicPlayground/nrf51-TIMER-examples/blob/master/timer_example_timer_mode/main.c
 //  https://devzone.nordicsemi.com/f/nordic-q-a/35230/timer-interrupts-nrf
+//void start_timer(void)
+//{		
+//    NRF_TIMER0->TASKS_STOP = 1; // Stop timer
+//    NRF_TIMER0->MODE = TIMER_MODE_MODE_Timer; // taken from Nordic dev zone
+//    NRF_TIMER0->BITMODE = (TIMER_BITMODE_BITMODE_24Bit << TIMER_BITMODE_BITMODE_Pos);
+//    NRF_TIMER0->PRESCALER = 8; // 1us resolution
+//    NRF_TIMER0->TASKS_CLEAR = 1; // Clear timer
+//    NRF_TIMER0->CC[0] = 62500;
+//    NRF_TIMER0->INTENSET = TIMER_INTENSET_COMPARE0_Enabled << TIMER_INTENSET_COMPARE0_Pos; // taken from Nordic dev zone
+//    NRF_TIMER0->SHORTS = (TIMER_SHORTS_COMPARE0_CLEAR_Enabled << TIMER_SHORTS_COMPARE0_CLEAR_Pos);
+//    //attachInterrupt(TIMER1_IRQn, TIMER1_Interrupt); // also used in variant.cpp to configure the RTC1
+//    NVIC_EnableIRQ(TIMER0_IRQn);
+//    NRF_TIMER0->TASKS_START = 1; // Start TIMER
+//}
+
 void start_timer(void)
 {		
-    NRF_TIMER0->TASKS_STOP = 1; // Stop timer
-    NRF_TIMER0->MODE = TIMER_MODE_MODE_Timer; // taken from Nordic dev zone
-    NRF_TIMER0->BITMODE = (TIMER_BITMODE_BITMODE_24Bit << TIMER_BITMODE_BITMODE_Pos);
-    NRF_TIMER0->PRESCALER = 8; // 1us resolution
-    NRF_TIMER0->TASKS_CLEAR = 1; // Clear timer
-    NRF_TIMER0->CC[0] = 62500;
-    NRF_TIMER0->INTENSET = TIMER_INTENSET_COMPARE0_Enabled << TIMER_INTENSET_COMPARE0_Pos; // taken from Nordic dev zone
-    NRF_TIMER0->SHORTS = (TIMER_SHORTS_COMPARE0_CLEAR_Enabled << TIMER_SHORTS_COMPARE0_CLEAR_Pos);
-    //attachInterrupt(TIMER1_IRQn, TIMER1_Interrupt); // also used in variant.cpp to configure the RTC1
-    NVIC_EnableIRQ(TIMER0_IRQn);
-    NRF_TIMER0->TASKS_START = 1; // Start TIMER
+    //// Irq setup
+    //NVIC_SetPriority(RTC0_IRQn, 15); // Lowest priority
+    //NVIC_ClearPendingIRQ(RTC0_IRQn);
+    //NVIC_EnableIRQ(RTC0_IRQn);
+
+    //// Start LFCLK clock
+    //nrf_clock_lf_src_set(NRF_CLOCK_LF_SRC_RC); // 32KHz RC
+    //nrf_clock_task_trigger(NRF_CLOCK_TASK_LFCLKSTART);
+
+    //// Set prescaler to the max value (12-bit)
+    //// -> 8Hz counter frequency
+    //nrf_rtc_prescaler_set(NRF_RTC0,(1<<12) -1);
+    //nrf_rtc_event_enable(NRF_RTC0, NRF_RTC_INT_TICK_MASK); /* yes INT mask must be used here */
+    //nrf_rtc_int_enable(NRF_RTC0,NRF_RTC_INT_TICK_MASK);
+    //nrf_rtc_task_trigger(NRF_RTC0,NRF_RTC_TASK_START);
+    
 }
+
+
 		
-/** TIMTER2 peripheral interrupt handler. This interrupt handler is called whenever there it a TIMER2 interrupt
+/** RTC0 Interupt Handler run when RTC interupt is triggered
  */
-void TIMER0_IRQHandler(void)
-{
-            if (NRF_TIMER0->EVENTS_COMPARE[0] != 0)
+void RTC0_IRQHandler(void) {
+    nrf_rtc_event_clear(NRF_RTC0,NRF_RTC_EVENT_TICK);
+    uint8_t isReady;
+    vl53l5cx_check_data_ready(&sensor_config, &isReady);
+    if(isReady) 
     {
-        NRF_TIMER0->EVENTS_COMPARE[0] = 0;
-    }        
-        //NRF_LOG_INFO("interupt wrong");
-        NRF_LOG_FLUSH();
-        
+      read_lidar_data();
+      
+      
+    }
 }
+
+
+
+
+  /*********************************/
+  /*                 ADC           */
+  /*********************************/
+//static void adc_start(uint32_t cc_value)
+//{
+//    ret_code_t err_code;
+
+//    nrfx_saadc_adv_config_t saadc_adv_config = NRFX_SAADC_DEFAULT_ADV_CONFIG;
+//    saadc_adv_config.internal_timer_cc = cc_value;
+//    saadc_adv_config.start_on_end = true;
+
+//    err_code = nrfx_saadc_advanced_mode_set((1<<0),
+//                                            NRF_SAADC_RESOLUTION_10BIT,
+//                                            &saadc_adv_config,
+//                                            adc_handler);
+//    APP_ERROR_CHECK(err_code);
+                                            
+//    // Configure two buffers to ensure double buffering of samples, to avoid data loss when the sampling frequency is high
+//    err_code = nrfx_saadc_buffer_set(&samples[next_free_buf_index()][0], SAADC_BUF_SIZE);
+//    APP_ERROR_CHECK(err_code);
+
+//    err_code = nrfx_saadc_buffer_set(&samples[next_free_buf_index()][0], SAADC_BUF_SIZE);
+//    APP_ERROR_CHECK(err_code);
+
+//    err_code = nrfx_saadc_mode_trigger();
+//    APP_ERROR_CHECK(err_code);
+//}
+
+//static void adc_handler(nrfx_saadc_evt_t const * p_event)
+//{
+//    ret_code_t err_code;
+//    switch (p_event->type)
+//    {
+//        case NRFX_SAADC_EVT_DONE:
+//            NRF_LOG_INFO("DONE. Sample[0] = %i", p_event->data.done.p_buffer[0]);
+
+//            // Add code here to process the input
+//            // If the processing is time consuming execution should be deferred to the main context
+//            break;
+
+//        case NRFX_SAADC_EVT_BUF_REQ:
+//            // Set up the next available buffer
+//            err_code = nrfx_saadc_buffer_set(&samples[next_free_buf_index()][0], SAADC_BUF_SIZE);
+//            APP_ERROR_CHECK(err_code);
+//            break;
+//    }
+//}
+
+
+
+
 
 /**@brief Function for application main entry.
  */
@@ -1354,17 +1729,17 @@ int main(void)
 
     // BLE init
     log_init();
-    //timers_init();
-    //buttons_leds_init(&erase_bonds);
-    //power_management_init();
-    //ble_stack_init();
-    //gap_params_init();
-    //gatt_init();
-    //advertising_init();
-    //services_init();
-    //sensor_simulator_init();
-    //conn_params_init();
-    //peer_manager_init();
+    timers_init();
+    buttons_leds_init(&erase_bonds);
+    power_management_init();
+    ble_stack_init();
+    gap_params_init();
+    gatt_init();
+    advertising_init();
+    services_init();
+    sensor_simulator_init();
+    conn_params_init();
+    peer_manager_init();
 
     /* Sensor init */
     twi_init();
@@ -1376,19 +1751,20 @@ int main(void)
 
 
     vl53l5cx_sensor_init();
-    start_timer();
+    //start_timer();
 
     
 
     // Start execution.
-    //NRF_LOG_INFO("Health Thermometer example started.");
-    //application_timers_start();
-    //advertising_start(erase_bonds);
+    NRF_LOG_INFO("Health Thermometer example started.");
+    application_timers_start();
+    advertising_start(erase_bonds);
 
     // Enter main loop.
     while (1)
     {
-        //idle_state_handle();
+        idle_state_handle();
+        
     }
 }
 

@@ -2,16 +2,14 @@
 <session>
  <Bookmarks/>
  <Breakpoints groups="Breakpoints" active_group="Breakpoints">
-  <BreakpointListItem trigger="" line="1268" counter="0" hardwareBreakpoint="" isFunctionBreakpoint="false" action="" expression="" group="Breakpoints" type="Breakpoint" state="2" filename="../../../main.c" useHWbreakpoint="false"/>
-  <BreakpointListItem trigger="" line="1340" counter="0" hardwareBreakpoint="" isFunctionBreakpoint="false" action="" expression="" group="Breakpoints" type="Breakpoint" state="2" filename="../../../main.c" useHWbreakpoint="false"/>
-  <Exceptions set="MemManage;UsageFault_Coprocessor;UsageFault_CheckingError;UsageFault_StateError;BusFault;ExceptionEntryReturnFault;HardFault"/>
+  <BreakpointListItem trigger="" line="1797" counter="0" hardwareBreakpoint="" isFunctionBreakpoint="false" action="" expression="" group="Breakpoints" type="Breakpoint" state="4" filename="../../../main.c" useHWbreakpoint="false"/>
  </Breakpoints>
  <ExecutionProfileWindow/>
  <FrameBufferWindow>
   <FrameBufferWindow bufferHeight="-1" addressSpace="" addressText="" bufferWidth="-1"/>
  </FrameBufferWindow>
  <Memory1>
-  <MemoryWindow addressSpace="" dataSize="1" autoEvaluate="0" viewMode="0" addressOrder="0" columnsText="" refreshPeriod="0" name="ble_app_hts_pca10040_s132" radix="16" sizeText="" addressText=""/>
+  <MemoryWindow addressSpace="" dataSize="1" autoEvaluate="0" viewMode="0" addressOrder="0" columnsText="" refreshPeriod="0" name="ble_app_hts_pca10040_s132" radix="16" sizeText="sizeof person_entry" addressText="&amp;person_entry"/>
  </Memory1>
  <Memory2>
   <MemoryWindow addressSpace="" dataSize="1" autoEvaluate="0" viewMode="0" addressOrder="0" columnsText="" refreshPeriod="0" name="ble_app_hts_pca10040_s132" radix="16" sizeText="" addressText=""/>
@@ -26,8 +24,10 @@
   <ProjectSessionItem path="ble_app_hts_pca10040_s132"/>
   <ProjectSessionItem path="ble_app_hts_pca10040_s132;ble_app_hts_pca10040_s132"/>
   <ProjectSessionItem path="ble_app_hts_pca10040_s132;ble_app_hts_pca10040_s132;Application"/>
-  <ProjectSessionItem path="ble_app_hts_pca10040_s132;ble_app_hts_pca10040_s132;None"/>
-  <ProjectSessionItem path="ble_app_hts_pca10040_s132;ble_app_hts_pca10040_s132;nRF_Drivers"/>
+  <ProjectSessionItem path="ble_app_hts_pca10040_s132;ble_app_hts_pca10040_s132;nRF_BLE"/>
+  <ProjectSessionItem path="ble_app_hts_pca10040_s132;ble_app_hts_pca10040_s132;nRF_BLE_Services"/>
+  <ProjectSessionItem path="ble_app_hts_pca10040_s132;ble_app_hts_pca10040_s132;nRF_Libraries"/>
+  <ProjectSessionItem path="ble_app_hts_pca10040_s132;ble_app_hts_pca10040_s132;nRF_Log"/>
   <ProjectSessionItem path="ble_app_hts_pca10040_s132;ble_app_hts_pca10040_s132;Sensor_Drivers"/>
   <ProjectSessionItem path="ble_app_hts_pca10040_s132;ble_app_hts_pca10040_s132;Sensor_Drivers;inc"/>
   <ProjectSessionItem path="ble_app_hts_pca10040_s132;ble_app_hts_pca10040_s132;Sensor_Drivers;src"/>
@@ -51,7 +51,9 @@
   <Trace enabled="Yes"/>
  </TraceWindow>
  <Watch1>
-  <Watches active="1" update="Never"/>
+  <Watches active="1" update="Each Second">
+   <Watchpoint expression="count" name="count" radix="-1" linenumber="1987" filename="../../../main.c"/>
+  </Watches>
  </Watch1>
  <Watch2>
   <Watches active="0" update="Never"/>
@@ -63,20 +65,12 @@
   <Watches active="0" update="Never"/>
  </Watch4>
  <Files>
-  <SessionOpenFile windowGroup="DockEditLeft" x="32" y="146" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../main.c" selected="1" top="112" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="31" y="79" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="platform.c" selected="0" top="66" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="49" y="48" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="vl53l5cx_api.c" selected="0" top="1151" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="3" y="44" useTextEdit="1" openedFrom="C:/Nordic_Semi/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker/pca10040/s132/ses/platform.c" useBinaryEdit="0" left="0" path="../../../../../../integration/nrfx/legacy/nrf_drv_twi.h" selected="0" top="36" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="403" useTextEdit="1" openedFrom="C:/Nordic_Semi/nRF5_SDK_17.1.0_ddde560/integration/nrfx/legacy/nrf_drv_twi.h" useBinaryEdit="0" left="0" path="nrfx_twi.c" selected="0" top="685" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="8" y="145" useTextEdit="1" openedFrom="C:/Nordic_Semi/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker/pca10040/s132/ses/nrfx_twi.c" useBinaryEdit="0" left="0" path="../../../../../../modules/nrfx/drivers/include/nrfx_twi.h" selected="0" top="132" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="37" y="4374" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../config/sdk_config.h" selected="0" top="4356" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="22" y="400" useTextEdit="1" openedFrom="C:/Nordic_Semi/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker/pca10040/s132/ses/vl53l5cx_api.c" useBinaryEdit="0" left="0" path="vl53l5cx_api.h" selected="0" top="61" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="8" y="80" useTextEdit="1" openedFrom="C:/Nordic_Semi/Nordic_Semi/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker-1/main.c" useBinaryEdit="0" left="0" path="../../../../../../components/libraries/log/nrf_log_ctrl.h" selected="0" top="51" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="105" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="vl53l5cx_plugin_detection_thresholds.c" selected="0" top="60" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="0" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="vl53l5cx_plugin_detection_thresholds.h" selected="0" top="70" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="21" y="63" useTextEdit="1" openedFrom="C:/Nordic_Semi/Nordic_Semi/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker-1/pca10040/s132/ses/platform.c" useBinaryEdit="0" left="0" path="../../../../../../components/libraries/delay/nrf_delay.h" selected="0" top="41" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="71" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../../../../modules/nrfx/mdk/ses_startup_nrf52.s" selected="0" top="59" codecName=""/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="388" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../../../../modules/nrfx/drivers/src/nrfx_uarte.c" selected="0" top="346" codecName=""/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="1" y="1768" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../main.c" selected="1" top="1732" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="20" y="46" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="ble_cus.c" selected="0" top="40" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="2" y="3" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="ble_cus.h" selected="0" top="0" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="35" y="11423" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../config/sdk_config.h" selected="0" top="11400" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="99" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../../../../components/libraries/util/app_error_weak.c" selected="0" top="78" codecName=""/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="4" y="246" useTextEdit="1" openedFrom="F:/Downloads/nrf_sdk/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker/main.c" useBinaryEdit="0" left="0" path="../../../../../../components/ble/ble_services/ble_bas/ble_bas.c" selected="0" top="225" codecName="Default"/>
  </Files>
- <ARMCrossStudioWindow activeProject="ble_app_hts_pca10040_s132" fileDialogDefaultFilter="*.c" autoConnectTarget="J-Link" buildConfiguration="Release" sessionSettings="" debugSearchFileMap="F:/Downloads/nrf_sdk/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker/pca10040/s132/ses/vl53l5cx_api.c&#xa;" fileDialogInitialDirectory="" debugSearchPath="" autoConnectCapabilities="3711"/>
+ <ARMCrossStudioWindow activeProject="ble_app_hts_pca10040_s132" fileDialogDefaultFilter="*.c" autoConnectTarget="J-Link" buildConfiguration="Release" sessionSettings="" debugSearchFileMap="C:/Nordic_Semi/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker/pca10040/s132/ses/nrf_drv_twi.c&#xa;&#xa;C:/Nordic_Semi/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker/pca10040/s132/ses/nrfx_twi.c&#xa;&#xa;F:/Downloads/nrf_sdk/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker/pca10040/s132/ses/app_button.c&#xa;&#xa;F:/Downloads/nrf_sdk/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker/pca10040/s132/ses/app_error.c&#xa;&#xa;F:/Downloads/nrf_sdk/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker/pca10040/s132/ses/app_error_weak.c&#xa;&#xa;F:/Downloads/nrf_sdk/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker/pca10040/s132/ses/app_timer2.c&#xa;" fileDialogInitialDirectory="F:/Downloads/nrf_sdk/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker/pca10040/s132/ses" debugSearchPath="" autoConnectCapabilities="3711"/>
 </session>

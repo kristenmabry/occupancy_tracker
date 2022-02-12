@@ -5,6 +5,7 @@
 #include "nrf_gpio.h"
 #include "boards.h"
 #include "nrf_log.h"
+#include "occupancy_tracker.h"
 
 /**@brief Function for handling the Connect event.
  *
@@ -51,6 +52,7 @@ static void on_write(ble_cus_t * p_cus, ble_evt_t const * p_ble_evt)
     // Custom Value Characteristic Written to.
     if (p_evt_write->handle == p_cus->custom_value_handles.value_handle)
     {
+        
         nrf_gpio_pin_toggle(LED_4);
         /*
         if(*p_evt_write->data == 0x01)

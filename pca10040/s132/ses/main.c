@@ -168,6 +168,7 @@
 #define SEC_PARAM_MAX_KEY_SIZE          16                                          /**< Maximum encryption key size. */
 
 #define READ_VL53L5CX_INTERVAL          APP_TIMER_TICKS(100)                        /**< Perform VL53L5CX read and update occupancy variable - 100ms*/
+#define SYSTEM_RESET_INTERVAL           APP_TIMER_TICKS(1000)                       // Attempt system reset after 1000ms of inaction in ranging loop
 
 #define DEAD_BEEF                       0xDEADBEEF                                  /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
 
@@ -190,6 +191,7 @@ NRF_BLE_GQ_DEF(m_ble_gatt_queue,                                                
                NRF_BLE_GQ_QUEUE_SIZE);
 APP_TIMER_DEF(m_vl53l5cx_timer_id);
 BLE_CUS_DEF(m_cus);                                                             /**< Context for the Queued Write module.*/
+APP_TIMER_DEF(m_system_reset_timer_id);                                              // timeout
 
 
 static uint16_t          m_conn_handle = BLE_CONN_HANDLE_INVALID;                   /**< Handle of the current connection. */
@@ -206,16 +208,15 @@ static ble_uuid_t m_adv_uuids[] =                                               
     {BLE_UUID_DEVICE_INFORMATION_SERVICE, BLE_UUID_TYPE_BLE}
 };
 
+static uint8_t count, isReady;
+static uint16_t ceiling_height = CEILING_HEIGHT;  // 16 since 4m is 12bits, initially default but can be changed by user over ble
+
+static uint8_t person_entry = 0, check = 1, person_exit = 0, person_entry_2, person_exit_2;
 
 static void advertising_start(bool erase_bonds);
 static void temperature_measurement_send(void);
 
 static const nrf_drv_twi_t m_twi = NRF_DRV_TWI_INSTANCE(TWI_INSTANCE_ID);  // give device twi id
-
-
-static uint8_t count, isReady;
-
-static uint8_t person_entry = 0, check = 1, person_exit = 0, person_entry_2, person_exit_2;
 
 static  VL53L5CX_Configuration sensor_config = {
       /* Platform, filled by customer into the 'platform.h' file */
@@ -234,7 +235,6 @@ static  VL53L5CX_Configuration sensor_config = {
 	/* Temporary buffer used for internal driver processing */
 	 //uint8_t	        temp_buffer[VL53L5CX_TEMPORARY_BUFFER_SIZE];
   };
-
 
 /**@brief Callback function for asserts in the SoftDevice.
  *
@@ -325,44 +325,44 @@ void read_lidar_data() {
             NRF_LOG_INFO("Zone : %3d, Status : %3u, Distance : %4d mm\n",
                     i,
                      Results.target_status[VL53L5CX_NB_TARGET_PER_ZONE*i],
-                    (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*i]));
+                    (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*i]));
     }
     /* Entry - not pin side to pin side */
     // person just in area 1
-    if((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) > PERSON_MIN_HEIGHT || 
-      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*4]) > PERSON_MIN_HEIGHT ||
-      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*8]) > PERSON_MIN_HEIGHT ||
-      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*12]) > PERSON_MIN_HEIGHT)
+    if((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) > PERSON_MIN_HEIGHT || 
+      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*4]) > PERSON_MIN_HEIGHT ||
+      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*8]) > PERSON_MIN_HEIGHT ||
+      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*12]) > PERSON_MIN_HEIGHT)
       { // not in area 3
-        if((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*3]) < PERSON_MIN_HEIGHT &&
-          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*7]) < PERSON_MIN_HEIGHT &&
-          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) < PERSON_MIN_HEIGHT &&
-          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) < PERSON_MIN_HEIGHT)
+        if((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*3]) < PERSON_MIN_HEIGHT &&
+          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*7]) < PERSON_MIN_HEIGHT &&
+          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) < PERSON_MIN_HEIGHT &&
+          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) < PERSON_MIN_HEIGHT)
           {
             person_entry = 1;
           }
       }
     // person just in area 3                       
-    if(((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*3]) > PERSON_MIN_HEIGHT || 
-      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*7]) > PERSON_MIN_HEIGHT ||
-      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) > PERSON_MIN_HEIGHT ||
-      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) > PERSON_MIN_HEIGHT)
+    if(((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*3]) > PERSON_MIN_HEIGHT || 
+      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*7]) > PERSON_MIN_HEIGHT ||
+      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) > PERSON_MIN_HEIGHT ||
+      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) > PERSON_MIN_HEIGHT)
       && person_entry == 1) 
       { // not in area 1 or 2
-        if( /* 1 */ ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) < PERSON_MIN_HEIGHT &&
-          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*4]) < PERSON_MIN_HEIGHT &&
-          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*8]) < PERSON_MIN_HEIGHT &&
-          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*12]) < PERSON_MIN_HEIGHT) &&
+        if( /* 1 */ ((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) < PERSON_MIN_HEIGHT &&
+          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*4]) < PERSON_MIN_HEIGHT &&
+          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*8]) < PERSON_MIN_HEIGHT &&
+          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*12]) < PERSON_MIN_HEIGHT) &&
 
-           /* 2 */ ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*1]) < PERSON_MIN_HEIGHT &&
-          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*5]) < PERSON_MIN_HEIGHT &&
-          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*9]) < PERSON_MIN_HEIGHT &&
-          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*13]) < PERSON_MIN_HEIGHT) &&
+           /* 2 */ ((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*1]) < PERSON_MIN_HEIGHT &&
+          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*5]) < PERSON_MIN_HEIGHT &&
+          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*9]) < PERSON_MIN_HEIGHT &&
+          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*13]) < PERSON_MIN_HEIGHT) &&
 
-          ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*2]) < PERSON_MIN_HEIGHT &&
-          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*6]) < PERSON_MIN_HEIGHT &&
-          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*10]) < PERSON_MIN_HEIGHT &&
-          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*14]) < PERSON_MIN_HEIGHT) )
+          ((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*2]) < PERSON_MIN_HEIGHT &&
+          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*6]) < PERSON_MIN_HEIGHT &&
+          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*10]) < PERSON_MIN_HEIGHT &&
+          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*14]) < PERSON_MIN_HEIGHT) )
           {
             person_exit = 1;
           }
@@ -370,25 +370,25 @@ void read_lidar_data() {
 
     // No person present - clear flags
     if(/* 3 */ 
-      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*3]) < PERSON_MIN_HEIGHT && 
-      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*7]) < PERSON_MIN_HEIGHT &&
-      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) < PERSON_MIN_HEIGHT &&
-      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) < PERSON_MIN_HEIGHT &&
+      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*3]) < PERSON_MIN_HEIGHT && 
+      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*7]) < PERSON_MIN_HEIGHT &&
+      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) < PERSON_MIN_HEIGHT &&
+      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) < PERSON_MIN_HEIGHT &&
 
-      /* 1 */ ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) < PERSON_MIN_HEIGHT &&
-      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*4]) < PERSON_MIN_HEIGHT &&
-      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*8]) < PERSON_MIN_HEIGHT &&
-      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*12]) < PERSON_MIN_HEIGHT) &&
+      /* 1 */ ((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) < PERSON_MIN_HEIGHT &&
+      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*4]) < PERSON_MIN_HEIGHT &&
+      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*8]) < PERSON_MIN_HEIGHT &&
+      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*12]) < PERSON_MIN_HEIGHT) &&
 
-       /* 2 */ ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*1]) < PERSON_MIN_HEIGHT &&
-      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*5]) < PERSON_MIN_HEIGHT &&
-      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*9]) < PERSON_MIN_HEIGHT &&
-      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*13]) < PERSON_MIN_HEIGHT) &&
+       /* 2 */ ((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*1]) < PERSON_MIN_HEIGHT &&
+      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*5]) < PERSON_MIN_HEIGHT &&
+      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*9]) < PERSON_MIN_HEIGHT &&
+      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*13]) < PERSON_MIN_HEIGHT) &&
 
-      ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*2]) < PERSON_MIN_HEIGHT &&
-      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*6]) < PERSON_MIN_HEIGHT &&
-      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*10]) < PERSON_MIN_HEIGHT &&
-      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*14]) < PERSON_MIN_HEIGHT) )
+      ((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*2]) < PERSON_MIN_HEIGHT &&
+      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*6]) < PERSON_MIN_HEIGHT &&
+      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*10]) < PERSON_MIN_HEIGHT &&
+      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*14]) < PERSON_MIN_HEIGHT) )
       {
         if(person_exit) count++; // person passed through and area is clear
         person_entry = 0;
@@ -397,40 +397,40 @@ void read_lidar_data() {
 
       /* Exit - pin side to non pin side */
     // person just in area 3
-    if((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*3]) > PERSON_MIN_HEIGHT || 
-      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*7]) > PERSON_MIN_HEIGHT ||
-      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) > PERSON_MIN_HEIGHT ||
-      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) > PERSON_MIN_HEIGHT)
+    if((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*3]) > PERSON_MIN_HEIGHT || 
+      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*7]) > PERSON_MIN_HEIGHT ||
+      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) > PERSON_MIN_HEIGHT ||
+      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) > PERSON_MIN_HEIGHT)
       { // not in area 1
-        if((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) < PERSON_MIN_HEIGHT &&
-          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*4]) < PERSON_MIN_HEIGHT &&
-          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*8]) < PERSON_MIN_HEIGHT &&
-          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*12]) < PERSON_MIN_HEIGHT)
+        if((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) < PERSON_MIN_HEIGHT &&
+          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*4]) < PERSON_MIN_HEIGHT &&
+          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*8]) < PERSON_MIN_HEIGHT &&
+          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*12]) < PERSON_MIN_HEIGHT)
           {
             person_entry_2 = 1;
           }
       }
     // person just in area 1                       
-    if(((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) > PERSON_MIN_HEIGHT || 
-      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*4]) > PERSON_MIN_HEIGHT ||
-      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*8]) > PERSON_MIN_HEIGHT ||
-      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*12]) > PERSON_MIN_HEIGHT)
+    if(((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) > PERSON_MIN_HEIGHT || 
+      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*4]) > PERSON_MIN_HEIGHT ||
+      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*8]) > PERSON_MIN_HEIGHT ||
+      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*12]) > PERSON_MIN_HEIGHT)
       && person_entry_2 == 1) 
       { // not in area 3 or 2
-        if( /* 3 */ ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*3]) < PERSON_MIN_HEIGHT &&
-          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*7]) < PERSON_MIN_HEIGHT &&
-          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) < PERSON_MIN_HEIGHT &&
-          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) < PERSON_MIN_HEIGHT) &&
+        if( /* 3 */ ((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*3]) < PERSON_MIN_HEIGHT &&
+          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*7]) < PERSON_MIN_HEIGHT &&
+          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) < PERSON_MIN_HEIGHT &&
+          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) < PERSON_MIN_HEIGHT) &&
 
-           /* 2 */ ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*1]) < PERSON_MIN_HEIGHT &&
-          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*5]) < PERSON_MIN_HEIGHT &&
-          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*9]) < PERSON_MIN_HEIGHT &&
-          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*13]) < PERSON_MIN_HEIGHT) &&
+           /* 2 */ ((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*1]) < PERSON_MIN_HEIGHT &&
+          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*5]) < PERSON_MIN_HEIGHT &&
+          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*9]) < PERSON_MIN_HEIGHT &&
+          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*13]) < PERSON_MIN_HEIGHT) &&
 
-          ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*2]) < PERSON_MIN_HEIGHT &&
-          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*6]) < PERSON_MIN_HEIGHT &&
-          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*10]) < PERSON_MIN_HEIGHT &&
-          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*14]) < PERSON_MIN_HEIGHT) )
+          ((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*2]) < PERSON_MIN_HEIGHT &&
+          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*6]) < PERSON_MIN_HEIGHT &&
+          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*10]) < PERSON_MIN_HEIGHT &&
+          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*14]) < PERSON_MIN_HEIGHT) )
           {
             person_exit_2 = 1;
           }
@@ -438,25 +438,25 @@ void read_lidar_data() {
 
     // No person present - clear flags
     if(/* 3 */ 
-      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*3]) < PERSON_MIN_HEIGHT && 
-      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*7]) < PERSON_MIN_HEIGHT &&
-      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) < PERSON_MIN_HEIGHT &&
-      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) < PERSON_MIN_HEIGHT &&
+      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*3]) < PERSON_MIN_HEIGHT && 
+      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*7]) < PERSON_MIN_HEIGHT &&
+      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) < PERSON_MIN_HEIGHT &&
+      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) < PERSON_MIN_HEIGHT &&
 
-      /* 1 */ ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) < PERSON_MIN_HEIGHT &&
-      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*4]) < PERSON_MIN_HEIGHT &&
-      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*8]) < PERSON_MIN_HEIGHT &&
-      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*12]) < PERSON_MIN_HEIGHT) &&
+      /* 1 */ ((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) < PERSON_MIN_HEIGHT &&
+      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*4]) < PERSON_MIN_HEIGHT &&
+      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*8]) < PERSON_MIN_HEIGHT &&
+      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*12]) < PERSON_MIN_HEIGHT) &&
 
-       /* 2 */ ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*1]) < PERSON_MIN_HEIGHT &&
-      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*5]) < PERSON_MIN_HEIGHT &&
-      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*9]) < PERSON_MIN_HEIGHT &&
-      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*13]) < PERSON_MIN_HEIGHT) &&
+       /* 2 */ ((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*1]) < PERSON_MIN_HEIGHT &&
+      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*5]) < PERSON_MIN_HEIGHT &&
+      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*9]) < PERSON_MIN_HEIGHT &&
+      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*13]) < PERSON_MIN_HEIGHT) &&
 
-      ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*2]) < PERSON_MIN_HEIGHT &&
-      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*6]) < PERSON_MIN_HEIGHT &&
-      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*10]) < PERSON_MIN_HEIGHT &&
-      (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*14]) < PERSON_MIN_HEIGHT) )
+      ((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*2]) < PERSON_MIN_HEIGHT &&
+      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*6]) < PERSON_MIN_HEIGHT &&
+      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*10]) < PERSON_MIN_HEIGHT &&
+      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*14]) < PERSON_MIN_HEIGHT) )
       {
         if(person_exit_2)
          count--; // person passed through and area is clear
@@ -517,10 +517,22 @@ static void occupancy_meas_timeout_handler()
  */
 static void vl53l5cx_read_handler(void * p_context)
 {
-    read_lidar_data();    
+    read_lidar_data();
 
 }
 
+/**@brief Function for handling the system reset after inaction for a certain time
+ *
+ * @details This function will be called when system_reset timer expires
+ *
+ *
+ */
+static void reset_system_handler()
+{
+  sd_nvic_SystemReset();
+
+
+}
 
 /**@brief Function for populating simulated health thermometer measurement.
  */
@@ -576,6 +588,11 @@ static void timers_init(void)
     APP_ERROR_CHECK(err_code);
 
     err_code = app_timer_create(&m_vl53l5cx_timer_id, APP_TIMER_MODE_REPEATED, vl53l5cx_read_handler);
+    APP_ERROR_CHECK(err_code);
+
+    err_code = app_timer_create(&m_system_reset_timer_id, APP_TIMER_MODE_SINGLE_SHOT, reset_system_handler);
+    APP_ERROR_CHECK(err_code);
+
 }
 
 
@@ -1291,7 +1308,7 @@ void vl53l5cx_sensor_init(void)
   VL53L5CX_Motion_Configuration 	motion_config;	/* Motion configuration*/
  
   status |= vl53l5cx_is_alive(&sensor_config, &isAlive);
-  //if (status) printf("Sensor failed alive test with: %u\n", status);
+  if (status) printf("Sensor failed alive test with: %u\n", status);
 
   status |= vl53l5cx_init(&sensor_config);
   //if (status) printf("Initialization failed with: %u\n", status);
@@ -1404,6 +1421,9 @@ void vl53l5cx_sensor_init(void)
   status = vl53l5cx_start_ranging(&sensor_config);
   NRF_LOG_INFO("Start ranging loop\n");
 
+  app_timer_start(m_system_reset_timer_id, SYSTEM_RESET_INTERVAL, NULL);  // reset system after 1000ms
+
+
   uint8_t loop, i = 0;
   VL53L5CX_ResultsData 	Results;
   //uint8_t person_entry = 0, check = 1, person_exit = 0, person_entry_2, person_exit_2;
@@ -1425,44 +1445,44 @@ void vl53l5cx_sensor_init(void)
 				NRF_LOG_INFO("Zone : %3d, Status : %3u, Distance : %4d mm\n",
 					i,
 					 Results.target_status[VL53L5CX_NB_TARGET_PER_ZONE*i],
-					(CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*i]));
+					(ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*i]));
    			}
                         /* Entry - not pin side to pin side */
                         // person just in area 1
-                        if((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) > PERSON_MIN_HEIGHT || 
-                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*4]) > PERSON_MIN_HEIGHT ||
-                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*8]) > PERSON_MIN_HEIGHT ||
-                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*12]) > PERSON_MIN_HEIGHT)
+                        if((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) > PERSON_MIN_HEIGHT || 
+                          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*4]) > PERSON_MIN_HEIGHT ||
+                          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*8]) > PERSON_MIN_HEIGHT ||
+                          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*12]) > PERSON_MIN_HEIGHT)
                           { // not in area 3
-                            if((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*3]) < PERSON_MIN_HEIGHT &&
-                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*7]) < PERSON_MIN_HEIGHT &&
-                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) < PERSON_MIN_HEIGHT &&
-                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) < PERSON_MIN_HEIGHT)
+                            if((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*3]) < PERSON_MIN_HEIGHT &&
+                              (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*7]) < PERSON_MIN_HEIGHT &&
+                              (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) < PERSON_MIN_HEIGHT &&
+                              (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) < PERSON_MIN_HEIGHT)
                               {
                                 person_entry = 1;
                               }
                           }
                         // person just in area 3                       
-                        if(((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*3]) > PERSON_MIN_HEIGHT || 
-                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*7]) > PERSON_MIN_HEIGHT ||
-                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) > PERSON_MIN_HEIGHT ||
-                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) > PERSON_MIN_HEIGHT)
+                        if(((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*3]) > PERSON_MIN_HEIGHT || 
+                          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*7]) > PERSON_MIN_HEIGHT ||
+                          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) > PERSON_MIN_HEIGHT ||
+                          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) > PERSON_MIN_HEIGHT)
                           && person_entry == 1) 
                           { // not in area 1 or 2
-                            if( /* 1 */ ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) < PERSON_MIN_HEIGHT &&
-                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*4]) < PERSON_MIN_HEIGHT &&
-                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*8]) < PERSON_MIN_HEIGHT &&
-                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*12]) < PERSON_MIN_HEIGHT) &&
+                            if( /* 1 */ ((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) < PERSON_MIN_HEIGHT &&
+                              (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*4]) < PERSON_MIN_HEIGHT &&
+                              (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*8]) < PERSON_MIN_HEIGHT &&
+                              (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*12]) < PERSON_MIN_HEIGHT) &&
 
-                               /* 2 */ ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*1]) < PERSON_MIN_HEIGHT &&
-                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*5]) < PERSON_MIN_HEIGHT &&
-                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*9]) < PERSON_MIN_HEIGHT &&
-                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*13]) < PERSON_MIN_HEIGHT) &&
+                               /* 2 */ ((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*1]) < PERSON_MIN_HEIGHT &&
+                              (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*5]) < PERSON_MIN_HEIGHT &&
+                              (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*9]) < PERSON_MIN_HEIGHT &&
+                              (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*13]) < PERSON_MIN_HEIGHT) &&
 
-                              ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*2]) < PERSON_MIN_HEIGHT &&
-                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*6]) < PERSON_MIN_HEIGHT &&
-                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*10]) < PERSON_MIN_HEIGHT &&
-                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*14]) < PERSON_MIN_HEIGHT) )
+                              ((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*2]) < PERSON_MIN_HEIGHT &&
+                              (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*6]) < PERSON_MIN_HEIGHT &&
+                              (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*10]) < PERSON_MIN_HEIGHT &&
+                              (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*14]) < PERSON_MIN_HEIGHT) )
                               {
                                 person_exit = 1;
                               }
@@ -1470,25 +1490,25 @@ void vl53l5cx_sensor_init(void)
 
                         // No person present - clear flags
                         if(/* 3 */ 
-                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*3]) < PERSON_MIN_HEIGHT && 
-                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*7]) < PERSON_MIN_HEIGHT &&
-                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) < PERSON_MIN_HEIGHT &&
-                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) < PERSON_MIN_HEIGHT &&
+                          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*3]) < PERSON_MIN_HEIGHT && 
+                          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*7]) < PERSON_MIN_HEIGHT &&
+                          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) < PERSON_MIN_HEIGHT &&
+                          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) < PERSON_MIN_HEIGHT &&
 
-                          /* 1 */ ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) < PERSON_MIN_HEIGHT &&
-                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*4]) < PERSON_MIN_HEIGHT &&
-                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*8]) < PERSON_MIN_HEIGHT &&
-                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*12]) < PERSON_MIN_HEIGHT) &&
+                          /* 1 */ ((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) < PERSON_MIN_HEIGHT &&
+                          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*4]) < PERSON_MIN_HEIGHT &&
+                          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*8]) < PERSON_MIN_HEIGHT &&
+                          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*12]) < PERSON_MIN_HEIGHT) &&
 
-                           /* 2 */ ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*1]) < PERSON_MIN_HEIGHT &&
-                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*5]) < PERSON_MIN_HEIGHT &&
-                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*9]) < PERSON_MIN_HEIGHT &&
-                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*13]) < PERSON_MIN_HEIGHT) &&
+                           /* 2 */ ((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*1]) < PERSON_MIN_HEIGHT &&
+                          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*5]) < PERSON_MIN_HEIGHT &&
+                          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*9]) < PERSON_MIN_HEIGHT &&
+                          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*13]) < PERSON_MIN_HEIGHT) &&
 
-                          ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*2]) < PERSON_MIN_HEIGHT &&
-                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*6]) < PERSON_MIN_HEIGHT &&
-                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*10]) < PERSON_MIN_HEIGHT &&
-                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*14]) < PERSON_MIN_HEIGHT) )
+                          ((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*2]) < PERSON_MIN_HEIGHT &&
+                          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*6]) < PERSON_MIN_HEIGHT &&
+                          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*10]) < PERSON_MIN_HEIGHT &&
+                          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*14]) < PERSON_MIN_HEIGHT) )
                           {
                             if(person_exit) count++; // person passed through and area is clear
                             person_entry = 0;
@@ -1497,40 +1517,40 @@ void vl53l5cx_sensor_init(void)
 
                           /* Exit - pin side to non pin side */
                         // person just in area 3
-                        if((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*3]) > PERSON_MIN_HEIGHT || 
-                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*7]) > PERSON_MIN_HEIGHT ||
-                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) > PERSON_MIN_HEIGHT ||
-                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) > PERSON_MIN_HEIGHT)
+                        if((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*3]) > PERSON_MIN_HEIGHT || 
+                          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*7]) > PERSON_MIN_HEIGHT ||
+                          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) > PERSON_MIN_HEIGHT ||
+                          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) > PERSON_MIN_HEIGHT)
                           { // not in area 1
-                            if((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) < PERSON_MIN_HEIGHT &&
-                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*4]) < PERSON_MIN_HEIGHT &&
-                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*8]) < PERSON_MIN_HEIGHT &&
-                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*12]) < PERSON_MIN_HEIGHT)
+                            if((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) < PERSON_MIN_HEIGHT &&
+                              (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*4]) < PERSON_MIN_HEIGHT &&
+                              (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*8]) < PERSON_MIN_HEIGHT &&
+                              (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*12]) < PERSON_MIN_HEIGHT)
                               {
                                 person_entry_2 = 1;
                               }
                           }
                         // person just in area 1                       
-                        if(((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) > PERSON_MIN_HEIGHT || 
-                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*4]) > PERSON_MIN_HEIGHT ||
-                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*8]) > PERSON_MIN_HEIGHT ||
-                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*12]) > PERSON_MIN_HEIGHT)
+                        if(((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) > PERSON_MIN_HEIGHT || 
+                          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*4]) > PERSON_MIN_HEIGHT ||
+                          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*8]) > PERSON_MIN_HEIGHT ||
+                          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*12]) > PERSON_MIN_HEIGHT)
                           && person_entry_2 == 1) 
                           { // not in area 3 or 2
-                            if( /* 3 */ ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*3]) < PERSON_MIN_HEIGHT &&
-                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*7]) < PERSON_MIN_HEIGHT &&
-                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) < PERSON_MIN_HEIGHT &&
-                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) < PERSON_MIN_HEIGHT) &&
+                            if( /* 3 */ ((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*3]) < PERSON_MIN_HEIGHT &&
+                              (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*7]) < PERSON_MIN_HEIGHT &&
+                              (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) < PERSON_MIN_HEIGHT &&
+                              (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) < PERSON_MIN_HEIGHT) &&
 
-                               /* 2 */ ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*1]) < PERSON_MIN_HEIGHT &&
-                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*5]) < PERSON_MIN_HEIGHT &&
-                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*9]) < PERSON_MIN_HEIGHT &&
-                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*13]) < PERSON_MIN_HEIGHT) &&
+                               /* 2 */ ((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*1]) < PERSON_MIN_HEIGHT &&
+                              (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*5]) < PERSON_MIN_HEIGHT &&
+                              (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*9]) < PERSON_MIN_HEIGHT &&
+                              (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*13]) < PERSON_MIN_HEIGHT) &&
 
-                              ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*2]) < PERSON_MIN_HEIGHT &&
-                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*6]) < PERSON_MIN_HEIGHT &&
-                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*10]) < PERSON_MIN_HEIGHT &&
-                              (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*14]) < PERSON_MIN_HEIGHT) )
+                              ((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*2]) < PERSON_MIN_HEIGHT &&
+                              (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*6]) < PERSON_MIN_HEIGHT &&
+                              (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*10]) < PERSON_MIN_HEIGHT &&
+                              (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*14]) < PERSON_MIN_HEIGHT) )
                               {
                                 person_exit_2 = 1;
                               }
@@ -1538,25 +1558,25 @@ void vl53l5cx_sensor_init(void)
 
                         // No person present - clear flags
                         if(/* 3 */ 
-                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*3]) < PERSON_MIN_HEIGHT && 
-                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*7]) < PERSON_MIN_HEIGHT &&
-                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) < PERSON_MIN_HEIGHT &&
-                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) < PERSON_MIN_HEIGHT &&
+                          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*3]) < PERSON_MIN_HEIGHT && 
+                          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*7]) < PERSON_MIN_HEIGHT &&
+                          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) < PERSON_MIN_HEIGHT &&
+                          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) < PERSON_MIN_HEIGHT &&
 
-                          /* 1 */ ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) < PERSON_MIN_HEIGHT &&
-                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*4]) < PERSON_MIN_HEIGHT &&
-                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*8]) < PERSON_MIN_HEIGHT &&
-                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*12]) < PERSON_MIN_HEIGHT) &&
+                          /* 1 */ ((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) < PERSON_MIN_HEIGHT &&
+                          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*4]) < PERSON_MIN_HEIGHT &&
+                          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*8]) < PERSON_MIN_HEIGHT &&
+                          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*12]) < PERSON_MIN_HEIGHT) &&
 
-                           /* 2 */ ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*1]) < PERSON_MIN_HEIGHT &&
-                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*5]) < PERSON_MIN_HEIGHT &&
-                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*9]) < PERSON_MIN_HEIGHT &&
-                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*13]) < PERSON_MIN_HEIGHT) &&
+                           /* 2 */ ((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*1]) < PERSON_MIN_HEIGHT &&
+                          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*5]) < PERSON_MIN_HEIGHT &&
+                          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*9]) < PERSON_MIN_HEIGHT &&
+                          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*13]) < PERSON_MIN_HEIGHT) &&
 
-                          ((CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*2]) < PERSON_MIN_HEIGHT &&
-                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*6]) < PERSON_MIN_HEIGHT &&
-                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*10]) < PERSON_MIN_HEIGHT &&
-                          (CEILING_HEIGHT-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*14]) < PERSON_MIN_HEIGHT) )
+                          ((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*2]) < PERSON_MIN_HEIGHT &&
+                          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*6]) < PERSON_MIN_HEIGHT &&
+                          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*10]) < PERSON_MIN_HEIGHT &&
+                          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*14]) < PERSON_MIN_HEIGHT) )
                           {
                             if(person_exit_2)
                              count--; // person passed through and area is clear
@@ -1573,6 +1593,7 @@ void vl53l5cx_sensor_init(void)
    		WaitMs(&(sensor_config.platform), 10);
    	}
   printf("done");
+  app_timer_stop(m_system_reset_timer_id);  // stop system reset
 
 }
 

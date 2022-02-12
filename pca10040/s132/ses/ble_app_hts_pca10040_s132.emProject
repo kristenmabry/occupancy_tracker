@@ -99,14 +99,16 @@
       <file file_name="../../../../../../components/libraries/bsp/bsp_btn_ble.c" />
     </folder>
     <folder Name="Application">
-      <file file_name="../../../main.c">
+      <file file_name="main.c">
         <configuration
           Name="Debug"
           c_preprocessor_definitions="DEBUG\; DEBUG_NRF" />
       </file>
-      <file file_name="../config/sdk_config.h" />
+      <file file_name="sdk_config.h" />
       <file file_name="ble_cus.c" />
       <file file_name="ble_cus.h" />
+      <file file_name="nrf_nvic.h" />
+      <file file_name="nrf_nvic.h" />
     </folder>
     <folder Name="nRF_Segger_RTT">
       <file file_name="../../../../../../external/segger_rtt/SEGGER_RTT.c" />
@@ -144,9 +146,9 @@
       <file file_name="../../../../../../components/ble/ble_services/ble_hts/ble_hts.c" />
     </folder>
     <folder Name="nRF_SoftDevice">
-      <file file_name="../../../../../../components/softdevice/common/nrf_sdh.c" />
-      <file file_name="../../../../../../components/softdevice/common/nrf_sdh_ble.c" />
-      <file file_name="../../../../../../components/softdevice/common/nrf_sdh_soc.c" />
+      <file file_name="nrf_sdh.c" />
+      <file file_name="nrf_sdh_ble.c" />
+      <file file_name="nrf_sdh_soc.c" />
     </folder>
     <folder Name="Sensor_Drivers">
       <folder Name="inc">
@@ -167,6 +169,7 @@
         <file file_name="platform.c" />
       </folder>
     </folder>
+    <file file_name="occupancy_tracker.h" />
   </project>
   <configuration
     Name="Release"

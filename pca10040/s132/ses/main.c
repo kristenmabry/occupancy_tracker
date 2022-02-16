@@ -116,6 +116,7 @@
 #include "nrf_rtc.h"
 #include "nrf_gpio.h"
 #include "ble_cus.h"
+#include "nrf_ble_bms.h"
 
 #include <nrf_sdm.h>
 
@@ -169,6 +170,7 @@
 
 #define READ_VL53L5CX_INTERVAL          APP_TIMER_TICKS(100)                        /**< Perform VL53L5CX read and update occupancy variable - 100ms*/
 #define SYSTEM_RESET_INTERVAL           APP_TIMER_TICKS(1000)                       // Attempt system reset after 1000ms of inaction in ranging loop
+#define NOTIFICATION_INTERVAL           APP_TIMER_TICKS(10000)  
 
 #define DEAD_BEEF                       0xDEADBEEF                                  /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
 
@@ -179,8 +181,9 @@
 #define MOTION_MAXIMUM      1800  // maximum distance for motion indication (max 4000mm && 1500mm from minimum
 #define PERSON_MIN_HEIGHT   1500  // minimum height to increase occupancy
 #define INTEGRATION_TIME    10    // 
+#define MEM_BUFF_SIZE                   512
 
-APP_TIMER_DEF(m_battery_timer_id);                                                  /**< Battery timer. */
+APP_TIMER_DEF(m_notification_timer_id);                                                  /**< Battery timer. */
 BLE_BAS_DEF(m_bas);                                                                 /**< Structure used to identify the battery service. */
 BLE_HTS_DEF(m_hts);                                                                 /**< Structure used to identify the health thermometer service. */
 NRF_BLE_GATT_DEF(m_gatt);                                                           /**< GATT module instance. */
@@ -192,6 +195,8 @@ NRF_BLE_GQ_DEF(m_ble_gatt_queue,                                                
 APP_TIMER_DEF(m_vl53l5cx_timer_id);
 BLE_CUS_DEF(m_cus);                                                             /**< Context for the Queued Write module.*/
 APP_TIMER_DEF(m_system_reset_timer_id);                                              // timeout
+NRF_BLE_BMS_DEF(m_bms);                                                         //!< Structure used to identify the Bond Management service.
+//APP_TIMER_DEF(m_notification_timer_id);
 
 
 static uint16_t          m_conn_handle = BLE_CONN_HANDLE_INVALID;                   /**< Handle of the current connection. */
@@ -200,11 +205,13 @@ static sensorsim_cfg_t   m_battery_sim_cfg;                                     
 static sensorsim_state_t m_battery_sim_state;                                       /**< Battery Level sensor simulator state. */
 static sensorsim_cfg_t   m_temp_celcius_sim_cfg;                                    /**< Temperature simulator configuration. */
 static sensorsim_state_t m_temp_celcius_sim_state;                                  /**< Temperature simulator state. */
+static ble_conn_state_user_flag_id_t m_bms_bonds_to_delete;                     //!< Flags used to identify bonds that should be deleted.
+static uint8_t                       m_qwr_mem[MEM_BUFF_SIZE];      
 
 static ble_uuid_t m_adv_uuids[] =                                                   /**< Universally unique service identifiers. */
 {
-    {BLE_UUID_HEALTH_THERMOMETER_SERVICE, BLE_UUID_TYPE_BLE},
-    {BLE_UUID_BATTERY_SERVICE, BLE_UUID_TYPE_BLE},
+    {BLE_UUID_BMS_SERVICE,  BLE_UUID_TYPE_BLE},
+    {CUSTOM_SERVICE_UUID, BLE_UUID_TYPE_BLE},
     {BLE_UUID_DEVICE_INFORMATION_SERVICE, BLE_UUID_TYPE_BLE}
 };
 
@@ -214,7 +221,7 @@ static uint16_t ceiling_height = CEILING_HEIGHT;  // 16 since 4m is 12bits, init
 static uint8_t person_entry = 0, check = 1, person_exit = 0, person_entry_2, person_exit_2;
 
 static void advertising_start(bool erase_bonds);
-static void temperature_measurement_send(void);
+//static void temperature_measurement_send(void);
 
 static const nrf_drv_twi_t m_twi = NRF_DRV_TWI_INSTANCE(TWI_INSTANCE_ID);  // give device twi id
 
@@ -282,15 +289,15 @@ static void pm_evt_handler(pm_evt_t const * p_evt)
     switch (p_evt->evt_id)
     {
         case PM_EVT_CONN_SEC_SUCCEEDED:
-            // Send a single temperature measurement if indication is enabled.
-            // NOTE: For this to work, make sure ble_hts_on_ble_evt() is called before
-            // pm_evt_handler() in ble_evt_dispatch().
-            err_code = ble_hts_is_indication_enabled(&m_hts, &is_indication_enabled);
-            APP_ERROR_CHECK(err_code);
-            if (is_indication_enabled)
-            {
-                temperature_measurement_send();
-            }
+            //// Send a single temperature measurement if indication is enabled.
+            //// NOTE: For this to work, make sure ble_hts_on_ble_evt() is called before
+            //// pm_evt_handler() in ble_evt_dispatch().
+            //err_code = ble_hts_is_indication_enabled(&m_hts, &is_indication_enabled);
+            //APP_ERROR_CHECK(err_code);
+            //if (is_indication_enabled)
+            //{
+                //temperature_measurement_send();
+            //}
             break;
 
         case PM_EVT_PEERS_DELETE_SUCCEEDED:
@@ -319,14 +326,14 @@ void read_lidar_data() {
      * print */
     // NRF_LOG_INFO("Print data no : %3u\n", sensor_config.streamcount);
     uint8_t i;
-    for(i = 0; i < 16; i++)
-    {                  //"Zone : %3d, Status : %3u, Distance : %4d mm\n" Results.target_status
-                       //"Zone : %3d, Motion : %3d, Distance : %4d mm\n" Results.motion_indicator.motion
-            NRF_LOG_INFO("Zone : %3d, Status : %3u, Distance : %4d mm\n",
-                    i,
-                     Results.target_status[VL53L5CX_NB_TARGET_PER_ZONE*i],
-                    (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*i]));
-    }
+    //for(i = 0; i < 16; i++)
+    //{                  //"Zone : %3d, Status : %3u, Distance : %4d mm\n" Results.target_status
+    //                   //"Zone : %3d, Motion : %3d, Distance : %4d mm\n" Results.motion_indicator.motion
+    //        NRF_LOG_INFO("Zone : %3d, Status : %3u, Distance : %4d mm\n",
+    //                i,
+    //                 Results.target_status[VL53L5CX_NB_TARGET_PER_ZONE*i],
+    //                (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*i]));
+    //}
     /* Entry - not pin side to pin side */
     // person just in area 1
     if((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) > PERSON_MIN_HEIGHT || 
@@ -568,6 +575,24 @@ static void hts_sim_measurement(ble_hts_meas_t * p_meas)
     }
 }
 
+/**@brief Function for handling the Battery measurement timer timeout.
+ *
+ * @details This function will be called each time the battery level measurement timer expires.
+ *
+ * @param[in] p_context  Pointer used for passing some arbitrary information (context) from the
+ *                       app_start_timer() call to the timeout handler.
+ */
+static void notification_timeout_handler(void * p_context)
+{
+    UNUSED_PARAMETER(p_context);
+    ret_code_t err_code;
+    
+    // Increment the value of m_custom_value before nortifing it.
+    
+    
+    err_code = ble_cus_custom_value_update(&m_cus, count);
+    APP_ERROR_CHECK(err_code);
+}
 
 /**@brief Function for the Timer initialization.
  *
@@ -582,10 +607,13 @@ static void timers_init(void)
     APP_ERROR_CHECK(err_code);
 
     // Create timers.
-    err_code = app_timer_create(&m_battery_timer_id,
-                                APP_TIMER_MODE_REPEATED,
-                                battery_level_meas_timeout_handler);
-    APP_ERROR_CHECK(err_code);
+    //err_code = app_timer_create(&m_battery_timer_id,
+    //                            APP_TIMER_MODE_REPEATED,
+    //                            battery_level_meas_timeout_handler);
+    //APP_ERROR_CHECK(err_code);
+
+    err_code = app_timer_create(&m_notification_timer_id, APP_TIMER_MODE_REPEATED, notification_timeout_handler);
+
 
     err_code = app_timer_create(&m_vl53l5cx_timer_id, APP_TIMER_MODE_REPEATED, vl53l5cx_read_handler);
     APP_ERROR_CHECK(err_code);
@@ -638,36 +666,63 @@ static void gatt_init(void)
 }
 
 
-/**@brief Function for simulating and sending one Temperature Measurement.
+/**@brief Function for handling events from bond management service. from @main.c in nrf_ble_bms
  */
-static void temperature_measurement_send(void)
+void bms_evt_handler(nrf_ble_bms_t * p_ess, nrf_ble_bms_evt_t * p_evt)
 {
-    ble_hts_meas_t simulated_meas;
-    ret_code_t     err_code;
+    ret_code_t err_code;
+    bool is_authorized = true;
 
-    if (!m_hts_meas_ind_conf_pending)
+    switch (p_evt->evt_type)
     {
-        hts_sim_measurement(&simulated_meas);
-
-        err_code = ble_hts_measurement_send(&m_hts, &simulated_meas);
-
-        switch (err_code)
-        {
-            case NRF_SUCCESS:
-                // Measurement was successfully sent, wait for confirmation.
-                m_hts_meas_ind_conf_pending = true;
-                break;
-
-            case NRF_ERROR_INVALID_STATE:
-                // Ignore error.
-                break;
-
-            default:
-                APP_ERROR_HANDLER(err_code);
-                break;
-        }
+        case NRF_BLE_BMS_EVT_AUTH:
+            NRF_LOG_DEBUG("Authorization request.");
+#if USE_AUTHORIZATION_CODE
+            if ((p_evt->auth_code.len != m_auth_code_len) ||
+                (memcmp(m_auth_code, p_evt->auth_code.code, m_auth_code_len) != 0))
+            {
+                is_authorized = false;
+            }
+#endif
+            err_code = nrf_ble_bms_auth_response(&m_bms, is_authorized);
+            APP_ERROR_CHECK(err_code);
     }
 }
+
+
+
+
+
+/**@brief Function for simulating and sending one Temperature Measurement.
+ */
+//static void temperature_measurement_send(void)
+//{
+//    ble_hts_meas_t simulated_meas;
+//    ret_code_t     err_code;
+
+//    if (!m_hts_meas_ind_conf_pending)
+//    {
+//        hts_sim_measurement(&simulated_meas);
+
+//        err_code = ble_hts_measurement_send(&m_hts, &simulated_meas);
+
+//        switch (err_code)
+//        {
+//            case NRF_SUCCESS:
+//                // Measurement was successfully sent, wait for confirmation.
+//                m_hts_meas_ind_conf_pending = true;
+//                break;
+
+//            case NRF_ERROR_INVALID_STATE:
+//                // Ignore error.
+//                break;
+
+//            default:
+//                APP_ERROR_HANDLER(err_code);
+//                break;
+//        }
+//    }
+//}
 
 
 /**@brief Function for handling the Health Thermometer Service events.
@@ -728,13 +783,13 @@ static void on_cus_evt(ble_cus_t     * p_cus_service,
     {
         case BLE_CUS_EVT_NOTIFICATION_ENABLED:
             
-             //err_code = app_timer_start(m_notification_timer_id, NOTIFICATION_INTERVAL, NULL);
+             err_code = app_timer_start(m_notification_timer_id, NOTIFICATION_INTERVAL, NULL);
              APP_ERROR_CHECK(err_code);
              break;
 
         case BLE_CUS_EVT_NOTIFICATION_DISABLED:
 
-            //err_code = app_timer_stop(m_notification_timer_id);
+            err_code = app_timer_stop(m_notification_timer_id);
             APP_ERROR_CHECK(err_code);
             break;
 
@@ -750,6 +805,106 @@ static void on_cus_evt(ble_cus_t     * p_cus_service,
     }
 }
 
+/**@brief Function for deleting a single bond if it does not belong to a connected peer.
+ *
+ * This will mark the bond for deferred deletion if the peer is connected.
+ */
+static void bond_delete(uint16_t conn_handle, void * p_context)
+{
+    UNUSED_PARAMETER(p_context);
+    ret_code_t   err_code;
+    pm_peer_id_t peer_id;
+
+    if (ble_conn_state_status(conn_handle) == BLE_CONN_STATUS_CONNECTED)
+    {
+        ble_conn_state_user_flag_set(conn_handle, m_bms_bonds_to_delete, true);
+    }
+    else
+    {
+        NRF_LOG_DEBUG("Attempting to delete bond.");
+        err_code = pm_peer_id_get(conn_handle, &peer_id);
+        APP_ERROR_CHECK(err_code);
+        if (peer_id != PM_PEER_ID_INVALID)
+        {
+            err_code = pm_peer_delete(peer_id);
+            APP_ERROR_CHECK(err_code);
+            ble_conn_state_user_flag_set(conn_handle, m_bms_bonds_to_delete, false);
+        }
+    }
+}
+
+
+/**@brief Function for performing deferred deletions.
+*/
+static void delete_disconnected_bonds(void)
+{
+    uint32_t n_calls = ble_conn_state_for_each_set_user_flag(m_bms_bonds_to_delete, bond_delete, NULL);
+    UNUSED_RETURN_VALUE(n_calls);
+}
+
+
+/**@brief Function for marking the requester's bond for deletion.
+*/
+static void delete_requesting_bond(nrf_ble_bms_t const * p_bms)
+{
+    NRF_LOG_INFO("Client requested that bond to current device deleted");
+    ble_conn_state_user_flag_set(p_bms->conn_handle, m_bms_bonds_to_delete, true);
+}
+
+
+/**@brief Function for deleting all bonds
+*/
+static void delete_all_bonds(nrf_ble_bms_t const * p_bms)
+{
+    ret_code_t err_code;
+    uint16_t conn_handle;
+
+    NRF_LOG_INFO("Client requested that all bonds be deleted");
+
+    pm_peer_id_t peer_id = pm_next_peer_id_get(PM_PEER_ID_INVALID);
+    while (peer_id != PM_PEER_ID_INVALID)
+    {
+        err_code = pm_conn_handle_get(peer_id, &conn_handle);
+        APP_ERROR_CHECK(err_code);
+
+        bond_delete(conn_handle, NULL);
+
+        peer_id = pm_next_peer_id_get(peer_id);
+    }
+}
+
+
+/**@brief Function for deleting all bet requesting device bonds
+*/
+static void delete_all_except_requesting_bond(nrf_ble_bms_t const * p_bms)
+{
+    ret_code_t err_code;
+    uint16_t conn_handle;
+
+    NRF_LOG_INFO("Client requested that all bonds except current bond be deleted");
+
+    pm_peer_id_t peer_id = pm_next_peer_id_get(PM_PEER_ID_INVALID);
+    while (peer_id != PM_PEER_ID_INVALID)
+    {
+        err_code = pm_conn_handle_get(peer_id, &conn_handle);
+        APP_ERROR_CHECK(err_code);
+
+        /* Do nothing if this is our own bond. */
+        if (conn_handle != p_bms->conn_handle)
+        {
+            bond_delete(conn_handle, NULL);
+        }
+
+        peer_id = pm_next_peer_id_get(peer_id);
+    }
+}
+
+uint16_t qwr_evt_handler(nrf_ble_qwr_t * p_qwr, nrf_ble_qwr_evt_t * p_evt)
+{
+    return nrf_ble_bms_on_qwr_evt(&m_bms, p_qwr, p_evt);
+}
+
+
 /**@brief Function for initializing services that will be used by the application.
  *
  * @details Initialize the Health Thermometer, Battery and Device Information services.
@@ -763,9 +918,14 @@ static void services_init(void)
     nrf_ble_qwr_init_t qwr_init = {0};
     ble_dis_sys_id_t   sys_id;
     ble_cus_init_t      cus_init = {0};
+    nrf_ble_bms_init_t   bms_init;
 
-    // Initialize Queued Write Module.
-    qwr_init.error_handler = nrf_qwr_error_handler;
+    // Initialize Queued Write Module
+    memset(&qwr_init, 0, sizeof(qwr_init));
+    qwr_init.mem_buffer.len   = MEM_BUFF_SIZE;
+    qwr_init.mem_buffer.p_mem = m_qwr_mem;
+    qwr_init.callback         = qwr_evt_handler;
+    qwr_init.error_handler    = nrf_qwr_error_handler;
 
     err_code = nrf_ble_qwr_init(&m_qwr, &qwr_init);
     APP_ERROR_CHECK(err_code);
@@ -782,37 +942,50 @@ static void services_init(void)
     APP_ERROR_CHECK(err_code);    
 
 
-    //// Initialize Health Thermometer Service
-    //memset(&hts_init, 0, sizeof(hts_init));
 
-    //hts_init.evt_handler                 = on_hts_evt;
-    //hts_init.p_gatt_queue                = &m_ble_gatt_queue;
-    //hts_init.error_handler               = service_error_handler;
-    //hts_init.temp_type_as_characteristic = TEMP_TYPE_AS_CHARACTERISTIC;
-    //hts_init.temp_type                   = BLE_HTS_TEMP_TYPE_BODY;
+    // Initialize Bond Management Service
+    memset(&bms_init, 0, sizeof(bms_init));
 
-    //// Here the sec level for the Health Thermometer Service can be changed/increased.
-    //hts_init.ht_meas_cccd_wr_sec = SEC_JUST_WORKS;
-    //hts_init.ht_type_rd_sec      = SEC_OPEN;
+    m_bms_bonds_to_delete        = ble_conn_state_user_flag_acquire();
+    bms_init.evt_handler         = bms_evt_handler;
+    bms_init.error_handler       = service_error_handler;
+#if USE_AUTHORIZATION_CODE
+    bms_init.feature.delete_requesting_auth         = true;
+    bms_init.feature.delete_all_auth                = true;
+    bms_init.feature.delete_all_but_requesting_auth = true;
+#else
+    bms_init.feature.delete_requesting              = true;
+    bms_init.feature.delete_all                     = true;
+    bms_init.feature.delete_all_but_requesting      = true;
+#endif
+    bms_init.bms_feature_sec_req = SEC_JUST_WORKS;
+    bms_init.bms_ctrlpt_sec_req  = SEC_JUST_WORKS;
 
-    //err_code = ble_hts_init(&m_hts, &hts_init);
-    //APP_ERROR_CHECK(err_code);
+    bms_init.p_qwr                                       = &m_qwr;
+    bms_init.bond_callbacks.delete_requesting            = delete_requesting_bond;
+    bms_init.bond_callbacks.delete_all                   = delete_all_bonds;
+    bms_init.bond_callbacks.delete_all_except_requesting = delete_all_except_requesting_bond;
 
-    // Initialize Battery Service.
-    memset(&bas_init, 0, sizeof(bas_init));
-
-    // Here the sec level for the Battery Service can be changed/increased.
-    bas_init.bl_rd_sec        = SEC_OPEN;
-    bas_init.bl_cccd_wr_sec   = SEC_OPEN;
-    bas_init.bl_report_rd_sec = SEC_OPEN;
-
-    bas_init.evt_handler          = NULL;
-    bas_init.support_notification = true;
-    bas_init.p_report_ref         = NULL;
-    bas_init.initial_batt_level   = 100;
-
-    err_code = ble_bas_init(&m_bas, &bas_init);
+    err_code = nrf_ble_bms_init(&m_bms, &bms_init);
     APP_ERROR_CHECK(err_code);
+
+
+
+    //// Initialize Battery Service.
+    //memset(&bas_init, 0, sizeof(bas_init));
+
+    //// Here the sec level for the Battery Service can be changed/increased.
+    //bas_init.bl_rd_sec        = SEC_OPEN;
+    //bas_init.bl_cccd_wr_sec   = SEC_OPEN;
+    //bas_init.bl_report_rd_sec = SEC_OPEN;
+
+    //bas_init.evt_handler          = NULL;
+    //bas_init.support_notification = true;
+    //bas_init.p_report_ref         = NULL;
+    //bas_init.initial_batt_level   = 100;
+
+    //err_code = ble_bas_init(&m_bas, &bas_init);
+    //APP_ERROR_CHECK(err_code);
 
     // Initialize Device Information Service.
     memset(&dis_init, 0, sizeof(dis_init));
@@ -856,10 +1029,10 @@ static void sensor_simulator_init(void)
  */
 static void application_timers_start(void)
 {
-    ret_code_t err_code;
+    ret_code_t err_code = 0;
 
     // Start application timers.
-    err_code = app_timer_start(m_battery_timer_id, BATTERY_LEVEL_MEAS_INTERVAL, NULL);
+    //err_code = app_timer_start(m_battery_timer_id, BATTERY_LEVEL_MEAS_INTERVAL, NULL);
     err_code |= app_timer_start(m_vl53l5cx_timer_id, READ_VL53L5CX_INTERVAL, NULL);
     APP_ERROR_CHECK(err_code);
 }
@@ -992,7 +1165,7 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
         case BLE_GAP_EVT_DISCONNECTED:
             NRF_LOG_INFO("Disconnected.");
             m_conn_handle               = BLE_CONN_HANDLE_INVALID;
-            m_hts_meas_ind_conf_pending = false;
+            //m_hts_meas_ind_conf_pending = false;
             break;
 
         case BLE_GAP_EVT_PHY_UPDATE_REQUEST:
@@ -1093,7 +1266,7 @@ static void bsp_event_handler(bsp_event_t event)
         case BSP_EVENT_KEY_0:
             if (m_conn_handle != BLE_CONN_HANDLE_INVALID)
             {
-                temperature_measurement_send();
+                //temperature_measurement_send();
             }
             break;
 
@@ -1762,6 +1935,11 @@ int main(void)
     conn_params_init();
     peer_manager_init();
 
+    // Start execution.
+    NRF_LOG_INFO("Health Thermometer example started.");
+    application_timers_start();
+    advertising_start(erase_bonds);
+
     /* Sensor init */
     twi_init();
 
@@ -1769,17 +1947,8 @@ int main(void)
         NRF_LOG_INFO("GPIO initilized");
         NRF_LOG_FLUSH();
 
-
-
     vl53l5cx_sensor_init();
     //start_timer();
-
-    
-
-    // Start execution.
-    NRF_LOG_INFO("Health Thermometer example started.");
-    application_timers_start();
-    advertising_start(erase_bonds);
 
     // Enter main loop.
     while (1)

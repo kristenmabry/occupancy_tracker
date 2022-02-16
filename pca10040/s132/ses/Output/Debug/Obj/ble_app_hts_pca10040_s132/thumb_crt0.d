@@ -1,2 +1,2 @@
 Output/Debug/Obj/ble_app_hts_pca10040_s132/thumb_crt0.o: \
- C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 5.64/source/thumb_crt0.s
+ C\:/Users/bwill/ncs/v1.7.0/toolchain/segger_embedded_studio/source/thumb_crt0.s

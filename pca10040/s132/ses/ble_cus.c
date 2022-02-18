@@ -54,6 +54,7 @@ static void on_write(ble_cus_t * p_cus, ble_evt_t const * p_ble_evt)
     {
         
         nrf_gpio_pin_toggle(LED_4);
+        p_cus->current_value = *p_evt_write->data;
         /*
         if(*p_evt_write->data == 0x01)
         {

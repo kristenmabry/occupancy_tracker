@@ -397,7 +397,10 @@ void read_lidar_data() {
       (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*10]) < PERSON_MIN_HEIGHT &&
       (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*14]) < PERSON_MIN_HEIGHT) )
       {
-        if(person_exit) count++; // person passed through and area is clear
+        if(person_exit){
+         m_cus.current_value++; // person passed through and area is clear
+         ble_cus_custom_value_update(&m_cus, m_cus.current_value);
+         }
         person_entry = 0;
         person_exit = 0;
       }
@@ -465,10 +468,13 @@ void read_lidar_data() {
       (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*10]) < PERSON_MIN_HEIGHT &&
       (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*14]) < PERSON_MIN_HEIGHT) )
       {
-        if(person_exit_2)
-         count--; // person passed through and area is clear
+        if(person_exit_2) {
+         m_cus.current_value--; // person passed through and area is clear
+         ble_cus_custom_value_update(&m_cus, m_cus.current_value);
         person_entry_2 = 0;
         person_exit_2 = 0;
+
+        }
       }
   
   }
@@ -483,7 +489,7 @@ static void battery_level_update(void)
 
     //battery_level = (uint8_t)sensorsim_measure(&m_battery_sim_state, &m_battery_sim_cfg);
 
-    err_code = ble_cus_custom_value_update(&m_cus, count);
+    err_code = ble_cus_custom_value_update(&m_cus, m_cus.current_value);
     //err_code = ble_bas_battery_level_update(&m_bas, count, BLE_CONN_HANDLE_ALL);
     if ((err_code != NRF_SUCCESS) &&
         (err_code != NRF_ERROR_INVALID_STATE) &&
@@ -590,7 +596,7 @@ static void notification_timeout_handler(void * p_context)
     // Increment the value of m_custom_value before nortifing it.
     
     
-    err_code = ble_cus_custom_value_update(&m_cus, count);
+    err_code = ble_cus_custom_value_update(&m_cus, m_cus.current_value);
     APP_ERROR_CHECK(err_code);
 }
 
@@ -1683,7 +1689,7 @@ void vl53l5cx_sensor_init(void)
                           (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*10]) < PERSON_MIN_HEIGHT &&
                           (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*14]) < PERSON_MIN_HEIGHT) )
                           {
-                            if(person_exit) count++; // person passed through and area is clear
+                            if(person_exit) m_cus.current_value++; // person passed through and area is clear
                             person_entry = 0;
                             person_exit = 0;
                           }
@@ -1752,7 +1758,7 @@ void vl53l5cx_sensor_init(void)
                           (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*14]) < PERSON_MIN_HEIGHT) )
                           {
                             if(person_exit_2)
-                             count--; // person passed through and area is clear
+                             m_cus.current_value--; // person passed through and area is clear
                             person_entry_2 = 0;
                             person_exit_2 = 0;
                           }

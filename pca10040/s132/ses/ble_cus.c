@@ -94,6 +94,52 @@ static void on_write(ble_cus_t * p_cus, ble_evt_t const * p_ble_evt)
         }
     }
 
+  /* Ceiling */
+    // Ceiling Value Characteristic Written to.
+    if (p_evt_write->handle == p_cus->ceiling_value_handles.value_handle)
+    {
+        
+        //nrf_gpio_pin_toggle(LED_4);
+        p_cus->current_value_2 = (*p_evt_write->data << 8) + *(p_evt_write->data + 1);
+        /*
+        if(*p_evt_write->data == 0x01)
+        {
+            nrf_gpio_pin_clear(20); 
+        }
+        else if(*p_evt_write->data == 0x02)
+        {
+            nrf_gpio_pin_set(20); 
+        }
+        else
+        {
+          //Do nothing
+        }
+        */
+    }
+
+    // Check if the Ceiling value CCCD is written to and that the value is the appropriate length, i.e 2 bytes.
+    if ((p_evt_write->handle == p_cus->ceiling_value_handles.cccd_handle)
+        && (p_evt_write->len == 4)
+       )
+    {
+        // CCCD written, call application event handler
+        if (p_cus->evt_handler != NULL)
+        {
+            ble_cus_evt_t evt;
+
+            if (ble_srv_is_notification_enabled(p_evt_write->data))
+            {
+                evt.evt_type = BLE_CUS_EVT_NOTIFICATION_ENABLED;
+            }
+            else
+            {
+                evt.evt_type = BLE_CUS_EVT_NOTIFICATION_DISABLED;
+            }
+            // Call the application event handler.
+            p_cus->evt_handler(p_cus, &evt);
+        }
+    }
+
 }
 
 void ble_cus_on_ble_evt( ble_evt_t const * p_ble_evt, void * p_context)
@@ -245,9 +291,9 @@ static uint32_t ceiling_value_char_add(ble_cus_t * p_cus, const ble_cus_init_t *
 
     attr_char_value.p_uuid    = &ble_uuid;
     attr_char_value.p_attr_md = &attr_md;
-    attr_char_value.init_len  = sizeof(uint8_t);
+    attr_char_value.init_len  = sizeof(uint8_t)*2;
     attr_char_value.init_offs = 0;
-    attr_char_value.max_len   = sizeof(uint8_t);
+    attr_char_value.max_len   = sizeof(uint8_t)*2;
 
     err_code = sd_ble_gatts_characteristic_add(p_cus->service_handle, &char_md,
                                                &attr_char_value,
@@ -353,3 +399,56 @@ uint32_t ble_cus_custom_value_update(ble_cus_t * p_cus, uint8_t custom_value)
 }
 
 
+
+uint32_t ble_cus_ceiling_value_update(ble_cus_t * p_cus, uint8_t ceiling_value)
+{
+    NRF_LOG_INFO("In ble_cus_custom_value_update. \r\n"); 
+    if (p_cus == NULL)
+    {
+        return NRF_ERROR_NULL;
+    }
+
+    uint32_t err_code = NRF_SUCCESS;
+    ble_gatts_value_t gatts_value;
+
+    // Initialize value struct.
+    memset(&gatts_value, 0, sizeof(gatts_value));
+
+    gatts_value.len     = sizeof(uint8_t)*2;
+    gatts_value.offset  = 0;
+    gatts_value.p_value = &ceiling_value;
+
+    // Update database.
+    err_code = sd_ble_gatts_value_set(p_cus->conn_handle,
+                                      p_cus->ceiling_value_handles.value_handle,
+                                      &gatts_value);
+    if (err_code != NRF_SUCCESS)
+    {
+        return err_code;
+    }
+
+    // Send value if connected and notifying.
+    if ((p_cus->conn_handle != BLE_CONN_HANDLE_INVALID)) 
+    {
+        ble_gatts_hvx_params_t hvx_params;
+
+        memset(&hvx_params, 0, sizeof(hvx_params));
+
+        hvx_params.handle = p_cus->ceiling_value_handles.value_handle;
+        hvx_params.type   = BLE_GATT_HVX_NOTIFICATION;
+        hvx_params.offset = gatts_value.offset;
+        hvx_params.p_len  = &gatts_value.len;
+        hvx_params.p_data = gatts_value.p_value;
+
+        err_code = sd_ble_gatts_hvx(p_cus->conn_handle, &hvx_params);
+        NRF_LOG_INFO("sd_ble_gatts_hvx result: %x. \r\n", err_code); 
+    }
+    else
+    {
+        err_code = NRF_ERROR_INVALID_STATE;
+        NRF_LOG_INFO("sd_ble_gatts_hvx result: NRF_ERROR_INVALID_STATE. \r\n"); 
+    }
+
+
+    return err_code;
+}

@@ -176,7 +176,7 @@
 
 #define TWI_INSTANCE_ID     0     // twi instance
 #define CEILING_HEIGHT      2100  // height from sensor to floor
-#define RANGING_FREQUENCY   8     // frequency (Hz) of new ranging data (1-15 for 8x8) (1-60 for 4x4)
+#define RANGING_FREQUENCY   1     // frequency (Hz) of new ranging data (1-15 for 8x8) (1-60 for 4x4)
 #define MOTION_MINIMUM      400   // minimum distance for motion indication (at least <400mm && 1500mm from maximum)
 #define MOTION_MAXIMUM      1800  // maximum distance for motion indication (max 4000mm && 1500mm from minimum
 #define PERSON_MIN_HEIGHT   1500  // minimum height to increase occupancy
@@ -326,14 +326,18 @@ void read_lidar_data() {
      * print */
     // NRF_LOG_INFO("Print data no : %3u\n", sensor_config.streamcount);
     uint8_t i;
-    //for(i = 0; i < 16; i++)
-    //{                  //"Zone : %3d, Status : %3u, Distance : %4d mm\n" Results.target_status
-    //                   //"Zone : %3d, Motion : %3d, Distance : %4d mm\n" Results.motion_indicator.motion
-    //        NRF_LOG_INFO("Zone : %3d, Status : %3u, Distance : %4d mm\n",
-    //                i,
-    //                 Results.target_status[VL53L5CX_NB_TARGET_PER_ZONE*i],
-    //                (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*i]));
-    //}
+    for(i = 0; i < 16; i++)
+    {                  //"Zone : %3d, Status : %3u, Distance : %4d mm\n" Results.target_status
+                       //"Zone : %3d, Motion : %3d, Distance : %4d mm\n" Results.motion_indicator.motion
+            NRF_LOG_INFO("Zone : %3d, Status : %3u, Distance : %4d mm\n",
+                    i,
+                     Results.target_status[VL53L5CX_NB_TARGET_PER_ZONE*i],
+                    (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*i]));
+    }
+
+    /* Update local Ceiling height to same as bluetooth*/
+    ceiling_height = m_cus.current_value_2;
+
     /* Entry - not pin side to pin side */
     // person just in area 1
     if((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) > PERSON_MIN_HEIGHT || 
@@ -597,6 +601,7 @@ static void notification_timeout_handler(void * p_context)
     
     
     err_code = ble_cus_custom_value_update(&m_cus, m_cus.current_value);
+    err_code = ble_cus_ceiling_value_update(&m_cus, m_cus.current_value_2);
     APP_ERROR_CHECK(err_code);
 }
 
@@ -745,7 +750,7 @@ static void on_hts_evt(ble_hts_t * p_hts, ble_hts_evt_t * p_evt)
     {
         case BLE_HTS_EVT_INDICATION_ENABLED:
             // Indication has been enabled, send a single temperature measurement
-            temperature_measurement_send();
+            //temperature_measurement_send();
             break;
 
         case BLE_HTS_EVT_INDICATION_CONFIRMED:

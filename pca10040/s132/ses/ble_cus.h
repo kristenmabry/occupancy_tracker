@@ -72,6 +72,7 @@ struct ble_cus_s
     uint16_t                      conn_handle;                    /**< Handle of the current connection (as provided by the BLE stack, is BLE_CONN_HANDLE_INVALID if not in a connection). */
     uint8_t                       uuid_type; 
     uint8_t                       current_value;
+    uint16_t                      current_value_2;
 };
 
 /**@brief Function for initializing the Custom Service.
@@ -112,3 +113,5 @@ void ble_cus_on_ble_evt( ble_evt_t const * p_ble_evt, void * p_context);
 uint32_t ble_cus_custom_value_update(ble_cus_t * p_cus, uint8_t custom_value);
 
 #endif // BLE_CUS_H__
+
+uint32_t ble_cus_ceiling_value_update(ble_cus_t * p_cus, uint8_t ceiling_value);

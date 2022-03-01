@@ -1,10 +1,10 @@
 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_bms.o: \
- F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\examples\ble_peripheral\occupancy_tracker\pca10040\s132\ses\nrf_ble_bms.c \
- C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 5.64/include/string.h \
- C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 5.64/include/__crossworks.h \
- F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\examples\ble_peripheral\occupancy_tracker\pca10040\s132\ses\nrf_ble_bms.h \
- C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 5.64/include/stdint.h \
- C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 5.64/include/stdbool.h \
+ C\:\Nordic_Semi\Nordic_Semi\nRF5_SDK_17.1.0_ddde560\examples\ble_peripheral\occupancy_tracker-1\pca10040\s132\ses\nrf_ble_bms.c \
+ C\:/Users/bwill/ncs/v1.7.0/toolchain/segger_embedded_studio/include/string.h \
+ C\:/Users/bwill/ncs/v1.7.0/toolchain/segger_embedded_studio/include/__crossworks.h \
+ C\:\Nordic_Semi\Nordic_Semi\nRF5_SDK_17.1.0_ddde560\examples\ble_peripheral\occupancy_tracker-1\pca10040\s132\ses\nrf_ble_bms.h \
+ C\:/Users/bwill/ncs/v1.7.0/toolchain/segger_embedded_studio/include/stdint.h \
+ C\:/Users/bwill/ncs/v1.7.0/toolchain/segger_embedded_studio/include/stdbool.h \
  ../../../../../../components/softdevice/s132/headers/ble.h \
  ../../../../../../components/softdevice/s132/headers/nrf_svc.h \
  ../../../../../../components/softdevice/s132/headers/nrf_error.h \
@@ -32,14 +32,14 @@ Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_bms.o: \
  ../../../../../../components/ble/common/ble_srv_common.h \
  ../../../../../../components/softdevice/s132/headers/ble_types.h \
  ../../../../../../components/libraries/util/app_util.h \
- C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 5.64/include/stddef.h \
+ C\:/Users/bwill/ncs/v1.7.0/toolchain/segger_embedded_studio/include/stddef.h \
  ../../../../../../modules/nrfx/mdk/compiler_abstraction.h \
  ../../../../../../components/libraries/util/nordic_common.h \
  ../../../../../../components/softdevice/s132/headers/nrf52/nrf_mbr.h \
  ../../../../../../components/softdevice/s132/headers/nrf_svc.h \
  ../../../../../../components/softdevice/s132/headers/ble_gap.h \
  ../../../../../../components/softdevice/s132/headers/ble_gatt.h \
- F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\examples\ble_peripheral\occupancy_tracker\pca10040\s132\ses\nrf_ble_qwr.h \
+ C\:\Nordic_Semi\Nordic_Semi\nRF5_SDK_17.1.0_ddde560\examples\ble_peripheral\occupancy_tracker-1\pca10040\s132\ses\nrf_ble_qwr.h \
  ../../../../../../components/libraries/util/nordic_common.h \
  ../../../../../../components/libraries/util/sdk_common.h \
  ../config/sdk_config.h \

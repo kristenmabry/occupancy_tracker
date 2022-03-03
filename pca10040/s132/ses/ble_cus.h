@@ -114,4 +114,4 @@ uint32_t ble_cus_custom_value_update(ble_cus_t * p_cus, uint8_t custom_value);
 
 #endif // BLE_CUS_H__
 
-uint32_t ble_cus_ceiling_value_update(ble_cus_t * p_cus, uint8_t ceiling_value);
+uint32_t ble_cus_ceiling_value_update(ble_cus_t * p_cus, uint8_t * ceiling_value);

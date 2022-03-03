@@ -349,7 +349,7 @@ uint32_t ble_cus_init(ble_cus_t * p_cus, const ble_cus_init_t * p_cus_init)
     } 
     //uint16_t i = 2000;
     //ble_cus_custom_value_update(p_cus, &i);
-    p_cus->current_value_2 = 0x2000;
+    p_cus->current_value_2 = 0x2001;
     return NRF_SUCCESS;
 }
 
@@ -408,7 +408,7 @@ uint32_t ble_cus_custom_value_update(ble_cus_t * p_cus, uint8_t custom_value)
 
 
 
-uint32_t ble_cus_ceiling_value_update(ble_cus_t * p_cus, uint8_t ceiling_value)
+uint32_t ble_cus_ceiling_value_update(ble_cus_t * p_cus, uint8_t * ceiling_value)
 {
     NRF_LOG_INFO("In ble_cus_custom_value_update. \r\n"); 
     if (p_cus == NULL)
@@ -422,9 +422,9 @@ uint32_t ble_cus_ceiling_value_update(ble_cus_t * p_cus, uint8_t ceiling_value)
     // Initialize value struct.
     memset(&gatts_value, 0, sizeof(gatts_value));
 
-    gatts_value.len     = sizeof(uint8_t)*2;
+    gatts_value.len     = sizeof(uint16_t);
     gatts_value.offset  = 0;
-    gatts_value.p_value = &ceiling_value;
+    gatts_value.p_value = ceiling_value;
 
     // Update database.
     err_code = sd_ble_gatts_value_set(p_cus->conn_handle,

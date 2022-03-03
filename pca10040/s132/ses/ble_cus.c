@@ -342,7 +342,15 @@ uint32_t ble_cus_init(ble_cus_t * p_cus, const ble_cus_init_t * p_cus_init)
     {
         return err_code;
     }
-    return custom_value_char_add(p_cus, p_cus_init);
+    err_code = custom_value_char_add(p_cus, p_cus_init);
+    if (err_code != NRF_SUCCESS)
+    {
+        return err_code;
+    } 
+    //uint16_t i = 2000;
+    //ble_cus_custom_value_update(p_cus, &i);
+    p_cus->current_value_2 = 0x2000;
+    return NRF_SUCCESS;
 }
 
 uint32_t ble_cus_custom_value_update(ble_cus_t * p_cus, uint8_t custom_value)
@@ -393,7 +401,7 @@ uint32_t ble_cus_custom_value_update(ble_cus_t * p_cus, uint8_t custom_value)
         err_code = NRF_ERROR_INVALID_STATE;
         NRF_LOG_INFO("sd_ble_gatts_hvx result: NRF_ERROR_INVALID_STATE. \r\n"); 
     }
-
+    
 
     return err_code;
 }

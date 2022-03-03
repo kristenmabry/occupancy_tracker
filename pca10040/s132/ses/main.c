@@ -1952,6 +1952,9 @@ int main(void)
     advertising_start(erase_bonds);
 
     /* Sensor init */
+    // initial ceiling height 
+    m_cus.current_value_2 = 0x0700;
+    ble_cus_ceiling_value_update(&m_cus, m_cus.current_value_2);
     twi_init();
 
     gpio_init();

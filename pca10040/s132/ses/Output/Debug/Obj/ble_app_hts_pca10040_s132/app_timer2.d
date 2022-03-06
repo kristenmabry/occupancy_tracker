@@ -1,12 +1,12 @@
 Output/Debug/Obj/ble_app_hts_pca10040_s132/app_timer2.o: \
- C\:\Nordic_Semi\Nordic_Semi\nRF5_SDK_17.1.0_ddde560\components\libraries\timer\app_timer2.c \
- C\:\Nordic_Semi\Nordic_Semi\nRF5_SDK_17.1.0_ddde560\components\libraries\timer\app_timer.h \
+ F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\components\libraries\timer\app_timer2.c \
+ F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\components\libraries\timer\app_timer.h \
  ../config/sdk_config.h \
  ../../../../../../components/libraries/util/app_error.h \
- C\:/Users/bwill/ncs/v1.7.0/toolchain/segger_embedded_studio/include/stdint.h \
- C\:/Users/bwill/ncs/v1.7.0/toolchain/segger_embedded_studio/include/stdio.h \
- C\:/Users/bwill/ncs/v1.7.0/toolchain/segger_embedded_studio/include/__crossworks.h \
- C\:/Users/bwill/ncs/v1.7.0/toolchain/segger_embedded_studio/include/stdbool.h \
+ C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 5.64/include/stdint.h \
+ C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 5.64/include/stdio.h \
+ C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 5.64/include/__crossworks.h \
+ C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 5.64/include/stdbool.h \
  ../../../../../../modules/nrfx/mdk/nrf.h \
  ../../../../../../modules/nrfx/mdk/nrf52.h \
  ../../../../../../components/toolchain/cmsis/include/core_cm4.h \
@@ -24,7 +24,7 @@ Output/Debug/Obj/ble_app_hts_pca10040_s132/app_timer2.o: \
  ../../../../../../components/libraries/util/nordic_common.h \
  ../../../../../../components/libraries/util/app_error_weak.h \
  ../../../../../../components/libraries/util/app_util.h \
- C\:/Users/bwill/ncs/v1.7.0/toolchain/segger_embedded_studio/include/stddef.h \
+ C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 5.64/include/stddef.h \
  ../../../../../../modules/nrfx/mdk/compiler_abstraction.h \
  ../../../../../../components/softdevice/s132/headers/nrf52/nrf_mbr.h \
  ../../../../../../components/softdevice/s132/headers/nrf_svc.h \
@@ -62,12 +62,12 @@ Output/Debug/Obj/ble_app_hts_pca10040_s132/app_timer2.o: \
  ../../../../../../modules/nrfx/drivers/nrfx_errors.h \
  ../../../../../../components/libraries/log/nrf_log.h \
  ../../../../../../components/libraries/util/sdk_common.h \
- C\:/Users/bwill/ncs/v1.7.0/toolchain/segger_embedded_studio/include/string.h \
+ C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 5.64/include/string.h \
  ../../../../../../components/libraries/util/sdk_os.h \
  ../../../../../../components/libraries/util/app_util.h \
  ../../../../../../components/libraries/util/sdk_macros.h \
  ../../../../../../components/libraries/strerror/nrf_strerror.h \
  ../../../../../../components/libraries/log/src/nrf_log_internal.h \
  ../../../../../../components/libraries/log/nrf_log_types.h \
- C\:\Nordic_Semi\Nordic_Semi\nRF5_SDK_17.1.0_ddde560\components\libraries\timer\drv_rtc.h \
+ F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\components\libraries\timer\drv_rtc.h \
  ../../../../../../modules/nrfx/hal/nrf_rtc.h

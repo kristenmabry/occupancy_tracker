@@ -126,7 +126,7 @@
 
 
 
-#define DEVICE_NAME                     "Lidar"                                /**< Name of device. Will be included in the advertising data. */
+#define DEVICE_NAME                     "Lidar"                                     /**< Name of device. Will be included in the advertising data. */
 #define MANUFACTURER_NAME               "NordicSemiconductor"                       /**< Manufacturer. Will be passed to Device Information Service. */
 #define MODEL_NUM                       "NS-HTS-EXAMPLE"                            /**< Model number. Will be passed to Device Information Service. */
 #define MANUFACTURER_ID                 0x1122334455                                /**< Manufacturer ID, part of System ID. Will be passed to Device Information Service. */
@@ -168,15 +168,15 @@
 #define SEC_PARAM_MIN_KEY_SIZE          7                                           /**< Minimum encryption key size. */
 #define SEC_PARAM_MAX_KEY_SIZE          16                                          /**< Maximum encryption key size. */
 
-#define READ_VL53L5CX_INTERVAL          APP_TIMER_TICKS(100)                        /**< Perform VL53L5CX read and update occupancy variable - 100ms*/
+#define READ_VL53L5CX_INTERVAL          APP_TIMER_TICKS(50)                        /**< Perform VL53L5CX read and update occupancy variable - 100ms*/
 #define SYSTEM_RESET_INTERVAL           APP_TIMER_TICKS(1000)                       // Attempt system reset after 1000ms of inaction in ranging loop
-#define NOTIFICATION_INTERVAL           APP_TIMER_TICKS(10000)  
+#define NOTIFICATION_INTERVAL           APP_TIMER_TICKS(100000)  
 
 #define DEAD_BEEF                       0xDEADBEEF                                  /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
 
 #define TWI_INSTANCE_ID     0     // twi instance
-#define CEILING_HEIGHT      2100  // height from sensor to floor
-#define RANGING_FREQUENCY   10     // frequency (Hz) of new ranging data (1-15 for 8x8) (1-60 for 4x4)
+#define CEILING_HEIGHT      2200  // height from sensor to floor
+#define RANGING_FREQUENCY   20     // frequency (Hz) of new ranging data (1-15 for 8x8) (1-60 for 4x4)
 #define MOTION_MINIMUM      400   // minimum distance for motion indication (at least <400mm && 1500mm from maximum)
 #define MOTION_MAXIMUM      1800  // maximum distance for motion indication (max 4000mm && 1500mm from minimum
 #define PERSON_MIN_HEIGHT   1500  // minimum height to increase occupancy
@@ -215,7 +215,8 @@ static ble_uuid_t m_adv_uuids[] =                                               
     {BLE_UUID_DEVICE_INFORMATION_SERVICE, BLE_UUID_TYPE_BLE}
 };
 
-static uint8_t count, isReady;
+static uint8_t isReady;
+//static uint16_t count;
 static uint16_t ceiling_height = CEILING_HEIGHT;  // 16 since 4m is 12bits, initially default but can be changed by user over ble
 
 static uint8_t person_entry = 0, check = 1, person_exit = 0, person_entry_2, person_exit_2;
@@ -368,12 +369,12 @@ void read_lidar_data() {
            /* 2 */ ((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*1]) < PERSON_MIN_HEIGHT &&
           (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*5]) < PERSON_MIN_HEIGHT &&
           (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*9]) < PERSON_MIN_HEIGHT &&
-          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*13]) < PERSON_MIN_HEIGHT) &&
+          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*13]) < PERSON_MIN_HEIGHT) )// &&
 
-          ((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*2]) < PERSON_MIN_HEIGHT &&
-          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*6]) < PERSON_MIN_HEIGHT &&
-          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*10]) < PERSON_MIN_HEIGHT &&
-          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*14]) < PERSON_MIN_HEIGHT) )
+          //((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*2]) < PERSON_MIN_HEIGHT &&
+          //(ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*6]) < PERSON_MIN_HEIGHT &&
+          //(ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*10]) < PERSON_MIN_HEIGHT &&
+          //(ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*14]) < PERSON_MIN_HEIGHT) )
           {
             person_exit = 1;
           }
@@ -403,7 +404,8 @@ void read_lidar_data() {
       {
         if(person_exit){
          m_cus.current_value++; // person passed through and area is clear
-         ble_cus_custom_value_update(&m_cus, m_cus.current_value);
+         uint8_t temp_array[2] = {m_cus.current_value>>8, m_cus.current_value}; // initial ceiling height of 2200
+         ble_cus_custom_value_update(&m_cus, temp_array);
          }
         person_entry = 0;
         person_exit = 0;
@@ -436,10 +438,10 @@ void read_lidar_data() {
           (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) < PERSON_MIN_HEIGHT &&
           (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) < PERSON_MIN_HEIGHT) &&
 
-           /* 2 */ ((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*1]) < PERSON_MIN_HEIGHT &&
-          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*5]) < PERSON_MIN_HEIGHT &&
-          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*9]) < PERSON_MIN_HEIGHT &&
-          (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*13]) < PERSON_MIN_HEIGHT) &&
+          // /* 2 */ ((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*1]) < PERSON_MIN_HEIGHT &&
+          //(ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*5]) < PERSON_MIN_HEIGHT &&
+          //(ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*9]) < PERSON_MIN_HEIGHT &&
+          //(ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*13]) < PERSON_MIN_HEIGHT) &&
 
           ((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*2]) < PERSON_MIN_HEIGHT &&
           (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*6]) < PERSON_MIN_HEIGHT &&
@@ -474,11 +476,13 @@ void read_lidar_data() {
       {
         if(person_exit_2) {
          m_cus.current_value--; // person passed through and area is clear
-         ble_cus_custom_value_update(&m_cus, m_cus.current_value);
+         uint8_t temp_array[2] = {m_cus.current_value>>8, m_cus.current_value}; // initial ceiling height of 2200
+         ble_cus_custom_value_update(&m_cus, temp_array);
+         }
         person_entry_2 = 0;
         person_exit_2 = 0;
 
-        }
+        
       }
   
   }
@@ -492,8 +496,8 @@ static void battery_level_update(void)
     //uint8_t  battery_level;
 
     //battery_level = (uint8_t)sensorsim_measure(&m_battery_sim_state, &m_battery_sim_cfg);
-
-    err_code = ble_cus_custom_value_update(&m_cus, m_cus.current_value);
+    uint8_t temp_array[2] = {m_cus.current_value>>8, m_cus.current_value}; // initial ceiling height of 2200
+    err_code = ble_cus_custom_value_update(&m_cus, temp_array);
     //err_code = ble_bas_battery_level_update(&m_bas, count, BLE_CONN_HANDLE_ALL);
     if ((err_code != NRF_SUCCESS) &&
         (err_code != NRF_ERROR_INVALID_STATE) &&
@@ -599,8 +603,8 @@ static void notification_timeout_handler(void * p_context)
     
     // Increment the value of m_custom_value before nortifing it.
     
-    
-    err_code = ble_cus_custom_value_update(&m_cus, m_cus.current_value);
+    uint8_t temp_array[2] = {m_cus.current_value>>8, m_cus.current_value}; // initial ceiling height of 2200    
+    err_code = ble_cus_custom_value_update(&m_cus, temp_array);
     //err_code = ble_cus_ceiling_value_update(&m_cus, m_cus.current_value_2);
     APP_ERROR_CHECK(err_code);
 }
@@ -1953,7 +1957,7 @@ int main(void)
 
     /* Sensor init */
     // initial ceiling height 
-    uint8_t temp_array[2] = {0x08, 0x98}; // initial ceiling height of 2200
+    uint8_t temp_array[2] = {CEILING_HEIGHT>>8, CEILING_HEIGHT}; // initial ceiling height of 2200
 
     ble_cus_ceiling_value_update(&m_cus, temp_array);
     twi_init();

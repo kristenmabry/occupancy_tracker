@@ -53,8 +53,8 @@ static void on_write(ble_cus_t * p_cus, ble_evt_t const * p_ble_evt)
     if (p_evt_write->handle == p_cus->custom_value_handles.value_handle)
     {
         
-        nrf_gpio_pin_toggle(LED_4);
-        p_cus->current_value = *p_evt_write->data;
+        //nrf_gpio_pin_toggle(LED_4);
+        p_cus->current_value = (*p_evt_write->data << 8) + *(p_evt_write->data + 1);
         /*
         if(*p_evt_write->data == 0x01)
         {
@@ -118,27 +118,27 @@ static void on_write(ble_cus_t * p_cus, ble_evt_t const * p_ble_evt)
     }
 
     // Check if the Ceiling value CCCD is written to and that the value is the appropriate length, i.e 2 bytes.
-    if ((p_evt_write->handle == p_cus->ceiling_value_handles.cccd_handle)
-        && (p_evt_write->len == 4)
-       )
-    {
-        // CCCD written, call application event handler
-        if (p_cus->evt_handler != NULL)
-        {
-            ble_cus_evt_t evt;
+    //if ((p_evt_write->handle == p_cus->ceiling_value_handles.cccd_handle)
+    //    && (p_evt_write->len == 2)
+    //   )
+    //{
+    //    // CCCD written, call application event handler
+    //    if (p_cus->evt_handler != NULL)
+    //    {
+    //        ble_cus_evt_t evt;
 
-            if (ble_srv_is_notification_enabled(p_evt_write->data))
-            {
-                evt.evt_type = BLE_CUS_EVT_NOTIFICATION_ENABLED;
-            }
-            else
-            {
-                evt.evt_type = BLE_CUS_EVT_NOTIFICATION_DISABLED;
-            }
-            // Call the application event handler.
-            p_cus->evt_handler(p_cus, &evt);
-        }
-    }
+    //        if (ble_srv_is_notification_enabled(p_evt_write->data))
+    //        {
+    //            evt.evt_type = BLE_CUS_EVT_NOTIFICATION_ENABLED;
+    //        }
+    //        else
+    //        {
+    //            evt.evt_type = BLE_CUS_EVT_NOTIFICATION_DISABLED;
+    //        }
+    //        // Call the application event handler.
+    //        p_cus->evt_handler(p_cus, &evt);
+    //    }
+    //}
 
 }
 
@@ -229,9 +229,9 @@ static uint32_t custom_value_char_add(ble_cus_t * p_cus, const ble_cus_init_t * 
 
     attr_char_value.p_uuid    = &ble_uuid;
     attr_char_value.p_attr_md = &attr_md;
-    attr_char_value.init_len  = sizeof(uint8_t);
+    attr_char_value.init_len  = sizeof(uint8_t)*2;
     attr_char_value.init_offs = 0;
-    attr_char_value.max_len   = sizeof(uint8_t);
+    attr_char_value.max_len   = sizeof(uint8_t)*2;
 
     err_code = sd_ble_gatts_characteristic_add(p_cus->service_handle, &char_md,
                                                &attr_char_value,
@@ -268,7 +268,7 @@ static uint32_t ceiling_value_char_add(ble_cus_t * p_cus, const ble_cus_init_t *
 
     char_md.char_props.read   = 1;
     char_md.char_props.write  = 1;
-    char_md.char_props.notify = 1; 
+    char_md.char_props.notify = 0; 
     char_md.p_char_user_desc  = NULL;
     char_md.p_char_pf         = NULL;
     char_md.p_user_desc_md    = NULL;
@@ -349,11 +349,11 @@ uint32_t ble_cus_init(ble_cus_t * p_cus, const ble_cus_init_t * p_cus_init)
     } 
     //uint16_t i = 2000;
     //ble_cus_custom_value_update(p_cus, &i);
-    p_cus->current_value_2 = 0x2001;
+    //p_cus->current_value_2 = 0x2001;
     return NRF_SUCCESS;
 }
 
-uint32_t ble_cus_custom_value_update(ble_cus_t * p_cus, uint8_t custom_value)
+uint32_t ble_cus_custom_value_update(ble_cus_t * p_cus, uint8_t * custom_value)
 {
     NRF_LOG_INFO("In ble_cus_custom_value_update. \r\n"); 
     if (p_cus == NULL)
@@ -367,9 +367,9 @@ uint32_t ble_cus_custom_value_update(ble_cus_t * p_cus, uint8_t custom_value)
     // Initialize value struct.
     memset(&gatts_value, 0, sizeof(gatts_value));
 
-    gatts_value.len     = sizeof(uint8_t);
+    gatts_value.len     = sizeof(uint16_t);
     gatts_value.offset  = 0;
-    gatts_value.p_value = &custom_value;
+    gatts_value.p_value = custom_value;
 
     // Update database.
     err_code = sd_ble_gatts_value_set(p_cus->conn_handle,
@@ -456,7 +456,7 @@ uint32_t ble_cus_ceiling_value_update(ble_cus_t * p_cus, uint8_t * ceiling_value
         err_code = NRF_ERROR_INVALID_STATE;
         NRF_LOG_INFO("sd_ble_gatts_hvx result: NRF_ERROR_INVALID_STATE. \r\n"); 
     }
-
+    p_cus->current_value_2 = (*ceiling_value << 8) + *(ceiling_value + 1);
 
     return err_code;
 }

@@ -410,7 +410,7 @@ uint32_t ble_cus_custom_value_update(ble_cus_t * p_cus, uint8_t * custom_value)
 
 uint32_t ble_cus_ceiling_value_update(ble_cus_t * p_cus, uint8_t * ceiling_value)
 {
-    NRF_LOG_INFO("In ble_cus_custom_value_update. \r\n"); 
+    NRF_LOG_INFO("In ble_cus_ceiling_value_update. \r\n"); 
     if (p_cus == NULL)
     {
         return NRF_ERROR_NULL;

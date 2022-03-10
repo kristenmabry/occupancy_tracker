@@ -169,8 +169,9 @@
 #define SEC_PARAM_MAX_KEY_SIZE          16                                          /**< Maximum encryption key size. */
 
 #define READ_VL53L5CX_INTERVAL          APP_TIMER_TICKS(50)                        /**< Perform VL53L5CX read and update occupancy variable - 100ms*/
-#define SYSTEM_RESET_INTERVAL           APP_TIMER_TICKS(1000)                       // Attempt system reset after 1000ms of inaction in ranging loop
-#define NOTIFICATION_INTERVAL           APP_TIMER_TICKS(100000)  
+#define SYSTEM_RESET_INTERVAL           APP_TIMER_TICKS(1500)                       // Attempt system reset after 1000ms of inaction in ranging loop
+#define NOTIFICATION_INTERVAL           APP_TIMER_TICKS(10000)  
+#define SECONDARY_RESET_INTERVAL        APP_TIMER_TICKS(15000)
 
 #define DEAD_BEEF                       0xDEADBEEF                                  /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
 
@@ -195,6 +196,7 @@ NRF_BLE_GQ_DEF(m_ble_gatt_queue,                                                
 APP_TIMER_DEF(m_vl53l5cx_timer_id);
 BLE_CUS_DEF(m_cus);                                                             /**< Context for the Queued Write module.*/
 APP_TIMER_DEF(m_system_reset_timer_id);                                              // timeout
+APP_TIMER_DEF(m_test_timer);
 NRF_BLE_BMS_DEF(m_bms);                                                         //!< Structure used to identify the Bond Management service.
 //APP_TIMER_DEF(m_notification_timer_id);
 
@@ -217,12 +219,14 @@ static ble_uuid_t m_adv_uuids[] =                                               
 
 static uint8_t isReady;
 //static uint16_t count;
+static uint8_t flag;
 static uint16_t ceiling_height = CEILING_HEIGHT;  // 16 since 4m is 12bits, initially default but can be changed by user over ble
 
 static uint8_t person_entry = 0, check = 1, person_exit = 0, person_entry_2, person_exit_2;
 
 static void advertising_start(bool erase_bonds);
 //static void temperature_measurement_send(void);
+static void vl53l5cx_sensor_init();
 
 static const nrf_drv_twi_t m_twi = NRF_DRV_TWI_INSTANCE(TWI_INSTANCE_ID);  // give device twi id
 
@@ -310,17 +314,43 @@ static void pm_evt_handler(pm_evt_t const * p_evt)
     }
 }
 
+static void sensor_reset_handler()
+{
+  NRF_LOG_INFO("Reset initiated");
+  app_timer_stop(m_vl53l5cx_timer_id);  // stop attempting to range
+  app_timer_stop(m_test_timer);         // stop quick reset check
+  app_timer_start(m_test_timer, SECONDARY_RESET_INTERVAL, NULL);  // interval for it init doesn't work
+  vl53l5cx_sensor_init(); // reinitialize the sensor
+  app_timer_stop(m_test_timer);
+  app_timer_start(m_vl53l5cx_timer_id, READ_VL53L5CX_INTERVAL, NULL); // reenable ranging
+  NRF_LOG_INFO("Reset Complete");
+}
+
 /** @brief Attempts to read new Vl53l5cx data, then check if occupancy should change 
 *
 *   @param
 */
 void read_lidar_data() {
   VL53L5CX_ResultsData 	Results;
+  ret_code_t           err_code;
+
+  if(flag == 0) {  
+    flag = 1;
+    err_code = app_timer_start(m_test_timer, NOTIFICATION_INTERVAL, NULL);  // if the lidar isn't responding for 1 sec
+  }
+  
+  //APP_ERROR_CHECK(err_code);
 
   vl53l5cx_check_data_ready(&sensor_config, &isReady);
   if(isReady == 1) 
   {
     vl53l5cx_get_ranging_data(&sensor_config, &Results);
+
+    if(flag == 1) {  
+      flag = 0;
+      err_code = app_timer_stop(m_test_timer);
+
+    }
 
     /* As the sensor is set in 4x4 mode by default, we have a total
      * of 16 zones to print. For this example, only the data of first zone are
@@ -628,8 +658,9 @@ static void timers_init(void)
     //APP_ERROR_CHECK(err_code);
 
     err_code = app_timer_create(&m_notification_timer_id, APP_TIMER_MODE_REPEATED, notification_timeout_handler);
-
-
+    APP_ERROR_CHECK(err_code);
+    err_code = app_timer_create(&m_test_timer, APP_TIMER_MODE_REPEATED, sensor_reset_handler);
+    APP_ERROR_CHECK(err_code);
     err_code = app_timer_create(&m_vl53l5cx_timer_id, APP_TIMER_MODE_REPEATED, vl53l5cx_read_handler);
     APP_ERROR_CHECK(err_code);
 
@@ -1839,26 +1870,6 @@ static void gpio_init()
 //    NRF_TIMER0->TASKS_START = 1; // Start TIMER
 //}
 
-void start_timer(void)
-{		
-    //// Irq setup
-    //NVIC_SetPriority(RTC0_IRQn, 15); // Lowest priority
-    //NVIC_ClearPendingIRQ(RTC0_IRQn);
-    //NVIC_EnableIRQ(RTC0_IRQn);
-
-    //// Start LFCLK clock
-    //nrf_clock_lf_src_set(NRF_CLOCK_LF_SRC_RC); // 32KHz RC
-    //nrf_clock_task_trigger(NRF_CLOCK_TASK_LFCLKSTART);
-
-    //// Set prescaler to the max value (12-bit)
-    //// -> 8Hz counter frequency
-    //nrf_rtc_prescaler_set(NRF_RTC0,(1<<12) -1);
-    //nrf_rtc_event_enable(NRF_RTC0, NRF_RTC_INT_TICK_MASK); /* yes INT mask must be used here */
-    //nrf_rtc_int_enable(NRF_RTC0,NRF_RTC_INT_TICK_MASK);
-    //nrf_rtc_task_trigger(NRF_RTC0,NRF_RTC_TASK_START);
-    
-}
-
 
 		
 /** RTC0 Interupt Handler run when RTC interupt is triggered
@@ -1874,61 +1885,6 @@ void RTC0_IRQHandler(void) {
       
     }
 }
-
-
-
-
-  /*********************************/
-  /*                 ADC           */
-  /*********************************/
-//static void adc_start(uint32_t cc_value)
-//{
-//    ret_code_t err_code;
-
-//    nrfx_saadc_adv_config_t saadc_adv_config = NRFX_SAADC_DEFAULT_ADV_CONFIG;
-//    saadc_adv_config.internal_timer_cc = cc_value;
-//    saadc_adv_config.start_on_end = true;
-
-//    err_code = nrfx_saadc_advanced_mode_set((1<<0),
-//                                            NRF_SAADC_RESOLUTION_10BIT,
-//                                            &saadc_adv_config,
-//                                            adc_handler);
-//    APP_ERROR_CHECK(err_code);
-                                            
-//    // Configure two buffers to ensure double buffering of samples, to avoid data loss when the sampling frequency is high
-//    err_code = nrfx_saadc_buffer_set(&samples[next_free_buf_index()][0], SAADC_BUF_SIZE);
-//    APP_ERROR_CHECK(err_code);
-
-//    err_code = nrfx_saadc_buffer_set(&samples[next_free_buf_index()][0], SAADC_BUF_SIZE);
-//    APP_ERROR_CHECK(err_code);
-
-//    err_code = nrfx_saadc_mode_trigger();
-//    APP_ERROR_CHECK(err_code);
-//}
-
-//static void adc_handler(nrfx_saadc_evt_t const * p_event)
-//{
-//    ret_code_t err_code;
-//    switch (p_event->type)
-//    {
-//        case NRFX_SAADC_EVT_DONE:
-//            NRF_LOG_INFO("DONE. Sample[0] = %i", p_event->data.done.p_buffer[0]);
-
-//            // Add code here to process the input
-//            // If the processing is time consuming execution should be deferred to the main context
-//            break;
-
-//        case NRFX_SAADC_EVT_BUF_REQ:
-//            // Set up the next available buffer
-//            err_code = nrfx_saadc_buffer_set(&samples[next_free_buf_index()][0], SAADC_BUF_SIZE);
-//            APP_ERROR_CHECK(err_code);
-//            break;
-//    }
-//}
-
-
-
-
 
 /**@brief Function for application main entry.
  */
@@ -1952,7 +1908,6 @@ int main(void)
 
     // Start execution.
     NRF_LOG_INFO("Health Thermometer example started.");
-    application_timers_start();
     advertising_start(erase_bonds);
 
     /* Sensor init */
@@ -1968,7 +1923,7 @@ int main(void)
 
     vl53l5cx_sensor_init();
     //start_timer();
-
+    application_timers_start();
     // Enter main loop.
     while (1)
     {

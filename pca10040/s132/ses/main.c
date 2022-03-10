@@ -1913,8 +1913,8 @@ int main(void)
     /* Sensor init */
     // initial ceiling height 
     uint8_t temp_array[2] = {CEILING_HEIGHT>>8, CEILING_HEIGHT}; // initial ceiling height of 2200
-
     ble_cus_ceiling_value_update(&m_cus, temp_array);
+
     twi_init();
 
     gpio_init();

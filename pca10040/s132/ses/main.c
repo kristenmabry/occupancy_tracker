@@ -51,7 +51,7 @@
  *
  *
  *
- *
+ *Using Pin0.02 for SAADC battery status/charge. 
  *
  */
 
@@ -123,6 +123,17 @@
 
 #include "nrf52.h"
 #include "core_cm4.h"
+
+#include "nrf_drv_timer.h"
+#include "boards.h"
+#include "app_error.h"
+#include "nrf_delay.h"
+#include "app_util_platform.h"
+#include "nrf_pwr_mgmt.h"
+
+#include "nrf_log.h"
+#include "nrf_log_ctrl.h"
+#include "nrf_log_default_backends.h"
 
 
 
@@ -1874,6 +1885,32 @@ static void gpio_init()
 		
 /** RTC0 Interupt Handler run when RTC interupt is triggered
  */
+
+
+ void saadc_init(void)
+{
+	// A variable to hold the error code
+  ret_code_t err_code;
+
+  // Create a config struct and assign it default values along with the Pin number for ADC Input
+  // Configure the input as Single Ended(One Pin Reading)
+  // Make sure you allocate the right pin.
+  nrf_saadc_channel_config_t channel_config = NRFX_SAADC_DEFAULT_CHANNEL_CONFIG_SE(NRF_SAADC_INPUT_AIN0);
+
+  // Initialize the saadc 
+  // first parameter is for configuring the adc resolution and other features, we will see in future tutorial
+  //on how to work with it. right now just pass a simple null value
+  err_code = nrf_drv_saadc_init(NULL, saadc_callback_handler);
+  APP_ERROR_CHECK(err_code);
+
+// Initialize the Channel which will be connected to that specific pin.
+  err_code = nrfx_saadc_channel_init(0, &channel_config);
+  APP_ERROR_CHECK(err_code);
+
+  
+
+}
+
 void RTC0_IRQHandler(void) {
     nrf_rtc_event_clear(NRF_RTC0,NRF_RTC_EVENT_TICK);
     uint8_t isReady;
@@ -1905,6 +1942,7 @@ int main(void)
     sensor_simulator_init();
     conn_params_init();
     peer_manager_init();
+    saadc_init();
 
     // Start execution.
     NRF_LOG_INFO("Health Thermometer example started.");

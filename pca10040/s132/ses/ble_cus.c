@@ -410,7 +410,7 @@ uint32_t ble_cus_init(ble_cus_t * p_cus, const ble_cus_init_t * p_cus_init)
     {
         return err_code;
     } 
-    err_code = ble_value_char_add(p_cus, p_cus_init, BATTERY_VALUE_UUID);
+    //err_code = ble_value_char_add(p_cus, p_cus_init, BATTERY_VALUE_UUID);
     if (err_code != NRF_SUCCESS)
     {
         return err_code;

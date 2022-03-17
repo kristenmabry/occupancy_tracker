@@ -1920,17 +1920,17 @@ static void gpio_init()
 
 }
 
-// void RTC0_IRQHandler(void) {
-//     nrf_rtc_event_clear(NRF_RTC0,NRF_RTC_EVENT_TICK);
-//     uint8_t isReady;
-//     vl53l5cx_check_data_ready(&sensor_config, &isReady);
-//     if(isReady) 
-//     {
-//       read_lidar_data();
+ void RTC0_IRQHandler(void) {
+     nrf_rtc_event_clear(NRF_RTC0,NRF_RTC_EVENT_TICK);
+     uint8_t isReady;
+     vl53l5cx_check_data_ready(&sensor_config, &isReady);
+     if(isReady) 
+     {
+       read_lidar_data();
       
       
-//    }
-//}
+    }
+}
 
 /**@brief Function for application main entry.
  */

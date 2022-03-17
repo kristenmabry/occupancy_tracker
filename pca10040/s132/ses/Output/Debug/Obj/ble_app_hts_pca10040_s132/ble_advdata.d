@@ -1,6 +1,6 @@
 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_advdata.o: \
- F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\components\ble\common\ble_advdata.c \
- F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\components\ble\common\ble_advdata.h \
+ F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\examples\ble_peripheral\occupancy_tracker\pca10040\s132\ses\ble_advdata.c \
+ ../../../../../../components/ble/common/ble_advdata.h \
  C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 5.64/include/stdint.h \
  C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 5.64/include/stdbool.h \
  C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 5.64/include/string.h \
@@ -43,7 +43,7 @@ Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_advdata.o: \
  ../../../../../../components/libraries/util/sdk_macros.h \
  ../../../../../../components/libraries/util/nrf_assert.h \
  ../../../../../../components/softdevice/s132/headers/ble_gap.h \
- F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\components\ble\common\ble_srv_common.h \
+ ../../../../../../components/ble/common/ble_srv_common.h \
  ../../../../../../components/softdevice/s132/headers/ble_types.h \
  ../../../../../../components/libraries/util/app_util.h \
  ../../../../../../components/softdevice/s132/headers/ble_gatt.h

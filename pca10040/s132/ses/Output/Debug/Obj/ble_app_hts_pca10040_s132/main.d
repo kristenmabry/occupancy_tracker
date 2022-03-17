@@ -1,5 +1,5 @@
 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o: \
- F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\examples\ble_peripheral\occupancy_tracker\main.c \
+ F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\examples\ble_peripheral\occupancy_tracker\pca10040\s132\ses\main.c \
  C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 5.64/include/stdint.h \
  C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 5.64/include/string.h \
  C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 5.64/include/__crossworks.h \
@@ -116,7 +116,7 @@ Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o: \
  ../../../../../../components/ble/common/ble_conn_state.h \
  ../../../../../../components/libraries/atomic/nrf_atomic.h \
  ../../../../../../components/ble/nrf_ble_gatt/nrf_ble_gatt.h \
- ../../../../../../components/ble/nrf_ble_qwr/nrf_ble_qwr.h \
+ F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\examples\ble_peripheral\occupancy_tracker\pca10040\s132\ses\nrf_ble_qwr.h \
  ../../../../../../components/libraries/pwr_mgmt/nrf_pwr_mgmt.h \
  ../../../../../../components/libraries/log/nrf_log.h \
  ../../../../../../components/libraries/strerror/nrf_strerror.h \
@@ -135,9 +135,11 @@ Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o: \
  ../../../../../../integration/nrfx/legacy/nrf_drv_gpiote.h \
  ../../../../../../modules/nrfx/drivers/include/nrfx_gpiote.h \
  ../../../../../../modules/nrfx/hal/nrf_gpiote.h \
- ../../../../../../modules/nrfx/hal/nrf_gpio.h vl53l5cx_api.h platform.h \
- vl53l5cx_plugin_detection_thresholds.h vl53l5cx_api.h \
- vl53l5cx_plugin_motion_indicator.h \
+ ../../../../../../modules/nrfx/hal/nrf_gpio.h \
+ F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\examples\ble_peripheral\occupancy_tracker\pca10040\s132\ses\vl53l5cx_api.h \
+ F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\examples\ble_peripheral\occupancy_tracker\pca10040\s132\ses\platform.h \
+ F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\examples\ble_peripheral\occupancy_tracker\pca10040\s132\ses\vl53l5cx_plugin_detection_thresholds.h \
+ F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\examples\ble_peripheral\occupancy_tracker\pca10040\s132\ses\vl53l5cx_plugin_motion_indicator.h \
  ../../../../../../modules/nrfx/drivers/include/nrfx_saadc.h \
  ../../../../../../modules/nrfx/hal/nrf_saadc.h \
  ../../../../../../modules/nrfx/hal/nrf_clock.h \
@@ -145,6 +147,10 @@ Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o: \
  ../../../../../../components/libraries/bsp/bsp.h \
  ../../../../../../modules/nrfx/mdk/nrf52.h \
  ../../../../../../components/libraries/delay/nrf_delay.h \
+ F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\examples\ble_peripheral\occupancy_tracker\pca10040\s132\ses\ble_cus.h \
+ F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\examples\ble_peripheral\occupancy_tracker\pca10040\s132\ses\nrf_ble_bms.h \
  ../../../../../../components/softdevice/s132/headers/nrf_sdm.h \
  ../../../../../../components/softdevice/s132/headers/nrf_error_sdm.h \
- ble_cus.h
+ ../../../../../../integration/nrfx/legacy/nrf_drv_timer.h \
+ ../../../../../../modules/nrfx/drivers/include/nrfx_timer.h \
+ ../../../../../../modules/nrfx/hal/nrf_timer.h

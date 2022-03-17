@@ -1,5 +1,5 @@
 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_advertising.o: \
- F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\components\ble\ble_advertising\ble_advertising.c \
+ F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\examples\ble_peripheral\occupancy_tracker\pca10040\s132\ses\ble_advertising.c \
  ../../../../../../components/libraries/util/sdk_common.h \
  C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 5.64/include/stdint.h \
  C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 5.64/include/stdbool.h \
@@ -42,7 +42,7 @@ Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_advertising.o: \
  ../../../../../../components/softdevice/s132/headers/ble_gatt.h \
  ../../../../../../components/softdevice/s132/headers/ble_gattc.h \
  ../../../../../../components/softdevice/s132/headers/ble_gatts.h \
- F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\components\ble\ble_advertising\ble_advertising.h \
+ ../../../../../../components/ble/ble_advertising/ble_advertising.h \
  ../../../../../../components/softdevice/s132/headers/ble_gap.h \
  ../../../../../../components/softdevice/s132/headers/ble_gattc.h \
  ../../../../../../components/softdevice/s132/headers/nrf_soc.h \

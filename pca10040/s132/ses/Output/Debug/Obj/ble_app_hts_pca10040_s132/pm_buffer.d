@@ -1,5 +1,5 @@
 Output/Debug/Obj/ble_app_hts_pca10040_s132/pm_buffer.o: \
- F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\components\ble\peer_manager\pm_buffer.c \
+ F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\examples\ble_peripheral\occupancy_tracker\pca10040\s132\ses\pm_buffer.c \
  ../../../../../../components/libraries/util/sdk_common.h \
  C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 5.64/include/stdint.h \
  C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 5.64/include/stdbool.h \
@@ -29,6 +29,6 @@ Output/Debug/Obj/ble_app_hts_pca10040_s132/pm_buffer.o: \
  ../../../../../../components/softdevice/s132/headers/nrf_svc.h \
  ../../../../../../components/libraries/util/sdk_macros.h \
  ../../../../../../components/libraries/util/nrf_assert.h \
- F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\components\ble\peer_manager\pm_buffer.h \
+ ../../../../../../components/ble/peer_manager/pm_buffer.h \
  ../../../../../../components/libraries/util/sdk_errors.h \
  ../../../../../../components/libraries/atomic_flags/nrf_atflags.h

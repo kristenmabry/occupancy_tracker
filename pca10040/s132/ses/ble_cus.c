@@ -53,7 +53,8 @@ static void on_write(ble_cus_t * p_cus, ble_evt_t const * p_ble_evt)
     if (p_evt_write->handle == p_cus->custom_value_handles.value_handle)
     {
         
-        nrf_gpio_pin_toggle(LED_4);
+        //nrf_gpio_pin_toggle(LED_4);
+        p_cus->current_value = (*p_evt_write->data << 8) + *(p_evt_write->data + 1);
         /*
         if(*p_evt_write->data == 0x01)
         {
@@ -92,6 +93,52 @@ static void on_write(ble_cus_t * p_cus, ble_evt_t const * p_ble_evt)
             p_cus->evt_handler(p_cus, &evt);
         }
     }
+
+  /* Ceiling */
+    // Ceiling Value Characteristic Written to.
+    if (p_evt_write->handle == p_cus->ceiling_value_handles.value_handle)
+    {
+        
+        //nrf_gpio_pin_toggle(LED_4);
+        p_cus->current_value_2 = (*p_evt_write->data << 8) + *(p_evt_write->data + 1);
+        /*
+        if(*p_evt_write->data == 0x01)
+        {
+            nrf_gpio_pin_clear(20); 
+        }
+        else if(*p_evt_write->data == 0x02)
+        {
+            nrf_gpio_pin_set(20); 
+        }
+        else
+        {
+          //Do nothing
+        }
+        */
+    }
+
+    // Check if the Ceiling value CCCD is written to and that the value is the appropriate length, i.e 2 bytes.
+    //if ((p_evt_write->handle == p_cus->ceiling_value_handles.cccd_handle)
+    //    && (p_evt_write->len == 2)
+    //   )
+    //{
+    //    // CCCD written, call application event handler
+    //    if (p_cus->evt_handler != NULL)
+    //    {
+    //        ble_cus_evt_t evt;
+
+    //        if (ble_srv_is_notification_enabled(p_evt_write->data))
+    //        {
+    //            evt.evt_type = BLE_CUS_EVT_NOTIFICATION_ENABLED;
+    //        }
+    //        else
+    //        {
+    //            evt.evt_type = BLE_CUS_EVT_NOTIFICATION_DISABLED;
+    //        }
+    //        // Call the application event handler.
+    //        p_cus->evt_handler(p_cus, &evt);
+    //    }
+    //}
 
 }
 
@@ -182,9 +229,9 @@ static uint32_t custom_value_char_add(ble_cus_t * p_cus, const ble_cus_init_t * 
 
     attr_char_value.p_uuid    = &ble_uuid;
     attr_char_value.p_attr_md = &attr_md;
-    attr_char_value.init_len  = sizeof(uint8_t);
+    attr_char_value.init_len  = sizeof(uint8_t)*2;
     attr_char_value.init_offs = 0;
-    attr_char_value.max_len   = sizeof(uint8_t);
+    attr_char_value.max_len   = sizeof(uint8_t)*2;
 
     err_code = sd_ble_gatts_characteristic_add(p_cus->service_handle, &char_md,
                                                &attr_char_value,
@@ -196,6 +243,131 @@ static uint32_t custom_value_char_add(ble_cus_t * p_cus, const ble_cus_init_t * 
 
     return NRF_SUCCESS;
 }
+
+//* Same as custom but with changed uuid
+static uint32_t ceiling_value_char_add(ble_cus_t * p_cus, const ble_cus_init_t * p_cus_init)
+{
+    uint32_t            err_code;
+    ble_gatts_char_md_t char_md;
+    ble_gatts_attr_md_t cccd_md;
+    ble_gatts_attr_t    attr_char_value;
+    ble_uuid_t          ble_uuid;
+    ble_gatts_attr_md_t attr_md;
+
+    // Add Custom Value characteristic
+    memset(&cccd_md, 0, sizeof(cccd_md));
+
+    //  Read  operation on cccd should be possible without authentication.
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cccd_md.read_perm);
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cccd_md.write_perm);
+    
+    cccd_md.write_perm = p_cus_init->custom_value_char_attr_md.cccd_write_perm;
+    cccd_md.vloc       = BLE_GATTS_VLOC_STACK;
+
+    memset(&char_md, 0, sizeof(char_md));
+
+    char_md.char_props.read   = 1;
+    char_md.char_props.write  = 1;
+    char_md.char_props.notify = 0; 
+    char_md.p_char_user_desc  = NULL;
+    char_md.p_char_pf         = NULL;
+    char_md.p_user_desc_md    = NULL;
+    char_md.p_cccd_md         = &cccd_md; 
+    char_md.p_sccd_md         = NULL;
+		
+    ble_uuid.type = p_cus->uuid_type;
+    ble_uuid.uuid = CEILING_VALUE_CHAR_UUID;
+
+    memset(&attr_md, 0, sizeof(attr_md));
+
+    attr_md.read_perm  = p_cus_init->custom_value_char_attr_md.read_perm;
+    attr_md.write_perm = p_cus_init->custom_value_char_attr_md.write_perm;
+    attr_md.vloc       = BLE_GATTS_VLOC_STACK;
+    attr_md.rd_auth    = 0;
+    attr_md.wr_auth    = 0;
+    attr_md.vlen       = 0;
+
+    memset(&attr_char_value, 0, sizeof(attr_char_value));
+
+    attr_char_value.p_uuid    = &ble_uuid;
+    attr_char_value.p_attr_md = &attr_md;
+    attr_char_value.init_len  = sizeof(uint8_t)*2;
+    attr_char_value.init_offs = 0;
+    attr_char_value.max_len   = sizeof(uint8_t)*2;
+
+    err_code = sd_ble_gatts_characteristic_add(p_cus->service_handle, &char_md,
+                                               &attr_char_value,
+                                               &p_cus->ceiling_value_handles);
+    if (err_code != NRF_SUCCESS)
+    {
+        return err_code;
+    }
+
+    return NRF_SUCCESS;
+}
+
+
+static uint32_t ble_value_char_add(ble_cus_t * p_cus, const ble_cus_init_t * p_cus_init, uint16_t UUID)
+{
+    uint32_t            err_code;
+    ble_gatts_char_md_t char_md;
+    ble_gatts_attr_md_t cccd_md;
+    ble_gatts_attr_t    attr_char_value;
+    ble_uuid_t          ble_uuid;
+    ble_gatts_attr_md_t attr_md;
+
+    // Add Custom Value characteristic
+    memset(&cccd_md, 0, sizeof(cccd_md));
+
+    //  Read  operation on cccd should be possible without authentication.
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cccd_md.read_perm);
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cccd_md.write_perm);
+    
+    cccd_md.write_perm = p_cus_init->custom_value_char_attr_md.cccd_write_perm;
+    cccd_md.vloc       = BLE_GATTS_VLOC_STACK;
+
+    memset(&char_md, 0, sizeof(char_md));
+
+    char_md.char_props.read   = 1;
+    char_md.char_props.write  = 0;
+    char_md.char_props.notify = 0; 
+    char_md.p_char_user_desc  = NULL;
+    char_md.p_char_pf         = NULL;
+    char_md.p_user_desc_md    = NULL;
+    char_md.p_cccd_md         = &cccd_md; 
+    char_md.p_sccd_md         = NULL;
+		
+    ble_uuid.type = p_cus->uuid_type;
+    ble_uuid.uuid = UUID;
+
+    memset(&attr_md, 0, sizeof(attr_md));
+
+    attr_md.read_perm  = p_cus_init->custom_value_char_attr_md.read_perm;
+    attr_md.write_perm = p_cus_init->custom_value_char_attr_md.write_perm;
+    attr_md.vloc       = BLE_GATTS_VLOC_STACK;
+    attr_md.rd_auth    = 0;
+    attr_md.wr_auth    = 0;
+    attr_md.vlen       = 0;
+
+    memset(&attr_char_value, 0, sizeof(attr_char_value));
+
+    attr_char_value.p_uuid    = &ble_uuid;
+    attr_char_value.p_attr_md = &attr_md;
+    attr_char_value.init_len  = sizeof(uint8_t)*2;
+    attr_char_value.init_offs = 0;
+    attr_char_value.max_len   = sizeof(uint8_t)*2;
+
+    err_code = sd_ble_gatts_characteristic_add(p_cus->service_handle, &char_md,
+                                               &attr_char_value,
+                                               &p_cus->ceiling_value_handles);
+    if (err_code != NRF_SUCCESS)
+    {
+        return err_code;
+    }
+
+    return NRF_SUCCESS;
+}
+
 
 uint32_t ble_cus_init(ble_cus_t * p_cus, const ble_cus_init_t * p_cus_init)
 {
@@ -226,11 +398,31 @@ uint32_t ble_cus_init(ble_cus_t * p_cus, const ble_cus_init_t * p_cus_init)
         return err_code;
     }
 
+
     // Add Custom Value characteristic
-    return custom_value_char_add(p_cus, p_cus_init);
+    err_code = ceiling_value_char_add(p_cus, p_cus_init);
+    if (err_code != NRF_SUCCESS)
+    {
+        return err_code;
+    }
+    err_code = custom_value_char_add(p_cus, p_cus_init);
+    if (err_code != NRF_SUCCESS)
+    {
+        return err_code;
+    } 
+    err_code = ble_value_char_add(p_cus, p_cus_init, BATTERY_VALUE_UUID);
+    if (err_code != NRF_SUCCESS)
+    {
+        return err_code;
+    } 
+
+    //uint16_t i = 2000;
+    //ble_cus_custom_value_update(p_cus, &i);
+    //p_cus->current_value_2 = 0x2001;
+    return NRF_SUCCESS;
 }
 
-uint32_t ble_cus_custom_value_update(ble_cus_t * p_cus, uint8_t custom_value)
+uint32_t ble_cus_custom_value_update(ble_cus_t * p_cus, uint8_t * custom_value)
 {
     NRF_LOG_INFO("In ble_cus_custom_value_update. \r\n"); 
     if (p_cus == NULL)
@@ -244,9 +436,9 @@ uint32_t ble_cus_custom_value_update(ble_cus_t * p_cus, uint8_t custom_value)
     // Initialize value struct.
     memset(&gatts_value, 0, sizeof(gatts_value));
 
-    gatts_value.len     = sizeof(uint8_t);
+    gatts_value.len     = sizeof(uint16_t);
     gatts_value.offset  = 0;
-    gatts_value.p_value = &custom_value;
+    gatts_value.p_value = custom_value;
 
     // Update database.
     err_code = sd_ble_gatts_value_set(p_cus->conn_handle,
@@ -278,7 +470,62 @@ uint32_t ble_cus_custom_value_update(ble_cus_t * p_cus, uint8_t custom_value)
         err_code = NRF_ERROR_INVALID_STATE;
         NRF_LOG_INFO("sd_ble_gatts_hvx result: NRF_ERROR_INVALID_STATE. \r\n"); 
     }
+    
 
+    return err_code;
+}
+
+
+
+uint32_t ble_cus_ceiling_value_update(ble_cus_t * p_cus, uint8_t * ceiling_value)
+{
+    NRF_LOG_INFO("In ble_cus_ceiling_value_update. \r\n"); 
+    if (p_cus == NULL)
+    {
+        return NRF_ERROR_NULL;
+    }
+
+    uint32_t err_code = NRF_SUCCESS;
+    ble_gatts_value_t gatts_value;
+
+    // Initialize value struct.
+    memset(&gatts_value, 0, sizeof(gatts_value));
+
+    gatts_value.len     = sizeof(uint16_t);
+    gatts_value.offset  = 0;
+    gatts_value.p_value = ceiling_value;
+
+    // Update database.
+    err_code = sd_ble_gatts_value_set(p_cus->conn_handle,
+                                      p_cus->ceiling_value_handles.value_handle,
+                                      &gatts_value);
+    if (err_code != NRF_SUCCESS)
+    {
+        return err_code;
+    }
+
+    // Send value if connected and notifying.
+    if ((p_cus->conn_handle != BLE_CONN_HANDLE_INVALID)) 
+    {
+        ble_gatts_hvx_params_t hvx_params;
+
+        memset(&hvx_params, 0, sizeof(hvx_params));
+
+        hvx_params.handle = p_cus->ceiling_value_handles.value_handle;
+        hvx_params.type   = BLE_GATT_HVX_NOTIFICATION;
+        hvx_params.offset = gatts_value.offset;
+        hvx_params.p_len  = &gatts_value.len;
+        hvx_params.p_data = gatts_value.p_value;
+
+        err_code = sd_ble_gatts_hvx(p_cus->conn_handle, &hvx_params);
+        NRF_LOG_INFO("sd_ble_gatts_hvx result: %x. \r\n", err_code); 
+    }
+    else
+    {
+        err_code = NRF_ERROR_INVALID_STATE;
+        NRF_LOG_INFO("sd_ble_gatts_hvx result: NRF_ERROR_INVALID_STATE. \r\n"); 
+    }
+    p_cus->current_value_2 = (*ceiling_value << 8) + *(ceiling_value + 1);
 
     return err_code;
 }

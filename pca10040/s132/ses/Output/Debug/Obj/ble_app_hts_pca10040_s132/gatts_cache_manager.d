@@ -1,5 +1,5 @@
 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatts_cache_manager.o: \
- F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\components\ble\peer_manager\gatts_cache_manager.c \
+ F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\examples\ble_peripheral\occupancy_tracker\pca10040\s132\ses\gatts_cache_manager.c \
  ../../../../../../components/libraries/util/sdk_common.h \
  C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 5.64/include/stdint.h \
  C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 5.64/include/stdbool.h \
@@ -29,7 +29,7 @@ Output/Debug/Obj/ble_app_hts_pca10040_s132/gatts_cache_manager.o: \
  ../../../../../../components/softdevice/s132/headers/nrf_svc.h \
  ../../../../../../components/libraries/util/sdk_macros.h \
  ../../../../../../components/libraries/util/nrf_assert.h \
- F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\components\ble\peer_manager\gatts_cache_manager.h \
+ ../../../../../../components/ble/peer_manager/gatts_cache_manager.h \
  ../../../../../../components/libraries/util/sdk_errors.h \
  ../../../../../../components/softdevice/s132/headers/ble.h \
  ../../../../../../components/softdevice/s132/headers/nrf_svc.h \
@@ -44,7 +44,7 @@ Output/Debug/Obj/ble_app_hts_pca10040_s132/gatts_cache_manager.o: \
  ../../../../../../components/softdevice/s132/headers/ble_gattc.h \
  ../../../../../../components/softdevice/s132/headers/ble_gatts.h \
  ../../../../../../components/softdevice/s132/headers/ble_gap.h \
- F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\components\ble\peer_manager\peer_manager_types.h \
+ ../../../../../../components/ble/peer_manager/peer_manager_types.h \
  ../../../../../../components/softdevice/s132/headers/ble_hci.h \
  ../../../../../../components/ble/common/ble_gatt_db.h \
  ../../../../../../components/softdevice/s132/headers/ble_gattc.h \
@@ -57,10 +57,12 @@ Output/Debug/Obj/ble_app_hts_pca10040_s132/gatts_cache_manager.o: \
  C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 5.64/include/stdio.h \
  ../../../../../../components/libraries/util/app_error_weak.h \
  ../../../../../../components/softdevice/s132/headers/ble_err.h \
- F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\components\ble\peer_manager\peer_manager_internal.h \
- F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\components\ble\peer_manager\peer_database.h \
- F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\components\ble\peer_manager\peer_data_storage.h \
- F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\components\ble\peer_manager\id_manager.h \
+ ../../../../../../components/ble/peer_manager/peer_manager_types.h \
+ ../../../../../../components/ble/peer_manager/peer_manager_internal.h \
+ ../../../../../../components/ble/peer_manager/peer_database.h \
+ ../../../../../../components/ble/peer_manager/peer_manager_internal.h \
+ ../../../../../../components/ble/peer_manager/peer_data_storage.h \
+ ../../../../../../components/ble/peer_manager/id_manager.h \
  ../../../../../../components/libraries/log/nrf_log.h \
  ../../../../../../components/libraries/experimental_section_vars/nrf_section.h \
  ../../../../../../components/libraries/util/nordic_common.h \

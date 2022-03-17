@@ -74,6 +74,7 @@
 "Output/Debug/Obj/ble_app_hts_pca10040_s132/pm_buffer.o"
 "Output/Debug/Obj/ble_app_hts_pca10040_s132/security_dispatcher.o"
 "Output/Debug/Obj/ble_app_hts_pca10040_s132/security_manager.o"
+"Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_bms.o"
 "Output/Debug/Obj/ble_app_hts_pca10040_s132/utf.o"
 "Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_bas.o"
 "Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_dis.o"

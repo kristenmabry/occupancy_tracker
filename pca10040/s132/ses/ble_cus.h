@@ -30,6 +30,7 @@ NRF_SDH_BLE_OBSERVER(_name ## _obs,                                             
 #define CUSTOM_SERVICE_UUID               0x1400
 #define CUSTOM_VALUE_CHAR_UUID            0x1401
 #define CEILING_VALUE_CHAR_UUID           0x1402
+#define BATTERY_VALUE_UUID                0x1403
 																					
 /**@brief Custom Service event type. */
 typedef enum

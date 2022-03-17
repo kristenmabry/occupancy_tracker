@@ -183,6 +183,7 @@
 #define PERSON_MIN_HEIGHT   1500  // minimum height to increase occupancy
 #define INTEGRATION_TIME    10    // 
 #define MEM_BUFF_SIZE                   512
+#define LPn_PIN             15
 
 APP_TIMER_DEF(m_notification_timer_id);                                                  /**< Battery timer. */
 BLE_BAS_DEF(m_bas);                                                                 /**< Structure used to identify the battery service. */
@@ -309,6 +310,12 @@ static void pm_evt_handler(pm_evt_t const * p_evt)
             advertising_start(false);
             break;
 
+       case PM_EVT_CONN_SEC_CONFIG_REQ: 
+       {
+            pm_conn_sec_config_t config = {.allow_repairing = true};
+            pm_conn_sec_config_reply(p_evt->conn_handle, &config);
+       }
+
         default:
             break;
     }
@@ -317,9 +324,11 @@ static void pm_evt_handler(pm_evt_t const * p_evt)
 static void sensor_reset_handler()
 {
   NRF_LOG_INFO("Reset initiated");
+  nrf_gpio_pin_clear(LPn_PIN);  // Lpn needs to be cycled for reset
   app_timer_stop(m_vl53l5cx_timer_id);  // stop attempting to range
   app_timer_stop(m_test_timer);         // stop quick reset check
   app_timer_start(m_test_timer, SECONDARY_RESET_INTERVAL, NULL);  // interval for it init doesn't work
+  nrf_gpio_pin_set(LPn_PIN);    // restart Lpn pin
   vl53l5cx_sensor_init(); // reinitialize the sensor
   app_timer_stop(m_test_timer);
   app_timer_start(m_vl53l5cx_timer_id, READ_VL53L5CX_INTERVAL, NULL); // reenable ranging
@@ -1874,17 +1883,17 @@ static void gpio_init()
 		
 /** RTC0 Interupt Handler run when RTC interupt is triggered
  */
-void RTC0_IRQHandler(void) {
-    nrf_rtc_event_clear(NRF_RTC0,NRF_RTC_EVENT_TICK);
-    uint8_t isReady;
-    vl53l5cx_check_data_ready(&sensor_config, &isReady);
-    if(isReady) 
-    {
-      read_lidar_data();
+//void RTC0_IRQHandler(void) {
+//    nrf_rtc_event_clear(NRF_RTC0,NRF_RTC_EVENT_TICK);
+//    uint8_t isReady;
+//    vl53l5cx_check_data_ready(&sensor_config, &isReady);
+//    if(isReady) 
+//    {
+//      read_lidar_data();
       
       
-    }
-}
+//    }
+//}
 
 /**@brief Function for application main entry.
  */

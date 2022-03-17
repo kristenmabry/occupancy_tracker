@@ -150,4 +150,7 @@ Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o: \
  F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\examples\ble_peripheral\occupancy_tracker\pca10040\s132\ses\ble_cus.h \
  F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\examples\ble_peripheral\occupancy_tracker\pca10040\s132\ses\nrf_ble_bms.h \
  ../../../../../../components/softdevice/s132/headers/nrf_sdm.h \
- ../../../../../../components/softdevice/s132/headers/nrf_error_sdm.h
+ ../../../../../../components/softdevice/s132/headers/nrf_error_sdm.h \
+ ../../../../../../integration/nrfx/legacy/nrf_drv_timer.h \
+ ../../../../../../modules/nrfx/drivers/include/nrfx_timer.h \
+ ../../../../../../modules/nrfx/hal/nrf_timer.h

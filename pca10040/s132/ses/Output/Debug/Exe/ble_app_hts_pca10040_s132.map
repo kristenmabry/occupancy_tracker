@@ -8512,6 +8512,9 @@ Discarded input sections
  .group         0x0000000000000000        0xc Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
  .group         0x0000000000000000        0xc Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
  .group         0x0000000000000000        0xc Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .group         0x0000000000000000        0xc Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .group         0x0000000000000000        0xc Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .group         0x0000000000000000        0xc Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
  .text          0x0000000000000000        0x0 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
  .data          0x0000000000000000        0x0 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
  .bss           0x0000000000000000        0x0 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
@@ -8784,6 +8787,8 @@ Discarded input sections
                 0x0000000000000000       0x24 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
  .text.in_pin_handler
                 0x0000000000000000       0x20 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .text.saadc_init
+                0x0000000000000000       0x58 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
  .data.time_stamp.0
                 0x0000000000000000        0x8 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
  .debug_macro   0x0000000000000000      0x1a3 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
@@ -24558,7 +24563,7 @@ Linker script and memory map
                 0x0000000000000001                . = ASSERT (((__ctors_start__ == __ctors_end__) || ((__ctors_end__ - __FLASH1_segment_start__) <= __FLASH1_segment_size__)), error: .ctors is too large to fit in FLASH1 memory segment)
                 0x00000000000440bc                __rodata_load_start__ = ALIGN (__ctors_end__, 0x4)
 
-.rodata         0x00000000000440bc    0x199c4
+.rodata         0x00000000000440bc    0x199d4
                 0x00000000000440bc                __rodata_start__ = .
  *(.rodata .rodata.* .gnu.linkonce.r.*)
  .rodata.nrf_log_backend_rtt_api
@@ -24682,191 +24687,192 @@ Linker script and memory map
                 0x00000000000456bc        0x4 Output/Debug/Obj/ble_app_hts_pca10040_s132/bsp.o
  .rodata.app_buttons
                 0x00000000000456c0       0x20 Output/Debug/Obj/ble_app_hts_pca10040_s132/bsp.o
- .rodata        0x00000000000456e0      0x2f4 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .rodata        0x00000000000456e0      0x300 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
  .rodata.m_notification_timer_id
-                0x00000000000459d4        0x4 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+                0x00000000000459e0        0x4 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
  .rodata.m_ble_gatt_queuereq_queue
-                0x00000000000459d8       0x14 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+                0x00000000000459e4       0x14 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
  .rodata.m_vl53l5cx_timer_id
-                0x00000000000459ec        0x4 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+                0x00000000000459f8        0x4 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
  .rodata.m_system_reset_timer_id
-                0x00000000000459f0        0x4 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+                0x00000000000459fc        0x4 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
  .rodata.m_test_timer
-                0x00000000000459f4        0x4 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
- .rodata.m_twi  0x00000000000459f8       0x10 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
- .rodata        0x0000000000045a08       0xd8 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_cus.o
- .rodata        0x0000000000045ae0       0x17 Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT.o
- *fill*         0x0000000000045af7        0x1 
- .rodata        0x0000000000045af8       0x7a Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_conn_state.o
- *fill*         0x0000000000045b72        0x2 
- .rodata        0x0000000000045b74      0x3de Output/Debug/Obj/ble_app_hts_pca10040_s132/gatt_cache_manager.o
- *fill*         0x0000000000045f52        0x2 
+                0x0000000000045a00        0x4 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .rodata.m_twi  0x0000000000045a04       0x10 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .rodata        0x0000000000045a14       0xd8 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_cus.o
+ .rodata        0x0000000000045aec       0x17 Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT.o
+ *fill*         0x0000000000045b03        0x1 
+ .rodata        0x0000000000045b04       0x7a Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_conn_state.o
+ *fill*         0x0000000000045b7e        0x2 
+ .rodata        0x0000000000045b80      0x3de Output/Debug/Obj/ble_app_hts_pca10040_s132/gatt_cache_manager.o
+ *fill*         0x0000000000045f5e        0x2 
  .rodata.car_value_true.1
-                0x0000000000045f54        0x4 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatt_cache_manager.o
+                0x0000000000045f60        0x4 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatt_cache_manager.o
  .rodata.car_value_false.0
-                0x0000000000045f58        0x4 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatt_cache_manager.o
- .rodata        0x0000000000045f5c      0x1f8 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatts_cache_manager.o
+                0x0000000000045f64        0x4 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatt_cache_manager.o
+ .rodata        0x0000000000045f68      0x1f8 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatts_cache_manager.o
  .rodata.service_changed_pending.0
-                0x0000000000046154        0x4 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatts_cache_manager.o
+                0x0000000000046160        0x4 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatts_cache_manager.o
  .rodata.service_changed_pending.1
-                0x0000000000046158        0x4 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatts_cache_manager.o
- .rodata        0x000000000004615c       0xfe Output/Debug/Obj/ble_app_hts_pca10040_s132/id_manager.o
- *fill*         0x000000000004625a        0x2 
+                0x0000000000046164        0x4 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatts_cache_manager.o
+ .rodata        0x0000000000046168       0xfe Output/Debug/Obj/ble_app_hts_pca10040_s132/id_manager.o
+ *fill*         0x0000000000046266        0x2 
  .rodata.m_evt_handlers
-                0x000000000004625c        0x8 Output/Debug/Obj/ble_app_hts_pca10040_s132/id_manager.o
- .rodata        0x0000000000046264      0x157 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gatt.o
- *fill*         0x00000000000463bb        0x1 
- .rodata        0x00000000000463bc       0x73 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gq.o
- *fill*         0x000000000004642f        0x1 
+                0x0000000000046268        0x8 Output/Debug/Obj/ble_app_hts_pca10040_s132/id_manager.o
+ .rodata        0x0000000000046270      0x157 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gatt.o
+ *fill*         0x00000000000463c7        0x1 
+ .rodata        0x00000000000463c8       0x73 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gq.o
+ *fill*         0x000000000004643b        0x1 
  .rodata.m_req_data_alloc
-                0x0000000000046430       0x18 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gq.o
- .rodata        0x0000000000046448      0x190 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_data_storage.o
- .rodata        0x00000000000465d8      0x224 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_database.o
+                0x000000000004643c       0x18 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gq.o
+ .rodata        0x0000000000046454      0x190 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_data_storage.o
+ .rodata        0x00000000000465e4      0x224 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_database.o
  .rodata.m_evt_handlers
-                0x00000000000467fc       0x10 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_database.o
- .rodata        0x000000000004680c      0x24c Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager.o
+                0x0000000000046808       0x10 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_database.o
+ .rodata        0x0000000000046818      0x24c Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager.o
  .rodata.__func__.2
-                0x0000000000046a58        0x8 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager.o
+                0x0000000000046a64        0x8 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager.o
  .rodata.__func__.0
-                0x0000000000046a60       0x10 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager.o
- .rodata        0x0000000000046a70      0xa7e Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager_handler.o
- *fill*         0x00000000000474ee        0x2 
- .rodata        0x00000000000474f0      0x39e Output/Debug/Obj/ble_app_hts_pca10040_s132/security_dispatcher.o
- *fill*         0x000000000004788e        0x2 
+                0x0000000000046a6c       0x10 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager.o
+ .rodata        0x0000000000046a7c      0xa7e Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager_handler.o
+ *fill*         0x00000000000474fa        0x2 
+ .rodata        0x00000000000474fc      0x39e Output/Debug/Obj/ble_app_hts_pca10040_s132/security_dispatcher.o
+ *fill*         0x000000000004789a        0x2 
  .rodata.__func__.0
-                0x0000000000047890       0x10 Output/Debug/Obj/ble_app_hts_pca10040_s132/security_dispatcher.o
- .rodata        0x00000000000478a0      0x1fb Output/Debug/Obj/ble_app_hts_pca10040_s132/security_manager.o
- *fill*         0x0000000000047a9b        0x1 
- .rodata        0x0000000000047a9c       0xaf Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_bms.o
- *fill*         0x0000000000047b4b        0x1 
- .rodata        0x0000000000047b4c        0x8 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_bas.o
- .rodata        0x0000000000047b54       0x5b Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_dis.o
- *fill*         0x0000000000047baf        0x1 
- .rodata        0x0000000000047bb0       0xd4 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh.o
+                0x000000000004789c       0x10 Output/Debug/Obj/ble_app_hts_pca10040_s132/security_dispatcher.o
+ .rodata        0x00000000000478ac      0x1fb Output/Debug/Obj/ble_app_hts_pca10040_s132/security_manager.o
+ *fill*         0x0000000000047aa7        0x1 
+ .rodata        0x0000000000047aa8       0xaf Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_bms.o
+ *fill*         0x0000000000047b57        0x1 
+ .rodata        0x0000000000047b58        0x8 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_bas.o
+ .rodata        0x0000000000047b60       0x5b Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_dis.o
+ *fill*         0x0000000000047bbb        0x1 
+ .rodata        0x0000000000047bbc       0xd4 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh.o
  .rodata.sdh_req_observers
-                0x0000000000047c84        0xc Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh.o
- .rodata.sdh_state_observers
                 0x0000000000047c90        0xc Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh.o
- .rodata.sdh_stack_observers
+ .rodata.sdh_state_observers
                 0x0000000000047c9c        0xc Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh.o
- .rodata        0x0000000000047ca8      0x30f Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_ble.o
- *fill*         0x0000000000047fb7        0x1 
+ .rodata.sdh_stack_observers
+                0x0000000000047ca8        0xc Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh.o
+ .rodata        0x0000000000047cb4      0x30f Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_ble.o
+ *fill*         0x0000000000047fc3        0x1 
  .rodata.sdh_ble_observers
-                0x0000000000047fb8        0xc Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_ble.o
- .rodata        0x0000000000047fc4       0xd7 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_soc.o
- *fill*         0x000000000004809b        0x1 
+                0x0000000000047fc4        0xc Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_ble.o
+ .rodata        0x0000000000047fd0       0xd7 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_soc.o
+ *fill*         0x00000000000480a7        0x1 
  .rodata.sdh_soc_observers
-                0x000000000004809c        0xc Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_soc.o
+                0x00000000000480a8        0xc Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_soc.o
  .rodata.VL53L5CX_FIRMWARE
-                0x00000000000480a8    0x15000 Output/Debug/Obj/ble_app_hts_pca10040_s132/vl53l5cx_api.o
-                0x00000000000480a8                VL53L5CX_FIRMWARE
+                0x00000000000480b4    0x15000 Output/Debug/Obj/ble_app_hts_pca10040_s132/vl53l5cx_api.o
+                0x00000000000480b4                VL53L5CX_FIRMWARE
  .rodata.VL53L5CX_DEFAULT_CONFIGURATION
-                0x000000000005d0a8      0x3cc Output/Debug/Obj/ble_app_hts_pca10040_s132/vl53l5cx_api.o
-                0x000000000005d0a8                VL53L5CX_DEFAULT_CONFIGURATION
+                0x000000000005d0b4      0x3cc Output/Debug/Obj/ble_app_hts_pca10040_s132/vl53l5cx_api.o
+                0x000000000005d0b4                VL53L5CX_DEFAULT_CONFIGURATION
  .rodata.VL53L5CX_DEFAULT_XTALK
-                0x000000000005d474      0x308 Output/Debug/Obj/ble_app_hts_pca10040_s132/vl53l5cx_api.o
-                0x000000000005d474                VL53L5CX_DEFAULT_XTALK
+                0x000000000005d480      0x308 Output/Debug/Obj/ble_app_hts_pca10040_s132/vl53l5cx_api.o
+                0x000000000005d480                VL53L5CX_DEFAULT_XTALK
  .rodata.VL53L5CX_GET_NVM_CMD
-                0x000000000005d77c       0x28 Output/Debug/Obj/ble_app_hts_pca10040_s132/vl53l5cx_api.o
-                0x000000000005d77c                VL53L5CX_GET_NVM_CMD
- .rodata        0x000000000005d7a4       0x6c Output/Debug/Obj/ble_app_hts_pca10040_s132/vl53l5cx_api.o
+                0x000000000005d788       0x28 Output/Debug/Obj/ble_app_hts_pca10040_s132/vl53l5cx_api.o
+                0x000000000005d788                VL53L5CX_GET_NVM_CMD
+ .rodata        0x000000000005d7b0       0x6c Output/Debug/Obj/ble_app_hts_pca10040_s132/vl53l5cx_api.o
+ *fill*         0x000000000005d81c        0x4 
  .rodata.delay_machine_code.0
-                0x000000000005d810        0x6 Output/Debug/Obj/ble_app_hts_pca10040_s132/platform.o
- *fill*         0x000000000005d816        0x2 
+                0x000000000005d820        0x6 Output/Debug/Obj/ble_app_hts_pca10040_s132/platform.o
+ *fill*         0x000000000005d826        0x2 
  .rodata.libc.__RAL_find_locale.str1.4
-                0x000000000005d818        0xa C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/lib/libc_v7em_fpv4_sp_d16_hard_t_le_eabi.a(libc2.o)
- *fill*         0x000000000005d822        0x2 
+                0x000000000005d828        0xa C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/lib/libc_v7em_fpv4_sp_d16_hard_t_le_eabi.a(libc2.o)
+ *fill*         0x000000000005d832        0x2 
  .rodata.libc.__RAL_ascii_ctype_map
-                0x000000000005d824       0x80 C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/lib/libc_v7em_fpv4_sp_d16_hard_t_le_eabi.a(libc2.o)
-                0x000000000005d824                __RAL_ascii_ctype_map
+                0x000000000005d834       0x80 C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/lib/libc_v7em_fpv4_sp_d16_hard_t_le_eabi.a(libc2.o)
+                0x000000000005d834                __RAL_ascii_ctype_map
  .rodata.libc.__RAL_ascii_ctype_mask
-                0x000000000005d8a4        0xd C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/lib/libc_v7em_fpv4_sp_d16_hard_t_le_eabi.a(libc2.o)
- *fill*         0x000000000005d8b1        0x3 
+                0x000000000005d8b4        0xd C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/lib/libc_v7em_fpv4_sp_d16_hard_t_le_eabi.a(libc2.o)
+ *fill*         0x000000000005d8c1        0x3 
  .rodata.libc.__RAL_c_locale
-                0x000000000005d8b4        0xc C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/lib/libc_v7em_fpv4_sp_d16_hard_t_le_eabi.a(libc2.o)
-                0x000000000005d8b4                __RAL_c_locale
+                0x000000000005d8c4        0xc C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/lib/libc_v7em_fpv4_sp_d16_hard_t_le_eabi.a(libc2.o)
+                0x000000000005d8c4                __RAL_c_locale
  .rodata.libc.__RAL_c_locale_abbrev_day_names
-                0x000000000005d8c0       0x1d C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/lib/libc_v7em_fpv4_sp_d16_hard_t_le_eabi.a(libc2.o)
-                0x000000000005d8c0                __RAL_c_locale_abbrev_day_names
- *fill*         0x000000000005d8dd        0x3 
+                0x000000000005d8d0       0x1d C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/lib/libc_v7em_fpv4_sp_d16_hard_t_le_eabi.a(libc2.o)
+                0x000000000005d8d0                __RAL_c_locale_abbrev_day_names
+ *fill*         0x000000000005d8ed        0x3 
  .rodata.libc.__RAL_c_locale_abbrev_month_names
-                0x000000000005d8e0       0x31 C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/lib/libc_v7em_fpv4_sp_d16_hard_t_le_eabi.a(libc2.o)
-                0x000000000005d8e0                __RAL_c_locale_abbrev_month_names
- *fill*         0x000000000005d911        0x3 
+                0x000000000005d8f0       0x31 C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/lib/libc_v7em_fpv4_sp_d16_hard_t_le_eabi.a(libc2.o)
+                0x000000000005d8f0                __RAL_c_locale_abbrev_month_names
+ *fill*         0x000000000005d921        0x3 
  .rodata.libc.__RAL_c_locale_am_pm_indicator
-                0x000000000005d914        0x7 C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/lib/libc_v7em_fpv4_sp_d16_hard_t_le_eabi.a(libc2.o)
-                0x000000000005d914                __RAL_c_locale_am_pm_indicator
- *fill*         0x000000000005d91b        0x1 
+                0x000000000005d924        0x7 C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/lib/libc_v7em_fpv4_sp_d16_hard_t_le_eabi.a(libc2.o)
+                0x000000000005d924                __RAL_c_locale_am_pm_indicator
+ *fill*         0x000000000005d92b        0x1 
  .rodata.libc.__RAL_c_locale_data
-                0x000000000005d91c       0x58 C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/lib/libc_v7em_fpv4_sp_d16_hard_t_le_eabi.a(libc2.o)
-                0x000000000005d91c                __RAL_c_locale_data
+                0x000000000005d92c       0x58 C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/lib/libc_v7em_fpv4_sp_d16_hard_t_le_eabi.a(libc2.o)
+                0x000000000005d92c                __RAL_c_locale_data
  .rodata.libc.__RAL_c_locale_date_format
-                0x000000000005d974        0x9 C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/lib/libc_v7em_fpv4_sp_d16_hard_t_le_eabi.a(libc2.o)
-                0x000000000005d974                __RAL_c_locale_date_format
- *fill*         0x000000000005d97d        0x3 
+                0x000000000005d984        0x9 C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/lib/libc_v7em_fpv4_sp_d16_hard_t_le_eabi.a(libc2.o)
+                0x000000000005d984                __RAL_c_locale_date_format
+ *fill*         0x000000000005d98d        0x3 
  .rodata.libc.__RAL_c_locale_date_time_format
-                0x000000000005d980        0xf C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/lib/libc_v7em_fpv4_sp_d16_hard_t_le_eabi.a(libc2.o)
-                0x000000000005d980                __RAL_c_locale_date_time_format
- *fill*         0x000000000005d98f        0x1 
+                0x000000000005d990        0xf C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/lib/libc_v7em_fpv4_sp_d16_hard_t_le_eabi.a(libc2.o)
+                0x000000000005d990                __RAL_c_locale_date_time_format
+ *fill*         0x000000000005d99f        0x1 
  .rodata.libc.__RAL_c_locale_day_names
-                0x000000000005d990       0x3a C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/lib/libc_v7em_fpv4_sp_d16_hard_t_le_eabi.a(libc2.o)
-                0x000000000005d990                __RAL_c_locale_day_names
- *fill*         0x000000000005d9ca        0x2 
+                0x000000000005d9a0       0x3a C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/lib/libc_v7em_fpv4_sp_d16_hard_t_le_eabi.a(libc2.o)
+                0x000000000005d9a0                __RAL_c_locale_day_names
+ *fill*         0x000000000005d9da        0x2 
  .rodata.libc.__RAL_c_locale_month_names
-                0x000000000005d9cc       0x57 C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/lib/libc_v7em_fpv4_sp_d16_hard_t_le_eabi.a(libc2.o)
-                0x000000000005d9cc                __RAL_c_locale_month_names
- *fill*         0x000000000005da23        0x1 
+                0x000000000005d9dc       0x57 C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/lib/libc_v7em_fpv4_sp_d16_hard_t_le_eabi.a(libc2.o)
+                0x000000000005d9dc                __RAL_c_locale_month_names
+ *fill*         0x000000000005da33        0x1 
  .rodata.libc.__RAL_c_locale_time_format
-                0x000000000005da24        0x9 C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/lib/libc_v7em_fpv4_sp_d16_hard_t_le_eabi.a(libc2.o)
-                0x000000000005da24                __RAL_c_locale_time_format
- *fill*         0x000000000005da2d        0x3 
+                0x000000000005da34        0x9 C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/lib/libc_v7em_fpv4_sp_d16_hard_t_le_eabi.a(libc2.o)
+                0x000000000005da34                __RAL_c_locale_time_format
+ *fill*         0x000000000005da3d        0x3 
  .rodata.libc.__RAL_codeset_ascii
-                0x000000000005da30       0x20 C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/lib/libc_v7em_fpv4_sp_d16_hard_t_le_eabi.a(libc2.o)
-                0x000000000005da30                __RAL_codeset_ascii
+                0x000000000005da40       0x20 C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/lib/libc_v7em_fpv4_sp_d16_hard_t_le_eabi.a(libc2.o)
+                0x000000000005da40                __RAL_codeset_ascii
  .rodata.libc.__RAL_data_empty_string
-                0x000000000005da50        0x1 C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/lib/libc_v7em_fpv4_sp_d16_hard_t_le_eabi.a(libc2.o)
-                0x000000000005da50                __RAL_data_empty_string
- *fill*         0x000000000005da51        0x3 
+                0x000000000005da60        0x1 C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/lib/libc_v7em_fpv4_sp_d16_hard_t_le_eabi.a(libc2.o)
+                0x000000000005da60                __RAL_data_empty_string
+ *fill*         0x000000000005da61        0x3 
  .rodata.libc.__RAL_data_utf8_period
-                0x000000000005da54        0x2 C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/lib/libc_v7em_fpv4_sp_d16_hard_t_le_eabi.a(libc2.o)
-                0x000000000005da54                __RAL_data_utf8_period
- *fill*         0x000000000005da56        0x2 
+                0x000000000005da64        0x2 C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/lib/libc_v7em_fpv4_sp_d16_hard_t_le_eabi.a(libc2.o)
+                0x000000000005da64                __RAL_data_utf8_period
+ *fill*         0x000000000005da66        0x2 
  .rodata.libc.__RAL_hex_lc
-                0x000000000005da58       0x10 C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/lib/libc_v7em_fpv4_sp_d16_hard_t_le_eabi.a(libc2.o)
-                0x000000000005da58                __RAL_hex_lc
- .rodata.libc.__RAL_hex_uc
                 0x000000000005da68       0x10 C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/lib/libc_v7em_fpv4_sp_d16_hard_t_le_eabi.a(libc2.o)
-                0x000000000005da68                __RAL_hex_uc
+                0x000000000005da68                __RAL_hex_lc
+ .rodata.libc.__RAL_hex_uc
+                0x000000000005da78       0x10 C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/lib/libc_v7em_fpv4_sp_d16_hard_t_le_eabi.a(libc2.o)
+                0x000000000005da78                __RAL_hex_uc
  .rodata.libc.__vfprintf_int.str1.4
-                0x000000000005da78        0x7 C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/lib/libc_v7em_fpv4_sp_d16_hard_t_le_eabi.a(libvfprintf.o)
-                0x000000000005da80                . = ALIGN (MAX ((__rodata_start__ + 0x4), .), 0x4)
- *fill*         0x000000000005da7f        0x1 
-                0x000000000005da80                __rodata_end__ = (__rodata_start__ + SIZEOF (.rodata))
-                0x00000000000199c4                __rodata_size__ = SIZEOF (.rodata)
-                0x000000000005da80                __rodata_load_end__ = __rodata_end__
+                0x000000000005da88        0x7 C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/lib/libc_v7em_fpv4_sp_d16_hard_t_le_eabi.a(libvfprintf.o)
+                0x000000000005da90                . = ALIGN (MAX ((__rodata_start__ + 0x4), .), 0x4)
+ *fill*         0x000000000005da8f        0x1 
+                0x000000000005da90                __rodata_end__ = (__rodata_start__ + SIZEOF (.rodata))
+                0x00000000000199d4                __rodata_size__ = SIZEOF (.rodata)
+                0x000000000005da90                __rodata_load_end__ = __rodata_end__
 
-.rel.dyn        0x000000000005da80        0x0
- .rel.iplt      0x000000000005da80        0x0 Output/Debug/Obj/ble_app_hts_pca10040_s132/thumb_crt0.o
+.rel.dyn        0x000000000005da90        0x0
+ .rel.iplt      0x000000000005da90        0x0 Output/Debug/Obj/ble_app_hts_pca10040_s132/thumb_crt0.o
                 0x0000000000000001                . = ASSERT (((__rodata_start__ == __rodata_end__) || ((__rodata_end__ - __FLASH1_segment_start__) <= __FLASH1_segment_size__)), error: .rodata is too large to fit in FLASH1 memory segment)
-                0x000000000005da80                __ARM.exidx_load_start__ = ALIGN (__rodata_end__, 0x4)
+                0x000000000005da90                __ARM.exidx_load_start__ = ALIGN (__rodata_end__, 0x4)
 
-.ARM.exidx      0x000000000005da80        0x0
-                0x000000000005da80                __ARM.exidx_start__ = .
-                0x000000000005da80                __exidx_start = __ARM.exidx_start__
+.ARM.exidx      0x000000000005da90        0x0
+                0x000000000005da90                __ARM.exidx_start__ = .
+                0x000000000005da90                __exidx_start = __ARM.exidx_start__
  *(.ARM.exidx .ARM.exidx.*)
-                0x000000000005da80                __ARM.exidx_end__ = (__ARM.exidx_start__ + SIZEOF (.ARM.exidx))
+                0x000000000005da90                __ARM.exidx_end__ = (__ARM.exidx_start__ + SIZEOF (.ARM.exidx))
                 0x0000000000000000                __ARM.exidx_size__ = SIZEOF (.ARM.exidx)
-                0x000000000005da80                __exidx_end = __ARM.exidx_end__
-                0x000000000005da80                __ARM.exidx_load_end__ = __ARM.exidx_end__
+                0x000000000005da90                __exidx_end = __ARM.exidx_end__
+                0x000000000005da90                __ARM.exidx_load_end__ = __ARM.exidx_end__
                 0x0000000000000001                . = ASSERT (((__ARM.exidx_start__ == __ARM.exidx_end__) || ((__ARM.exidx_end__ - __FLASH1_segment_start__) <= __FLASH1_segment_size__)), error: .ARM.exidx is too large to fit in FLASH1 memory segment)
-                0x000000000005da80                __fast_load_start__ = ALIGN (__ARM.exidx_end__, 0x4)
+                0x000000000005da90                __fast_load_start__ = ALIGN (__ARM.exidx_end__, 0x4)
 
-.fast           0x0000000020002274        0x0 load address 0x000000000005da80
+.fast           0x0000000020002274        0x0 load address 0x000000000005da90
                 0x0000000020002274                __fast_start__ = .
  *(.fast .fast.*)
                 0x0000000020002274                __fast_end__ = (__fast_start__ + SIZEOF (.fast))
                 0x0000000000000000                __fast_size__ = SIZEOF (.fast)
-                0x000000000005da80                __fast_load_end__ = (__fast_load_start__ + SIZEOF (.fast))
+                0x000000000005da90                __fast_load_end__ = (__fast_load_start__ + SIZEOF (.fast))
                 0x0000000000000001                . = ASSERT (((__fast_load_start__ == __fast_load_end__) || ((__fast_load_end__ - __FLASH1_segment_start__) <= __FLASH1_segment_size__)), error: .fast is too large to fit in FLASH1 memory segment)
 
 .fast_run       0x0000000020002274        0x0
@@ -24875,9 +24881,9 @@ Linker script and memory map
                 0x0000000000000000                __fast_run_size__ = (__fast_run_end__ - __fast_run_start__)
                 0x0000000020002274                __fast_run_load_end__ = __fast_run_end__
                 0x0000000000000001                . = ASSERT (((__fast_run_start__ == __fast_run_end__) || ((__fast_run_end__ - __RAM1_segment_start__) <= __RAM1_segment_size__)), error: .fast_run is too large to fit in RAM1 memory segment)
-                0x000000000005da80                __data_load_start__ = ALIGN ((__fast_load_start__ + SIZEOF (.fast)), 0x4)
+                0x000000000005da90                __data_load_start__ = ALIGN ((__fast_load_start__ + SIZEOF (.fast)), 0x4)
 
-.data           0x0000000020002274      0xcd8 load address 0x000000000005da80
+.data           0x0000000020002274      0xcd8 load address 0x000000000005da90
                 0x0000000020002274                __data_start__ = .
  *(.data .data.* .gnu.linkonce.d.*)
  .data.m_uart   0x0000000020002274       0x14 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_log_backend_uart.o
@@ -24971,7 +24977,7 @@ Linker script and memory map
                 0x0000000020002f38                __RAL_global_locale
                 0x0000000020002f4c                __data_end__ = (__data_start__ + SIZEOF (.data))
                 0x0000000000000cd8                __data_size__ = SIZEOF (.data)
-                0x000000000005e758                __data_load_end__ = (__data_load_start__ + SIZEOF (.data))
+                0x000000000005e768                __data_load_end__ = (__data_load_start__ + SIZEOF (.data))
 
 .igot.plt       0x0000000100000000        0x0
  .igot.plt      0x0000000100000000        0x0 Output/Debug/Obj/ble_app_hts_pca10040_s132/thumb_crt0.o
@@ -24983,16 +24989,16 @@ Linker script and memory map
                 0x0000000000000cd8                __data_run_size__ = (__data_run_end__ - __data_run_start__)
                 0x0000000020002f4c                __data_run_load_end__ = __data_run_end__
                 0x0000000000000001                . = ASSERT (((__data_run_start__ == __data_run_end__) || ((__data_run_end__ - __RAM1_segment_start__) <= __RAM1_segment_size__)), error: .data_run is too large to fit in RAM1 memory segment)
-                0x000000000005e758                __tdata_load_start__ = ALIGN ((__data_load_start__ + SIZEOF (.data)), 0x4)
+                0x000000000005e768                __tdata_load_start__ = ALIGN ((__data_load_start__ + SIZEOF (.data)), 0x4)
 
-.tdata          0x0000000020002f4c        0x0 load address 0x000000000005e758
+.tdata          0x0000000020002f4c        0x0 load address 0x000000000005e768
                 0x0000000020002f4c                __tdata_start__ = .
  *(.tdata .tdata.*)
                 0x0000000020002f4c                __tdata_end__ = (__tdata_start__ + SIZEOF (.tdata))
                 0x0000000000000000                __tdata_size__ = SIZEOF (.tdata)
-                0x000000000005e758                __tdata_load_end__ = (__tdata_load_start__ + SIZEOF (.tdata))
-                0x000000000005e758                __FLASH1_segment_used_end__ = (ALIGN ((__data_load_start__ + SIZEOF (.data)), 0x4) + SIZEOF (.tdata))
-                0x000000000005e758                __FLASH1_segment_used_size__ = (__FLASH1_segment_used_end__ - __FLASH1_segment_start__)
+                0x000000000005e768                __tdata_load_end__ = (__tdata_load_start__ + SIZEOF (.tdata))
+                0x000000000005e768                __FLASH1_segment_used_end__ = (ALIGN ((__data_load_start__ + SIZEOF (.data)), 0x4) + SIZEOF (.tdata))
+                0x000000000005e768                __FLASH1_segment_used_size__ = (__FLASH1_segment_used_end__ - __FLASH1_segment_start__)
                 0x0000000000000001                . = ASSERT (((__tdata_load_start__ == __tdata_load_end__) || ((__tdata_load_end__ - __FLASH1_segment_start__) <= __FLASH1_segment_size__)), error: .tdata is too large to fit in FLASH1 memory segment)
 
 .tdata_run      0x0000000020002f4c        0x0
@@ -25737,7 +25743,7 @@ LOAD linker stubs
  .comment       0x000000000000003f       0x40 C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/lib/libc_v7em_fpv4_sp_d16_hard_t_le_eabi.a(libc2.o)
  .comment       0x000000000000003f       0x40 C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/lib/libc_v7em_fpv4_sp_d16_hard_t_le_eabi.a(libvfprintf.o)
 
-.debug_line     0x0000000000000000    0x4ce92
+.debug_line     0x0000000000000000    0x4cef5
  .debug_line    0x0000000000000000      0x21d Output/Debug/Obj/ble_app_hts_pca10040_s132/thumb_crt0.o
  .debug_line    0x000000000000021d      0xd14 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_log_backend_rtt.o
  .debug_line    0x0000000000000f31      0xa57 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_log_backend_serial.o
@@ -25784,40 +25790,40 @@ LOAD linker stubs
  .debug_line    0x000000000002190b     0x15d4 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrfx_twi.o
  .debug_line    0x0000000000022edf      0xfbb Output/Debug/Obj/ble_app_hts_pca10040_s132/bsp.o
  .debug_line    0x0000000000023e9a     0x1327 Output/Debug/Obj/ble_app_hts_pca10040_s132/bsp_btn_ble.o
- .debug_line    0x00000000000251c1     0x2ff4 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
- .debug_line    0x00000000000281b5     0x161b Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_cus.o
- .debug_line    0x00000000000297d0      0xec6 Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT.o
- .debug_line    0x000000000002a696      0x776 Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT_Syscalls_SES.o
- .debug_line    0x000000000002ae0c     0x1427 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_advdata.o
- .debug_line    0x000000000002c233     0x1856 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_advertising.o
- .debug_line    0x000000000002da89     0x1163 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_conn_params.o
- .debug_line    0x000000000002ebec     0x1534 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_conn_state.o
- .debug_line    0x0000000000030120      0xdf8 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_srv_common.o
- .debug_line    0x0000000000030f18     0x19a7 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatt_cache_manager.o
- .debug_line    0x00000000000328bf     0x150d Output/Debug/Obj/ble_app_hts_pca10040_s132/gatts_cache_manager.o
- .debug_line    0x0000000000033dcc     0x19d3 Output/Debug/Obj/ble_app_hts_pca10040_s132/id_manager.o
- .debug_line    0x000000000003579f     0x1062 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gatt.o
- .debug_line    0x0000000000036801     0x1646 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gq.o
- .debug_line    0x0000000000037e47      0xff1 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_qwr.o
- .debug_line    0x0000000000038e38     0x17af Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_data_storage.o
- .debug_line    0x000000000003a5e7     0x17e4 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_database.o
- .debug_line    0x000000000003bdcb     0x11e8 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_id.o
- .debug_line    0x000000000003cfb3     0x1f0b Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager.o
- .debug_line    0x000000000003eebe     0x16de Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager_handler.o
- .debug_line    0x000000000004059c      0x5f6 Output/Debug/Obj/ble_app_hts_pca10040_s132/pm_buffer.o
- .debug_line    0x0000000000040b92     0x1956 Output/Debug/Obj/ble_app_hts_pca10040_s132/security_dispatcher.o
- .debug_line    0x00000000000424e8     0x188f Output/Debug/Obj/ble_app_hts_pca10040_s132/security_manager.o
- .debug_line    0x0000000000043d77     0x128f Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_bms.o
- .debug_line    0x0000000000045006      0xf78 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_bas.o
- .debug_line    0x0000000000045f7e      0xd7b Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_dis.o
- .debug_line    0x0000000000046cf9     0x14ec Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_hts.o
- .debug_line    0x00000000000481e5      0xe41 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh.o
- .debug_line    0x0000000000049026      0xe83 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_ble.o
- .debug_line    0x0000000000049ea9      0x991 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_soc.o
- .debug_line    0x000000000004a83a     0x186d Output/Debug/Obj/ble_app_hts_pca10040_s132/vl53l5cx_api.o
- .debug_line    0x000000000004c0a7      0xdeb Output/Debug/Obj/ble_app_hts_pca10040_s132/platform.o
+ .debug_line    0x00000000000251c1     0x3057 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .debug_line    0x0000000000028218     0x161b Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_cus.o
+ .debug_line    0x0000000000029833      0xec6 Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT.o
+ .debug_line    0x000000000002a6f9      0x776 Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT_Syscalls_SES.o
+ .debug_line    0x000000000002ae6f     0x1427 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_advdata.o
+ .debug_line    0x000000000002c296     0x1856 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_advertising.o
+ .debug_line    0x000000000002daec     0x1163 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_conn_params.o
+ .debug_line    0x000000000002ec4f     0x1534 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_conn_state.o
+ .debug_line    0x0000000000030183      0xdf8 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_srv_common.o
+ .debug_line    0x0000000000030f7b     0x19a7 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatt_cache_manager.o
+ .debug_line    0x0000000000032922     0x150d Output/Debug/Obj/ble_app_hts_pca10040_s132/gatts_cache_manager.o
+ .debug_line    0x0000000000033e2f     0x19d3 Output/Debug/Obj/ble_app_hts_pca10040_s132/id_manager.o
+ .debug_line    0x0000000000035802     0x1062 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gatt.o
+ .debug_line    0x0000000000036864     0x1646 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gq.o
+ .debug_line    0x0000000000037eaa      0xff1 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_qwr.o
+ .debug_line    0x0000000000038e9b     0x17af Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_data_storage.o
+ .debug_line    0x000000000003a64a     0x17e4 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_database.o
+ .debug_line    0x000000000003be2e     0x11e8 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_id.o
+ .debug_line    0x000000000003d016     0x1f0b Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager.o
+ .debug_line    0x000000000003ef21     0x16de Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager_handler.o
+ .debug_line    0x00000000000405ff      0x5f6 Output/Debug/Obj/ble_app_hts_pca10040_s132/pm_buffer.o
+ .debug_line    0x0000000000040bf5     0x1956 Output/Debug/Obj/ble_app_hts_pca10040_s132/security_dispatcher.o
+ .debug_line    0x000000000004254b     0x188f Output/Debug/Obj/ble_app_hts_pca10040_s132/security_manager.o
+ .debug_line    0x0000000000043dda     0x128f Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_bms.o
+ .debug_line    0x0000000000045069      0xf78 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_bas.o
+ .debug_line    0x0000000000045fe1      0xd7b Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_dis.o
+ .debug_line    0x0000000000046d5c     0x14ec Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_hts.o
+ .debug_line    0x0000000000048248      0xe41 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh.o
+ .debug_line    0x0000000000049089      0xe83 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_ble.o
+ .debug_line    0x0000000000049f0c      0x991 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_soc.o
+ .debug_line    0x000000000004a89d     0x186d Output/Debug/Obj/ble_app_hts_pca10040_s132/vl53l5cx_api.o
+ .debug_line    0x000000000004c10a      0xdeb Output/Debug/Obj/ble_app_hts_pca10040_s132/platform.o
 
-.debug_info     0x0000000000000000    0xd0e1c
+.debug_info     0x0000000000000000    0xd10a0
  .debug_info    0x0000000000000000       0x22 Output/Debug/Obj/ble_app_hts_pca10040_s132/thumb_crt0.o
  .debug_info    0x0000000000000022     0x11ab Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_log_backend_rtt.o
  .debug_info    0x00000000000011cd     0x13d7 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_log_backend_serial.o
@@ -25864,38 +25870,38 @@ LOAD linker stubs
  .debug_info    0x000000000003732a     0x2a54 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrfx_twi.o
  .debug_info    0x0000000000039d7e     0x1830 Output/Debug/Obj/ble_app_hts_pca10040_s132/bsp.o
  .debug_info    0x000000000003b5ae     0x5386 Output/Debug/Obj/ble_app_hts_pca10040_s132/bsp_btn_ble.o
- .debug_info    0x0000000000040934     0x9c5f Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
- .debug_info    0x000000000004a593     0x58c4 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_cus.o
- .debug_info    0x000000000004fe57     0x1b3d Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT.o
- .debug_info    0x0000000000051994      0xe1a Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT_Syscalls_SES.o
- .debug_info    0x00000000000527ae     0x3f02 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_advdata.o
- .debug_info    0x00000000000566b0     0x5e83 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_advertising.o
- .debug_info    0x000000000005c533     0x4e17 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_conn_params.o
- .debug_info    0x000000000006134a     0x5a57 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_conn_state.o
- .debug_info    0x0000000000066da1     0x3639 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_srv_common.o
- .debug_info    0x000000000006a3da     0x62ef Output/Debug/Obj/ble_app_hts_pca10040_s132/gatt_cache_manager.o
- .debug_info    0x00000000000706c9     0x4980 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatts_cache_manager.o
- .debug_info    0x0000000000075049     0x6326 Output/Debug/Obj/ble_app_hts_pca10040_s132/id_manager.o
- .debug_info    0x000000000007b36f     0x4d88 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gatt.o
- .debug_info    0x00000000000800f7     0x5af3 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gq.o
- .debug_info    0x0000000000085bea     0x4b9b Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_qwr.o
- .debug_info    0x000000000008a785     0x4fc8 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_data_storage.o
- .debug_info    0x000000000008f74d     0x4d9e Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_database.o
- .debug_info    0x00000000000944eb     0x3f5d Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_id.o
- .debug_info    0x0000000000098448     0x6ac8 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager.o
- .debug_info    0x000000000009ef10     0x5d64 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager_handler.o
- .debug_info    0x00000000000a4c74      0x50c Output/Debug/Obj/ble_app_hts_pca10040_s132/pm_buffer.o
- .debug_info    0x00000000000a5180     0x637c Output/Debug/Obj/ble_app_hts_pca10040_s132/security_dispatcher.o
- .debug_info    0x00000000000ab4fc     0x61ff Output/Debug/Obj/ble_app_hts_pca10040_s132/security_manager.o
- .debug_info    0x00000000000b16fb     0x53ee Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_bms.o
- .debug_info    0x00000000000b6ae9     0x4d88 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_bas.o
- .debug_info    0x00000000000bb871     0x374d Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_dis.o
- .debug_info    0x00000000000befbe     0x5ea8 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_hts.o
- .debug_info    0x00000000000c4e66     0x1c68 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh.o
- .debug_info    0x00000000000c6ace     0x4d2e Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_ble.o
- .debug_info    0x00000000000cb7fc     0x1164 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_soc.o
- .debug_info    0x00000000000cc960     0x258d Output/Debug/Obj/ble_app_hts_pca10040_s132/vl53l5cx_api.o
- .debug_info    0x00000000000ceeed     0x1f2f Output/Debug/Obj/ble_app_hts_pca10040_s132/platform.o
+ .debug_info    0x0000000000040934     0x9ee3 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .debug_info    0x000000000004a817     0x58c4 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_cus.o
+ .debug_info    0x00000000000500db     0x1b3d Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT.o
+ .debug_info    0x0000000000051c18      0xe1a Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT_Syscalls_SES.o
+ .debug_info    0x0000000000052a32     0x3f02 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_advdata.o
+ .debug_info    0x0000000000056934     0x5e83 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_advertising.o
+ .debug_info    0x000000000005c7b7     0x4e17 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_conn_params.o
+ .debug_info    0x00000000000615ce     0x5a57 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_conn_state.o
+ .debug_info    0x0000000000067025     0x3639 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_srv_common.o
+ .debug_info    0x000000000006a65e     0x62ef Output/Debug/Obj/ble_app_hts_pca10040_s132/gatt_cache_manager.o
+ .debug_info    0x000000000007094d     0x4980 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatts_cache_manager.o
+ .debug_info    0x00000000000752cd     0x6326 Output/Debug/Obj/ble_app_hts_pca10040_s132/id_manager.o
+ .debug_info    0x000000000007b5f3     0x4d88 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gatt.o
+ .debug_info    0x000000000008037b     0x5af3 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gq.o
+ .debug_info    0x0000000000085e6e     0x4b9b Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_qwr.o
+ .debug_info    0x000000000008aa09     0x4fc8 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_data_storage.o
+ .debug_info    0x000000000008f9d1     0x4d9e Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_database.o
+ .debug_info    0x000000000009476f     0x3f5d Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_id.o
+ .debug_info    0x00000000000986cc     0x6ac8 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager.o
+ .debug_info    0x000000000009f194     0x5d64 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager_handler.o
+ .debug_info    0x00000000000a4ef8      0x50c Output/Debug/Obj/ble_app_hts_pca10040_s132/pm_buffer.o
+ .debug_info    0x00000000000a5404     0x637c Output/Debug/Obj/ble_app_hts_pca10040_s132/security_dispatcher.o
+ .debug_info    0x00000000000ab780     0x61ff Output/Debug/Obj/ble_app_hts_pca10040_s132/security_manager.o
+ .debug_info    0x00000000000b197f     0x53ee Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_bms.o
+ .debug_info    0x00000000000b6d6d     0x4d88 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_bas.o
+ .debug_info    0x00000000000bbaf5     0x374d Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_dis.o
+ .debug_info    0x00000000000bf242     0x5ea8 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_hts.o
+ .debug_info    0x00000000000c50ea     0x1c68 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh.o
+ .debug_info    0x00000000000c6d52     0x4d2e Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_ble.o
+ .debug_info    0x00000000000cba80     0x1164 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_soc.o
+ .debug_info    0x00000000000ccbe4     0x258d Output/Debug/Obj/ble_app_hts_pca10040_s132/vl53l5cx_api.o
+ .debug_info    0x00000000000cf171     0x1f2f Output/Debug/Obj/ble_app_hts_pca10040_s132/platform.o
 
 .debug_abbrev   0x0000000000000000     0xde35
  .debug_abbrev  0x0000000000000000       0x12 Output/Debug/Obj/ble_app_hts_pca10040_s132/thumb_crt0.o
@@ -25977,7 +25983,7 @@ LOAD linker stubs
  .debug_abbrev  0x000000000000d7f8      0x329 Output/Debug/Obj/ble_app_hts_pca10040_s132/vl53l5cx_api.o
  .debug_abbrev  0x000000000000db21      0x314 Output/Debug/Obj/ble_app_hts_pca10040_s132/platform.o
 
-.debug_aranges  0x0000000000000000     0xcbd0
+.debug_aranges  0x0000000000000000     0xcbd8
  .debug_aranges
                 0x0000000000000000       0x98 Output/Debug/Obj/ble_app_hts_pca10040_s132/thumb_crt0.o
  .debug_aranges
@@ -26071,71 +26077,71 @@ LOAD linker stubs
  .debug_aranges
                 0x00000000000050d8      0x448 Output/Debug/Obj/ble_app_hts_pca10040_s132/bsp_btn_ble.o
  .debug_aranges
-                0x0000000000005520      0x618 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+                0x0000000000005520      0x620 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
  .debug_aranges
-                0x0000000000005b38      0x468 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_cus.o
+                0x0000000000005b40      0x468 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_cus.o
  .debug_aranges
-                0x0000000000005fa0      0x260 Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT.o
+                0x0000000000005fa8      0x260 Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT.o
  .debug_aranges
-                0x0000000000006200      0x190 Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT_Syscalls_SES.o
+                0x0000000000006208      0x190 Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT_Syscalls_SES.o
  .debug_aranges
-                0x0000000000006390      0x360 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_advdata.o
+                0x0000000000006398      0x360 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_advdata.o
  .debug_aranges
-                0x00000000000066f0      0x4e0 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_advertising.o
+                0x00000000000066f8      0x4e0 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_advertising.o
  .debug_aranges
-                0x0000000000006bd0      0x340 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_conn_params.o
+                0x0000000000006bd8      0x340 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_conn_params.o
  .debug_aranges
-                0x0000000000006f10      0x508 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_conn_state.o
+                0x0000000000006f18      0x508 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_conn_state.o
  .debug_aranges
-                0x0000000000007418      0x300 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_srv_common.o
+                0x0000000000007420      0x300 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_srv_common.o
  .debug_aranges
-                0x0000000000007718      0x4f8 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatt_cache_manager.o
+                0x0000000000007720      0x4f8 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatt_cache_manager.o
  .debug_aranges
-                0x0000000000007c10      0x470 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatts_cache_manager.o
+                0x0000000000007c18      0x470 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatts_cache_manager.o
  .debug_aranges
-                0x0000000000008080      0x4d8 Output/Debug/Obj/ble_app_hts_pca10040_s132/id_manager.o
+                0x0000000000008088      0x4d8 Output/Debug/Obj/ble_app_hts_pca10040_s132/id_manager.o
  .debug_aranges
-                0x0000000000008558      0x338 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gatt.o
+                0x0000000000008560      0x338 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gatt.o
  .debug_aranges
-                0x0000000000008890      0x478 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gq.o
+                0x0000000000008898      0x478 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gq.o
  .debug_aranges
-                0x0000000000008d08      0x328 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_qwr.o
+                0x0000000000008d10      0x328 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_qwr.o
  .debug_aranges
-                0x0000000000009030      0x4e8 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_data_storage.o
+                0x0000000000009038      0x4e8 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_data_storage.o
  .debug_aranges
-                0x0000000000009518      0x4c8 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_database.o
+                0x0000000000009520      0x4c8 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_database.o
  .debug_aranges
-                0x00000000000099e0      0x480 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_id.o
+                0x00000000000099e8      0x480 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_id.o
  .debug_aranges
-                0x0000000000009e60      0x5a8 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager.o
+                0x0000000000009e68      0x5a8 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager.o
  .debug_aranges
-                0x000000000000a408      0x478 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager_handler.o
+                0x000000000000a410      0x478 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager_handler.o
  .debug_aranges
-                0x000000000000a880       0x58 Output/Debug/Obj/ble_app_hts_pca10040_s132/pm_buffer.o
+                0x000000000000a888       0x58 Output/Debug/Obj/ble_app_hts_pca10040_s132/pm_buffer.o
  .debug_aranges
-                0x000000000000a8d8      0x518 Output/Debug/Obj/ble_app_hts_pca10040_s132/security_dispatcher.o
+                0x000000000000a8e0      0x518 Output/Debug/Obj/ble_app_hts_pca10040_s132/security_dispatcher.o
  .debug_aranges
-                0x000000000000adf0      0x4f8 Output/Debug/Obj/ble_app_hts_pca10040_s132/security_manager.o
+                0x000000000000adf8      0x4f8 Output/Debug/Obj/ble_app_hts_pca10040_s132/security_manager.o
  .debug_aranges
-                0x000000000000b2e8      0x358 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_bms.o
+                0x000000000000b2f0      0x358 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_bms.o
  .debug_aranges
-                0x000000000000b640      0x2f8 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_bas.o
+                0x000000000000b648      0x2f8 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_bas.o
  .debug_aranges
-                0x000000000000b938      0x2e8 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_dis.o
+                0x000000000000b940      0x2e8 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_dis.o
  .debug_aranges
-                0x000000000000bc20      0x488 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_hts.o
+                0x000000000000bc28      0x488 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_hts.o
  .debug_aranges
-                0x000000000000c0a8      0x250 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh.o
+                0x000000000000c0b0      0x250 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh.o
  .debug_aranges
-                0x000000000000c2f8      0x2f0 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_ble.o
+                0x000000000000c300      0x2f0 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_ble.o
  .debug_aranges
-                0x000000000000c5e8      0x188 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_soc.o
+                0x000000000000c5f0      0x188 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_soc.o
  .debug_aranges
-                0x000000000000c770      0x250 Output/Debug/Obj/ble_app_hts_pca10040_s132/vl53l5cx_api.o
+                0x000000000000c778      0x250 Output/Debug/Obj/ble_app_hts_pca10040_s132/vl53l5cx_api.o
  .debug_aranges
-                0x000000000000c9c0      0x210 Output/Debug/Obj/ble_app_hts_pca10040_s132/platform.o
+                0x000000000000c9c8      0x210 Output/Debug/Obj/ble_app_hts_pca10040_s132/platform.o
 
-.debug_str      0x0000000000000000    0xb1062
+.debug_str      0x0000000000000000    0xb1f2b
  .debug_str     0x0000000000000000       0xce Output/Debug/Obj/ble_app_hts_pca10040_s132/thumb_crt0.o
  .debug_str     0x00000000000000ce    0x7a5d0 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_log_backend_rtt.o
                                       0x7c533 (size before relaxing)
@@ -26227,72 +26233,72 @@ LOAD linker stubs
                                       0x7b262 (size before relaxing)
  .debug_str     0x0000000000099942     0x88ff Output/Debug/Obj/ble_app_hts_pca10040_s132/bsp_btn_ble.o
                                       0x828a7 (size before relaxing)
- .debug_str     0x00000000000a2241     0x76ed Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
-                                      0x93cc8 (size before relaxing)
- .debug_str     0x00000000000a992e      0x1b6 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_cus.o
+ .debug_str     0x00000000000a2241     0x85b6 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+                                      0x94b91 (size before relaxing)
+ .debug_str     0x00000000000aa7f7      0x1b6 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_cus.o
                                       0x85d86 (size before relaxing)
- .debug_str     0x00000000000a9ae4      0x5ee Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT.o
+ .debug_str     0x00000000000aa9ad      0x5ee Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT.o
                                       0x69d80 (size before relaxing)
- .debug_str     0x00000000000aa0d2      0xbad Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT_Syscalls_SES.o
+ .debug_str     0x00000000000aaf9b      0xbad Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT_Syscalls_SES.o
                                       0x6a3e0 (size before relaxing)
- .debug_str     0x00000000000aac7f      0x448 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_advdata.o
+ .debug_str     0x00000000000abb48      0x448 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_advdata.o
                                       0x78882 (size before relaxing)
- .debug_str     0x00000000000ab0c7      0x35a Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_advertising.o
+ .debug_str     0x00000000000abf90      0x35a Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_advertising.o
                                       0x7c87d (size before relaxing)
- .debug_str     0x00000000000ab421      0x2dc Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_conn_params.o
+ .debug_str     0x00000000000ac2ea      0x2dc Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_conn_params.o
                                       0x7ac54 (size before relaxing)
- .debug_str     0x00000000000ab6fd      0x57c Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_conn_state.o
+ .debug_str     0x00000000000ac5c6      0x57c Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_conn_state.o
                                       0x7aa4e (size before relaxing)
- .debug_str     0x00000000000abc79      0x26c Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_srv_common.o
+ .debug_str     0x00000000000acb42      0x26c Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_srv_common.o
                                       0x6f53b (size before relaxing)
- .debug_str     0x00000000000abee5      0x878 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatt_cache_manager.o
+ .debug_str     0x00000000000acdae      0x878 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatt_cache_manager.o
                                       0x7ed09 (size before relaxing)
- .debug_str     0x00000000000ac75d      0x34a Output/Debug/Obj/ble_app_hts_pca10040_s132/gatts_cache_manager.o
+ .debug_str     0x00000000000ad626      0x34a Output/Debug/Obj/ble_app_hts_pca10040_s132/gatts_cache_manager.o
                                       0x7d8d4 (size before relaxing)
- .debug_str     0x00000000000acaa7      0x4a9 Output/Debug/Obj/ble_app_hts_pca10040_s132/id_manager.o
+ .debug_str     0x00000000000ad970      0x4a9 Output/Debug/Obj/ble_app_hts_pca10040_s132/id_manager.o
                                       0x7e9b1 (size before relaxing)
- .debug_str     0x00000000000acf50      0x2ab Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gatt.o
+ .debug_str     0x00000000000ade19      0x2ab Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gatt.o
                                       0x7aa8b (size before relaxing)
- .debug_str     0x00000000000ad1fb      0x1e8 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gq.o
+ .debug_str     0x00000000000ae0c4      0x1e8 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gq.o
                                       0x7f495 (size before relaxing)
- .debug_str     0x00000000000ad3e3      0x25f Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_qwr.o
+ .debug_str     0x00000000000ae2ac      0x25f Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_qwr.o
                                       0x79407 (size before relaxing)
- .debug_str     0x00000000000ad642      0x4ad Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_data_storage.o
+ .debug_str     0x00000000000ae50b      0x4ad Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_data_storage.o
                                       0x7dc35 (size before relaxing)
- .debug_str     0x00000000000adaef      0x5e2 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_database.o
+ .debug_str     0x00000000000ae9b8      0x5e2 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_database.o
                                       0x7dd29 (size before relaxing)
- .debug_str     0x00000000000ae0d1      0x140 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_id.o
+ .debug_str     0x00000000000aef9a      0x140 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_id.o
                                       0x78e9d (size before relaxing)
- .debug_str     0x00000000000ae211      0x7c1 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager.o
+ .debug_str     0x00000000000af0da      0x7c1 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager.o
                                       0x7f620 (size before relaxing)
- .debug_str     0x00000000000ae9d2      0x363 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager_handler.o
+ .debug_str     0x00000000000af89b      0x363 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager_handler.o
                                       0x7e76a (size before relaxing)
- .debug_str     0x00000000000aed35      0x1a1 Output/Debug/Obj/ble_app_hts_pca10040_s132/pm_buffer.o
+ .debug_str     0x00000000000afbfe      0x1a1 Output/Debug/Obj/ble_app_hts_pca10040_s132/pm_buffer.o
                                       0x6f975 (size before relaxing)
- .debug_str     0x00000000000aeed6      0x3cd Output/Debug/Obj/ble_app_hts_pca10040_s132/security_dispatcher.o
+ .debug_str     0x00000000000afd9f      0x3cd Output/Debug/Obj/ble_app_hts_pca10040_s132/security_dispatcher.o
                                       0x7ec02 (size before relaxing)
- .debug_str     0x00000000000af2a3      0x427 Output/Debug/Obj/ble_app_hts_pca10040_s132/security_manager.o
+ .debug_str     0x00000000000b016c      0x427 Output/Debug/Obj/ble_app_hts_pca10040_s132/security_manager.o
                                       0x7e929 (size before relaxing)
- .debug_str     0x00000000000af6ca      0x46d Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_bms.o
+ .debug_str     0x00000000000b0593      0x46d Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_bms.o
                                       0x7c9ff (size before relaxing)
- .debug_str     0x00000000000afb37      0x197 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_bas.o
+ .debug_str     0x00000000000b0a00      0x197 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_bas.o
                                       0x7bf2e (size before relaxing)
- .debug_str     0x00000000000afcce      0x18e Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_dis.o
+ .debug_str     0x00000000000b0b97      0x18e Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_dis.o
                                       0x7879f (size before relaxing)
- .debug_str     0x00000000000afe5c      0x273 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_hts.o
+ .debug_str     0x00000000000b0d25      0x273 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_hts.o
                                       0x7edfd (size before relaxing)
- .debug_str     0x00000000000b00cf      0x3c3 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh.o
+ .debug_str     0x00000000000b0f98      0x3c3 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh.o
                                       0x753dc (size before relaxing)
- .debug_str     0x00000000000b0492      0x3d5 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_ble.o
+ .debug_str     0x00000000000b135b      0x3d5 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_ble.o
                                       0x7b38b (size before relaxing)
- .debug_str     0x00000000000b0867      0x182 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_soc.o
+ .debug_str     0x00000000000b1730      0x182 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_soc.o
                                       0x73f7d (size before relaxing)
- .debug_str     0x00000000000b09e9      0x568 Output/Debug/Obj/ble_app_hts_pca10040_s132/vl53l5cx_api.o
+ .debug_str     0x00000000000b18b2      0x568 Output/Debug/Obj/ble_app_hts_pca10040_s132/vl53l5cx_api.o
                                       0x7a9a1 (size before relaxing)
- .debug_str     0x00000000000b0f51      0x111 Output/Debug/Obj/ble_app_hts_pca10040_s132/platform.o
+ .debug_str     0x00000000000b1e1a      0x111 Output/Debug/Obj/ble_app_hts_pca10040_s132/platform.o
                                       0x79a8b (size before relaxing)
 
-.debug_ranges   0x0000000000000000     0xc8e0
+.debug_ranges   0x0000000000000000     0xc8e8
  .debug_ranges  0x0000000000000000       0x90 Output/Debug/Obj/ble_app_hts_pca10040_s132/thumb_crt0.o
  .debug_ranges  0x0000000000000090      0x1b8 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_log_backend_rtt.o
  .debug_ranges  0x0000000000000248      0x170 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_log_backend_serial.o
@@ -26337,40 +26343,40 @@ LOAD linker stubs
  .debug_ranges  0x00000000000049d0      0x2f0 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrfx_twi.o
  .debug_ranges  0x0000000000004cc0      0x1f8 Output/Debug/Obj/ble_app_hts_pca10040_s132/bsp.o
  .debug_ranges  0x0000000000004eb8      0x438 Output/Debug/Obj/ble_app_hts_pca10040_s132/bsp_btn_ble.o
- .debug_ranges  0x00000000000052f0      0x608 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
- .debug_ranges  0x00000000000058f8      0x458 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_cus.o
- .debug_ranges  0x0000000000005d50      0x250 Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT.o
- .debug_ranges  0x0000000000005fa0      0x180 Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT_Syscalls_SES.o
- .debug_ranges  0x0000000000006120      0x350 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_advdata.o
- .debug_ranges  0x0000000000006470      0x4d0 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_advertising.o
- .debug_ranges  0x0000000000006940      0x348 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_conn_params.o
- .debug_ranges  0x0000000000006c88      0x4f8 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_conn_state.o
- .debug_ranges  0x0000000000007180      0x2f0 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_srv_common.o
- .debug_ranges  0x0000000000007470      0x548 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatt_cache_manager.o
- .debug_ranges  0x00000000000079b8      0x478 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatts_cache_manager.o
- .debug_ranges  0x0000000000007e30      0x4c8 Output/Debug/Obj/ble_app_hts_pca10040_s132/id_manager.o
- .debug_ranges  0x00000000000082f8      0x328 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gatt.o
- .debug_ranges  0x0000000000008620      0x468 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gq.o
- .debug_ranges  0x0000000000008a88      0x338 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_qwr.o
- .debug_ranges  0x0000000000008dc0      0x4d8 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_data_storage.o
- .debug_ranges  0x0000000000009298      0x4d0 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_database.o
- .debug_ranges  0x0000000000009768      0x470 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_id.o
- .debug_ranges  0x0000000000009bd8      0x5b0 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager.o
- .debug_ranges  0x000000000000a188      0x480 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager_handler.o
- .debug_ranges  0x000000000000a608       0x48 Output/Debug/Obj/ble_app_hts_pca10040_s132/pm_buffer.o
- .debug_ranges  0x000000000000a650      0x508 Output/Debug/Obj/ble_app_hts_pca10040_s132/security_dispatcher.o
- .debug_ranges  0x000000000000ab58      0x4e8 Output/Debug/Obj/ble_app_hts_pca10040_s132/security_manager.o
- .debug_ranges  0x000000000000b040      0x348 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_bms.o
- .debug_ranges  0x000000000000b388      0x300 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_bas.o
- .debug_ranges  0x000000000000b688      0x2d8 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_dis.o
- .debug_ranges  0x000000000000b960      0x478 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_hts.o
- .debug_ranges  0x000000000000bdd8      0x240 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh.o
- .debug_ranges  0x000000000000c018      0x2f8 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_ble.o
- .debug_ranges  0x000000000000c310      0x190 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_soc.o
- .debug_ranges  0x000000000000c4a0      0x240 Output/Debug/Obj/ble_app_hts_pca10040_s132/vl53l5cx_api.o
- .debug_ranges  0x000000000000c6e0      0x200 Output/Debug/Obj/ble_app_hts_pca10040_s132/platform.o
+ .debug_ranges  0x00000000000052f0      0x610 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .debug_ranges  0x0000000000005900      0x458 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_cus.o
+ .debug_ranges  0x0000000000005d58      0x250 Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT.o
+ .debug_ranges  0x0000000000005fa8      0x180 Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT_Syscalls_SES.o
+ .debug_ranges  0x0000000000006128      0x350 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_advdata.o
+ .debug_ranges  0x0000000000006478      0x4d0 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_advertising.o
+ .debug_ranges  0x0000000000006948      0x348 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_conn_params.o
+ .debug_ranges  0x0000000000006c90      0x4f8 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_conn_state.o
+ .debug_ranges  0x0000000000007188      0x2f0 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_srv_common.o
+ .debug_ranges  0x0000000000007478      0x548 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatt_cache_manager.o
+ .debug_ranges  0x00000000000079c0      0x478 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatts_cache_manager.o
+ .debug_ranges  0x0000000000007e38      0x4c8 Output/Debug/Obj/ble_app_hts_pca10040_s132/id_manager.o
+ .debug_ranges  0x0000000000008300      0x328 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gatt.o
+ .debug_ranges  0x0000000000008628      0x468 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gq.o
+ .debug_ranges  0x0000000000008a90      0x338 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_qwr.o
+ .debug_ranges  0x0000000000008dc8      0x4d8 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_data_storage.o
+ .debug_ranges  0x00000000000092a0      0x4d0 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_database.o
+ .debug_ranges  0x0000000000009770      0x470 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_id.o
+ .debug_ranges  0x0000000000009be0      0x5b0 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager.o
+ .debug_ranges  0x000000000000a190      0x480 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager_handler.o
+ .debug_ranges  0x000000000000a610       0x48 Output/Debug/Obj/ble_app_hts_pca10040_s132/pm_buffer.o
+ .debug_ranges  0x000000000000a658      0x508 Output/Debug/Obj/ble_app_hts_pca10040_s132/security_dispatcher.o
+ .debug_ranges  0x000000000000ab60      0x4e8 Output/Debug/Obj/ble_app_hts_pca10040_s132/security_manager.o
+ .debug_ranges  0x000000000000b048      0x348 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_bms.o
+ .debug_ranges  0x000000000000b390      0x300 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_bas.o
+ .debug_ranges  0x000000000000b690      0x2d8 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_dis.o
+ .debug_ranges  0x000000000000b968      0x478 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_hts.o
+ .debug_ranges  0x000000000000bde0      0x240 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh.o
+ .debug_ranges  0x000000000000c020      0x2f8 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_ble.o
+ .debug_ranges  0x000000000000c318      0x190 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_soc.o
+ .debug_ranges  0x000000000000c4a8      0x240 Output/Debug/Obj/ble_app_hts_pca10040_s132/vl53l5cx_api.o
+ .debug_ranges  0x000000000000c6e8      0x200 Output/Debug/Obj/ble_app_hts_pca10040_s132/platform.o
 
-.debug_frame    0x0000000000000000    0x20788
+.debug_frame    0x0000000000000000    0x207b0
  .debug_frame   0x0000000000000000      0x3cc Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_log_backend_rtt.o
  .debug_frame   0x00000000000003cc      0x2f8 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_log_backend_serial.o
  .debug_frame   0x00000000000006c4      0x42c Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_log_backend_uart.o
@@ -26414,41 +26420,41 @@ LOAD linker stubs
  .debug_frame   0x000000000000cfcc      0x9a8 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrfx_twi.o
  .debug_frame   0x000000000000d974      0x588 Output/Debug/Obj/ble_app_hts_pca10040_s132/bsp.o
  .debug_frame   0x000000000000defc      0x900 Output/Debug/Obj/ble_app_hts_pca10040_s132/bsp_btn_ble.o
- .debug_frame   0x000000000000e7fc     0x1114 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
- .debug_frame   0x000000000000f910      0x9a4 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_cus.o
- .debug_frame   0x00000000000102b4      0x744 Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT.o
- .debug_frame   0x00000000000109f8      0x378 Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT_Syscalls_SES.o
- .debug_frame   0x0000000000010d70      0x854 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_advdata.o
- .debug_frame   0x00000000000115c4      0xbb0 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_advertising.o
- .debug_frame   0x0000000000012174      0x7c4 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_conn_params.o
- .debug_frame   0x0000000000012938      0xca4 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_conn_state.o
- .debug_frame   0x00000000000135dc      0x690 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_srv_common.o
- .debug_frame   0x0000000000013c6c      0xc3c Output/Debug/Obj/ble_app_hts_pca10040_s132/gatt_cache_manager.o
- .debug_frame   0x00000000000148a8      0x9a4 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatts_cache_manager.o
- .debug_frame   0x000000000001524c      0xbc4 Output/Debug/Obj/ble_app_hts_pca10040_s132/id_manager.o
- .debug_frame   0x0000000000015e10      0x7a4 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gatt.o
- .debug_frame   0x00000000000165b4      0x9d8 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gq.o
- .debug_frame   0x0000000000016f8c      0x748 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_qwr.o
- .debug_frame   0x00000000000176d4      0xbc4 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_data_storage.o
- .debug_frame   0x0000000000018298      0xb60 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_database.o
- .debug_frame   0x0000000000018df8      0xa0c Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_id.o
- .debug_frame   0x0000000000019804      0xfa0 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager.o
- .debug_frame   0x000000000001a7a4      0x9fc Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager_handler.o
- .debug_frame   0x000000000001b1a0      0x130 Output/Debug/Obj/ble_app_hts_pca10040_s132/pm_buffer.o
- .debug_frame   0x000000000001b2d0      0xd18 Output/Debug/Obj/ble_app_hts_pca10040_s132/security_dispatcher.o
- .debug_frame   0x000000000001bfe8      0xc68 Output/Debug/Obj/ble_app_hts_pca10040_s132/security_manager.o
- .debug_frame   0x000000000001cc50      0x838 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_bms.o
- .debug_frame   0x000000000001d488      0x678 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_bas.o
- .debug_frame   0x000000000001db00      0x620 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_dis.o
- .debug_frame   0x000000000001e120      0xa28 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_hts.o
- .debug_frame   0x000000000001eb48      0x624 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh.o
- .debug_frame   0x000000000001f16c      0x648 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_ble.o
- .debug_frame   0x000000000001f7b4      0x320 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_soc.o
- .debug_frame   0x000000000001fad4      0x70c Output/Debug/Obj/ble_app_hts_pca10040_s132/vl53l5cx_api.o
- .debug_frame   0x00000000000201e0      0x5a8 Output/Debug/Obj/ble_app_hts_pca10040_s132/platform.o
+ .debug_frame   0x000000000000e7fc     0x113c Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .debug_frame   0x000000000000f938      0x9a4 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_cus.o
+ .debug_frame   0x00000000000102dc      0x744 Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT.o
+ .debug_frame   0x0000000000010a20      0x378 Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT_Syscalls_SES.o
+ .debug_frame   0x0000000000010d98      0x854 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_advdata.o
+ .debug_frame   0x00000000000115ec      0xbb0 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_advertising.o
+ .debug_frame   0x000000000001219c      0x7c4 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_conn_params.o
+ .debug_frame   0x0000000000012960      0xca4 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_conn_state.o
+ .debug_frame   0x0000000000013604      0x690 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_srv_common.o
+ .debug_frame   0x0000000000013c94      0xc3c Output/Debug/Obj/ble_app_hts_pca10040_s132/gatt_cache_manager.o
+ .debug_frame   0x00000000000148d0      0x9a4 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatts_cache_manager.o
+ .debug_frame   0x0000000000015274      0xbc4 Output/Debug/Obj/ble_app_hts_pca10040_s132/id_manager.o
+ .debug_frame   0x0000000000015e38      0x7a4 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gatt.o
+ .debug_frame   0x00000000000165dc      0x9d8 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gq.o
+ .debug_frame   0x0000000000016fb4      0x748 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_qwr.o
+ .debug_frame   0x00000000000176fc      0xbc4 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_data_storage.o
+ .debug_frame   0x00000000000182c0      0xb60 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_database.o
+ .debug_frame   0x0000000000018e20      0xa0c Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_id.o
+ .debug_frame   0x000000000001982c      0xfa0 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager.o
+ .debug_frame   0x000000000001a7cc      0x9fc Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager_handler.o
+ .debug_frame   0x000000000001b1c8      0x130 Output/Debug/Obj/ble_app_hts_pca10040_s132/pm_buffer.o
+ .debug_frame   0x000000000001b2f8      0xd18 Output/Debug/Obj/ble_app_hts_pca10040_s132/security_dispatcher.o
+ .debug_frame   0x000000000001c010      0xc68 Output/Debug/Obj/ble_app_hts_pca10040_s132/security_manager.o
+ .debug_frame   0x000000000001cc78      0x838 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_bms.o
+ .debug_frame   0x000000000001d4b0      0x678 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_bas.o
+ .debug_frame   0x000000000001db28      0x620 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_dis.o
+ .debug_frame   0x000000000001e148      0xa28 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_hts.o
+ .debug_frame   0x000000000001eb70      0x624 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh.o
+ .debug_frame   0x000000000001f194      0x648 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_ble.o
+ .debug_frame   0x000000000001f7dc      0x320 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_soc.o
+ .debug_frame   0x000000000001fafc      0x70c Output/Debug/Obj/ble_app_hts_pca10040_s132/vl53l5cx_api.o
+ .debug_frame   0x0000000000020208      0x5a8 Output/Debug/Obj/ble_app_hts_pca10040_s132/platform.o
 
 .debug_pubnames
-                0x0000000000000000    0x590ae
+                0x0000000000000000    0x59437
  .debug_pubnames
                 0x0000000000000000      0xa43 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_log_backend_rtt.o
  .debug_pubnames
@@ -26536,72 +26542,72 @@ LOAD linker stubs
  .debug_pubnames
                 0x000000000001d4bd     0x2236 Output/Debug/Obj/ble_app_hts_pca10040_s132/bsp_btn_ble.o
  .debug_pubnames
-                0x000000000001f6f3     0x4036 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+                0x000000000001f6f3     0x43bf Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
  .debug_pubnames
-                0x0000000000023729     0x2295 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_cus.o
+                0x0000000000023ab2     0x2295 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_cus.o
  .debug_pubnames
-                0x00000000000259be      0xcb6 Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT.o
+                0x0000000000025d47      0xcb6 Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT.o
  .debug_pubnames
-                0x0000000000026674      0x935 Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT_Syscalls_SES.o
+                0x00000000000269fd      0x935 Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT_Syscalls_SES.o
  .debug_pubnames
-                0x0000000000026fa9     0x158f Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_advdata.o
+                0x0000000000027332     0x158f Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_advdata.o
  .debug_pubnames
-                0x0000000000028538     0x235b Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_advertising.o
+                0x00000000000288c1     0x235b Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_advertising.o
  .debug_pubnames
-                0x000000000002a893     0x19d5 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_conn_params.o
+                0x000000000002ac1c     0x19d5 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_conn_params.o
  .debug_pubnames
-                0x000000000002c268     0x2629 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_conn_state.o
+                0x000000000002c5f1     0x2629 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_conn_state.o
  .debug_pubnames
-                0x000000000002e891     0x149d Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_srv_common.o
+                0x000000000002ec1a     0x149d Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_srv_common.o
  .debug_pubnames
-                0x000000000002fd2e     0x2c23 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatt_cache_manager.o
+                0x00000000000300b7     0x2c23 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatt_cache_manager.o
  .debug_pubnames
-                0x0000000000032951     0x22f5 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatts_cache_manager.o
+                0x0000000000032cda     0x22f5 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatts_cache_manager.o
  .debug_pubnames
-                0x0000000000034c46     0x26c7 Output/Debug/Obj/ble_app_hts_pca10040_s132/id_manager.o
+                0x0000000000034fcf     0x26c7 Output/Debug/Obj/ble_app_hts_pca10040_s132/id_manager.o
  .debug_pubnames
-                0x000000000003730d     0x1bc2 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gatt.o
+                0x0000000000037696     0x1bc2 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gatt.o
  .debug_pubnames
-                0x0000000000038ecf     0x2226 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gq.o
+                0x0000000000039258     0x2226 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gq.o
  .debug_pubnames
-                0x000000000003b0f5     0x1903 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_qwr.o
+                0x000000000003b47e     0x1903 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_qwr.o
  .debug_pubnames
-                0x000000000003c9f8     0x2653 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_data_storage.o
+                0x000000000003cd81     0x2653 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_data_storage.o
  .debug_pubnames
-                0x000000000003f04b     0x2484 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_database.o
+                0x000000000003f3d4     0x2484 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_database.o
  .debug_pubnames
-                0x00000000000414cf     0x1d6a Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_id.o
+                0x0000000000041858     0x1d6a Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_id.o
  .debug_pubnames
-                0x0000000000043239     0x2e1d Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager.o
+                0x00000000000435c2     0x2e1d Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager.o
  .debug_pubnames
-                0x0000000000046056     0x26a6 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager_handler.o
+                0x00000000000463df     0x26a6 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager_handler.o
  .debug_pubnames
-                0x00000000000486fc       0xd7 Output/Debug/Obj/ble_app_hts_pca10040_s132/pm_buffer.o
+                0x0000000000048a85       0xd7 Output/Debug/Obj/ble_app_hts_pca10040_s132/pm_buffer.o
  .debug_pubnames
-                0x00000000000487d3     0x2b26 Output/Debug/Obj/ble_app_hts_pca10040_s132/security_dispatcher.o
+                0x0000000000048b5c     0x2b26 Output/Debug/Obj/ble_app_hts_pca10040_s132/security_dispatcher.o
  .debug_pubnames
-                0x000000000004b2f9     0x28b6 Output/Debug/Obj/ble_app_hts_pca10040_s132/security_manager.o
+                0x000000000004b682     0x28b6 Output/Debug/Obj/ble_app_hts_pca10040_s132/security_manager.o
  .debug_pubnames
-                0x000000000004dbaf     0x19bd Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_bms.o
+                0x000000000004df38     0x19bd Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_bms.o
  .debug_pubnames
-                0x000000000004f56c     0x1693 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_bas.o
+                0x000000000004f8f5     0x1693 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_bas.o
  .debug_pubnames
-                0x0000000000050bff     0x1570 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_dis.o
+                0x0000000000050f88     0x1570 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_dis.o
  .debug_pubnames
-                0x000000000005216f     0x22a2 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_hts.o
+                0x00000000000524f8     0x22a2 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_hts.o
  .debug_pubnames
-                0x0000000000054411     0x1248 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh.o
+                0x000000000005479a     0x1248 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh.o
  .debug_pubnames
-                0x0000000000055659     0x1694 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_ble.o
+                0x00000000000559e2     0x1694 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_ble.o
  .debug_pubnames
-                0x0000000000056ced      0xa5f Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_soc.o
+                0x0000000000057076      0xa5f Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_soc.o
  .debug_pubnames
-                0x000000000005774c      0xd04 Output/Debug/Obj/ble_app_hts_pca10040_s132/vl53l5cx_api.o
+                0x0000000000057ad5      0xd04 Output/Debug/Obj/ble_app_hts_pca10040_s132/vl53l5cx_api.o
  .debug_pubnames
-                0x0000000000058450      0xc5e Output/Debug/Obj/ble_app_hts_pca10040_s132/platform.o
+                0x00000000000587d9      0xc5e Output/Debug/Obj/ble_app_hts_pca10040_s132/platform.o
 
 .debug_pubtypes
-                0x0000000000000000    0x2b656
+                0x0000000000000000    0x2b716
  .debug_pubtypes
                 0x0000000000000000      0x3a2 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_log_backend_rtt.o
  .debug_pubtypes
@@ -26689,71 +26695,71 @@ LOAD linker stubs
  .debug_pubtypes
                 0x0000000000009e7e     0x1473 Output/Debug/Obj/ble_app_hts_pca10040_s132/bsp_btn_ble.o
  .debug_pubtypes
-                0x000000000000b2f1     0x223b Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+                0x000000000000b2f1     0x22fb Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
  .debug_pubtypes
-                0x000000000000d52c     0x14ed Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_cus.o
+                0x000000000000d5ec     0x14ed Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_cus.o
  .debug_pubtypes
-                0x000000000000ea19      0x25d Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT.o
+                0x000000000000ead9      0x25d Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT.o
  .debug_pubtypes
-                0x000000000000ec76      0x270 Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT_Syscalls_SES.o
+                0x000000000000ed36      0x270 Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT_Syscalls_SES.o
  .debug_pubtypes
-                0x000000000000eee6      0xb2c Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_advdata.o
+                0x000000000000efa6      0xb2c Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_advdata.o
  .debug_pubtypes
-                0x000000000000fa12     0x15ae Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_advertising.o
+                0x000000000000fad2     0x15ae Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_advertising.o
  .debug_pubtypes
-                0x0000000000010fc0     0x1457 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_conn_params.o
+                0x0000000000011080     0x1457 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_conn_params.o
  .debug_pubtypes
-                0x0000000000012417     0x1521 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_conn_state.o
+                0x00000000000124d7     0x1521 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_conn_state.o
  .debug_pubtypes
-                0x0000000000013938      0xaca Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_srv_common.o
+                0x00000000000139f8      0xaca Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_srv_common.o
  .debug_pubtypes
-                0x0000000000014402     0x1737 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatt_cache_manager.o
+                0x00000000000144c2     0x1737 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatt_cache_manager.o
  .debug_pubtypes
-                0x0000000000015b39      0xe74 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatts_cache_manager.o
+                0x0000000000015bf9      0xe74 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatts_cache_manager.o
  .debug_pubtypes
-                0x00000000000169ad     0x16e3 Output/Debug/Obj/ble_app_hts_pca10040_s132/id_manager.o
+                0x0000000000016a6d     0x16e3 Output/Debug/Obj/ble_app_hts_pca10040_s132/id_manager.o
  .debug_pubtypes
-                0x0000000000018090     0x13c1 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gatt.o
+                0x0000000000018150     0x13c1 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gatt.o
  .debug_pubtypes
-                0x0000000000019451     0x1636 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gq.o
+                0x0000000000019511     0x1636 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gq.o
  .debug_pubtypes
-                0x000000000001aa87     0x13a3 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_qwr.o
+                0x000000000001ab47     0x13a3 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_qwr.o
  .debug_pubtypes
-                0x000000000001be2a      0xef7 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_data_storage.o
+                0x000000000001beea      0xef7 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_data_storage.o
  .debug_pubtypes
-                0x000000000001cd21      0xeae Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_database.o
+                0x000000000001cde1      0xeae Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_database.o
  .debug_pubtypes
-                0x000000000001dbcf      0xbaa Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_id.o
+                0x000000000001dc8f      0xbaa Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_id.o
  .debug_pubtypes
-                0x000000000001e779     0x1772 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager.o
+                0x000000000001e839     0x1772 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager.o
  .debug_pubtypes
-                0x000000000001feeb     0x1625 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager_handler.o
+                0x000000000001ffab     0x1625 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager_handler.o
  .debug_pubtypes
-                0x0000000000021510      0x1ee Output/Debug/Obj/ble_app_hts_pca10040_s132/pm_buffer.o
+                0x00000000000215d0      0x1ee Output/Debug/Obj/ble_app_hts_pca10040_s132/pm_buffer.o
  .debug_pubtypes
-                0x00000000000216fe     0x16f2 Output/Debug/Obj/ble_app_hts_pca10040_s132/security_dispatcher.o
+                0x00000000000217be     0x16f2 Output/Debug/Obj/ble_app_hts_pca10040_s132/security_dispatcher.o
  .debug_pubtypes
-                0x0000000000022df0     0x1722 Output/Debug/Obj/ble_app_hts_pca10040_s132/security_manager.o
+                0x0000000000022eb0     0x1722 Output/Debug/Obj/ble_app_hts_pca10040_s132/security_manager.o
  .debug_pubtypes
-                0x0000000000024512     0x152b Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_bms.o
+                0x00000000000245d2     0x152b Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_bms.o
  .debug_pubtypes
-                0x0000000000025a3d     0x1425 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_bas.o
+                0x0000000000025afd     0x1425 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_bas.o
  .debug_pubtypes
-                0x0000000000026e62      0xb01 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_dis.o
+                0x0000000000026f22      0xb01 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_dis.o
  .debug_pubtypes
-                0x0000000000027963     0x1722 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_hts.o
+                0x0000000000027a23     0x1722 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_hts.o
  .debug_pubtypes
-                0x0000000000029085      0x501 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh.o
+                0x0000000000029145      0x501 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh.o
  .debug_pubtypes
-                0x0000000000029586     0x1454 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_ble.o
+                0x0000000000029646     0x1454 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_ble.o
  .debug_pubtypes
-                0x000000000002a9da      0x41d Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_soc.o
+                0x000000000002aa9a      0x41d Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_soc.o
  .debug_pubtypes
-                0x000000000002adf7      0x410 Output/Debug/Obj/ble_app_hts_pca10040_s132/vl53l5cx_api.o
+                0x000000000002aeb7      0x410 Output/Debug/Obj/ble_app_hts_pca10040_s132/vl53l5cx_api.o
  .debug_pubtypes
-                0x000000000002b207      0x44f Output/Debug/Obj/ble_app_hts_pca10040_s132/platform.o
+                0x000000000002b2c7      0x44f Output/Debug/Obj/ble_app_hts_pca10040_s132/platform.o
 
-.debug_macro    0x0000000000000000    0x26d5d
+.debug_macro    0x0000000000000000    0x26e4d
  .debug_macro   0x0000000000000000      0x360 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_log_backend_rtt.o
  .debug_macro   0x0000000000000360      0xade Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_log_backend_rtt.o
  .debug_macro   0x0000000000000e3e      0x1a3 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_log_backend_rtt.o
@@ -26940,80 +26946,83 @@ LOAD linker stubs
  .debug_macro   0x000000000001f51a       0xf4 Output/Debug/Obj/ble_app_hts_pca10040_s132/bsp_btn_ble.o
  .debug_macro   0x000000000001f60e       0x3c Output/Debug/Obj/ble_app_hts_pca10040_s132/bsp_btn_ble.o
  .debug_macro   0x000000000001f64a       0x1c Output/Debug/Obj/ble_app_hts_pca10040_s132/bsp_btn_ble.o
- .debug_macro   0x000000000001f666      0x79d Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
- .debug_macro   0x000000000001fe03      0xae4 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
- .debug_macro   0x00000000000208e7       0x22 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
- .debug_macro   0x0000000000020909      0x343 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
- .debug_macro   0x0000000000020c4c       0x6a Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
- .debug_macro   0x0000000000020cb6       0x4d Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
- .debug_macro   0x0000000000020d03       0x16 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
- .debug_macro   0x0000000000020d19       0x40 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
- .debug_macro   0x0000000000020d59       0x16 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
- .debug_macro   0x0000000000020d6f       0x10 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
- .debug_macro   0x0000000000020d7f       0x88 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
- .debug_macro   0x0000000000020e07       0x42 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
- .debug_macro   0x0000000000020e49       0x10 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
- .debug_macro   0x0000000000020e59       0x22 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
- .debug_macro   0x0000000000020e7b       0x16 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
- .debug_macro   0x0000000000020e91       0x10 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
- .debug_macro   0x0000000000020ea1       0x16 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
- .debug_macro   0x0000000000020eb7       0x1c Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
- .debug_macro   0x0000000000020ed3       0x10 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
- .debug_macro   0x0000000000020ee3       0x23 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
- .debug_macro   0x0000000000020f06       0x10 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
- .debug_macro   0x0000000000020f16       0x10 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
- .debug_macro   0x0000000000020f26      0x1d6 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
- .debug_macro   0x00000000000210fc       0x94 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
- .debug_macro   0x0000000000021190       0x10 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
- .debug_macro   0x00000000000211a0       0x22 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
- .debug_macro   0x00000000000211c2       0x2e Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
- .debug_macro   0x00000000000211f0       0xa6 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
- .debug_macro   0x0000000000021296      0x395 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_cus.o
- .debug_macro   0x000000000002162b       0x28 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_cus.o
- .debug_macro   0x0000000000021653      0x1cd Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT.o
- .debug_macro   0x0000000000021820       0x47 Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT.o
- .debug_macro   0x0000000000021867      0x1b8 Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT_Syscalls_SES.o
- .debug_macro   0x0000000000021a1f       0x86 Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT_Syscalls_SES.o
- .debug_macro   0x0000000000021aa5       0xa6 Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT_Syscalls_SES.o
- .debug_macro   0x0000000000021b4b       0xc8 Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT_Syscalls_SES.o
- .debug_macro   0x0000000000021c13      0x21e Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_advdata.o
- .debug_macro   0x0000000000021e31      0x296 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_advertising.o
- .debug_macro   0x00000000000220c7      0x2b9 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_conn_params.o
- .debug_macro   0x0000000000022380       0x40 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_conn_params.o
- .debug_macro   0x00000000000223c0      0x291 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_conn_state.o
- .debug_macro   0x0000000000022651      0x1d4 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_srv_common.o
- .debug_macro   0x0000000000022825      0x37f Output/Debug/Obj/ble_app_hts_pca10040_s132/gatt_cache_manager.o
- .debug_macro   0x0000000000022ba4       0x3a Output/Debug/Obj/ble_app_hts_pca10040_s132/gatt_cache_manager.o
- .debug_macro   0x0000000000022bde       0x16 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatt_cache_manager.o
- .debug_macro   0x0000000000022bf4      0x173 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatt_cache_manager.o
- .debug_macro   0x0000000000022d67      0x361 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatts_cache_manager.o
- .debug_macro   0x00000000000230c8      0x36c Output/Debug/Obj/ble_app_hts_pca10040_s132/id_manager.o
- .debug_macro   0x0000000000023434      0x250 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gatt.o
- .debug_macro   0x0000000000023684       0x10 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gatt.o
- .debug_macro   0x0000000000023694      0x2ee Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gq.o
- .debug_macro   0x0000000000023982      0x211 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_qwr.o
- .debug_macro   0x0000000000023b93       0x16 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_qwr.o
- .debug_macro   0x0000000000023ba9      0x34d Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_data_storage.o
- .debug_macro   0x0000000000023ef6       0x34 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_data_storage.o
- .debug_macro   0x0000000000023f2a      0x35b Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_database.o
- .debug_macro   0x0000000000024285       0x3c Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_database.o
- .debug_macro   0x00000000000242c1       0x10 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_database.o
- .debug_macro   0x00000000000242d1      0x262 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_id.o
- .debug_macro   0x0000000000024533      0x3c6 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager.o
- .debug_macro   0x00000000000248f9      0x389 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager_handler.o
- .debug_macro   0x0000000000024c82      0x17a Output/Debug/Obj/ble_app_hts_pca10040_s132/pm_buffer.o
- .debug_macro   0x0000000000024dfc      0x364 Output/Debug/Obj/ble_app_hts_pca10040_s132/security_dispatcher.o
- .debug_macro   0x0000000000025160      0x365 Output/Debug/Obj/ble_app_hts_pca10040_s132/security_manager.o
- .debug_macro   0x00000000000254c5      0x290 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_bms.o
- .debug_macro   0x0000000000025755       0xa0 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_bms.o
- .debug_macro   0x00000000000257f5      0x2a7 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_bas.o
- .debug_macro   0x0000000000025a9c      0x22f Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_dis.o
- .debug_macro   0x0000000000025ccb       0x10 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_dis.o
- .debug_macro   0x0000000000025cdb      0x313 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_hts.o
- .debug_macro   0x0000000000025fee      0x287 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh.o
- .debug_macro   0x0000000000026275       0x34 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh.o
- .debug_macro   0x00000000000262a9      0x2a0 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_ble.o
- .debug_macro   0x0000000000026549      0x24c Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_soc.o
- .debug_macro   0x0000000000026795      0x2e4 Output/Debug/Obj/ble_app_hts_pca10040_s132/vl53l5cx_api.o
- .debug_macro   0x0000000000026a79       0x10 Output/Debug/Obj/ble_app_hts_pca10040_s132/vl53l5cx_api.o
- .debug_macro   0x0000000000026a89      0x2d4 Output/Debug/Obj/ble_app_hts_pca10040_s132/platform.o
+ .debug_macro   0x000000000001f666      0x7c7 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .debug_macro   0x000000000001fe2d      0xae4 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .debug_macro   0x0000000000020911       0x22 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .debug_macro   0x0000000000020933      0x343 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .debug_macro   0x0000000000020c76       0x6a Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .debug_macro   0x0000000000020ce0       0x4d Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .debug_macro   0x0000000000020d2d       0x16 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .debug_macro   0x0000000000020d43       0x40 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .debug_macro   0x0000000000020d83       0x16 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .debug_macro   0x0000000000020d99       0x10 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .debug_macro   0x0000000000020da9       0x88 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .debug_macro   0x0000000000020e31       0x42 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .debug_macro   0x0000000000020e73       0x10 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .debug_macro   0x0000000000020e83       0x22 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .debug_macro   0x0000000000020ea5       0x16 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .debug_macro   0x0000000000020ebb       0x10 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .debug_macro   0x0000000000020ecb       0x16 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .debug_macro   0x0000000000020ee1       0x1c Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .debug_macro   0x0000000000020efd       0x10 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .debug_macro   0x0000000000020f0d       0x23 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .debug_macro   0x0000000000020f30       0x10 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .debug_macro   0x0000000000020f40       0x10 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .debug_macro   0x0000000000020f50      0x1d6 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .debug_macro   0x0000000000021126       0x94 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .debug_macro   0x00000000000211ba       0x10 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .debug_macro   0x00000000000211ca       0x22 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .debug_macro   0x00000000000211ec       0x2e Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .debug_macro   0x000000000002121a       0xa6 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .debug_macro   0x00000000000212c0       0x22 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .debug_macro   0x00000000000212e2       0x10 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .debug_macro   0x00000000000212f2       0x94 Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o
+ .debug_macro   0x0000000000021386      0x395 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_cus.o
+ .debug_macro   0x000000000002171b       0x28 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_cus.o
+ .debug_macro   0x0000000000021743      0x1cd Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT.o
+ .debug_macro   0x0000000000021910       0x47 Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT.o
+ .debug_macro   0x0000000000021957      0x1b8 Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT_Syscalls_SES.o
+ .debug_macro   0x0000000000021b0f       0x86 Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT_Syscalls_SES.o
+ .debug_macro   0x0000000000021b95       0xa6 Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT_Syscalls_SES.o
+ .debug_macro   0x0000000000021c3b       0xc8 Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT_Syscalls_SES.o
+ .debug_macro   0x0000000000021d03      0x21e Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_advdata.o
+ .debug_macro   0x0000000000021f21      0x296 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_advertising.o
+ .debug_macro   0x00000000000221b7      0x2b9 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_conn_params.o
+ .debug_macro   0x0000000000022470       0x40 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_conn_params.o
+ .debug_macro   0x00000000000224b0      0x291 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_conn_state.o
+ .debug_macro   0x0000000000022741      0x1d4 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_srv_common.o
+ .debug_macro   0x0000000000022915      0x37f Output/Debug/Obj/ble_app_hts_pca10040_s132/gatt_cache_manager.o
+ .debug_macro   0x0000000000022c94       0x3a Output/Debug/Obj/ble_app_hts_pca10040_s132/gatt_cache_manager.o
+ .debug_macro   0x0000000000022cce       0x16 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatt_cache_manager.o
+ .debug_macro   0x0000000000022ce4      0x173 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatt_cache_manager.o
+ .debug_macro   0x0000000000022e57      0x361 Output/Debug/Obj/ble_app_hts_pca10040_s132/gatts_cache_manager.o
+ .debug_macro   0x00000000000231b8      0x36c Output/Debug/Obj/ble_app_hts_pca10040_s132/id_manager.o
+ .debug_macro   0x0000000000023524      0x250 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gatt.o
+ .debug_macro   0x0000000000023774       0x10 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gatt.o
+ .debug_macro   0x0000000000023784      0x2ee Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_gq.o
+ .debug_macro   0x0000000000023a72      0x211 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_qwr.o
+ .debug_macro   0x0000000000023c83       0x16 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_qwr.o
+ .debug_macro   0x0000000000023c99      0x34d Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_data_storage.o
+ .debug_macro   0x0000000000023fe6       0x34 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_data_storage.o
+ .debug_macro   0x000000000002401a      0x35b Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_database.o
+ .debug_macro   0x0000000000024375       0x3c Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_database.o
+ .debug_macro   0x00000000000243b1       0x10 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_database.o
+ .debug_macro   0x00000000000243c1      0x262 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_id.o
+ .debug_macro   0x0000000000024623      0x3c6 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager.o
+ .debug_macro   0x00000000000249e9      0x389 Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager_handler.o
+ .debug_macro   0x0000000000024d72      0x17a Output/Debug/Obj/ble_app_hts_pca10040_s132/pm_buffer.o
+ .debug_macro   0x0000000000024eec      0x364 Output/Debug/Obj/ble_app_hts_pca10040_s132/security_dispatcher.o
+ .debug_macro   0x0000000000025250      0x365 Output/Debug/Obj/ble_app_hts_pca10040_s132/security_manager.o
+ .debug_macro   0x00000000000255b5      0x290 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_bms.o
+ .debug_macro   0x0000000000025845       0xa0 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_ble_bms.o
+ .debug_macro   0x00000000000258e5      0x2a7 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_bas.o
+ .debug_macro   0x0000000000025b8c      0x22f Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_dis.o
+ .debug_macro   0x0000000000025dbb       0x10 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_dis.o
+ .debug_macro   0x0000000000025dcb      0x313 Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_hts.o
+ .debug_macro   0x00000000000260de      0x287 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh.o
+ .debug_macro   0x0000000000026365       0x34 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh.o
+ .debug_macro   0x0000000000026399      0x2a0 Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_ble.o
+ .debug_macro   0x0000000000026639      0x24c Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh_soc.o
+ .debug_macro   0x0000000000026885      0x2e4 Output/Debug/Obj/ble_app_hts_pca10040_s132/vl53l5cx_api.o
+ .debug_macro   0x0000000000026b69       0x10 Output/Debug/Obj/ble_app_hts_pca10040_s132/vl53l5cx_api.o
+ .debug_macro   0x0000000000026b79      0x2d4 Output/Debug/Obj/ble_app_hts_pca10040_s132/platform.o

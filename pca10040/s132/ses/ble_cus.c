@@ -338,7 +338,7 @@ static uint32_t ble_value_char_add(ble_cus_t * p_cus, const ble_cus_init_t * p_c
     char_md.p_sccd_md         = NULL;
 		
     ble_uuid.type = p_cus->uuid_type;
-    ble_uuid.uuid = UUID;
+    ble_uuid.uuid = BATTERY_VALUE_UUID;
 
     memset(&attr_md, 0, sizeof(attr_md));
 
@@ -359,7 +359,7 @@ static uint32_t ble_value_char_add(ble_cus_t * p_cus, const ble_cus_init_t * p_c
 
     err_code = sd_ble_gatts_characteristic_add(p_cus->service_handle, &char_md,
                                                &attr_char_value,
-                                               &p_cus->ceiling_value_handles);
+                                               &p_cus->battery_value_handles);
     if (err_code != NRF_SUCCESS)
     {
         return err_code;
@@ -410,7 +410,7 @@ uint32_t ble_cus_init(ble_cus_t * p_cus, const ble_cus_init_t * p_cus_init)
     {
         return err_code;
     } 
-    //err_code = ble_value_char_add(p_cus, p_cus_init, BATTERY_VALUE_UUID);
+    err_code = ble_value_char_add(p_cus, p_cus_init, BATTERY_VALUE_UUID);
     if (err_code != NRF_SUCCESS)
     {
         return err_code;
@@ -529,3 +529,58 @@ uint32_t ble_cus_ceiling_value_update(ble_cus_t * p_cus, uint8_t * ceiling_value
 
     return err_code;
 }
+
+// not changable with others since uses p_cus->current_value
+uint32_t ble_cus_battery_value_update(ble_cus_t * p_cus, uint8_t * current_value, uint8_t len, ble_gatts_char_handles_t value_handles)
+{
+    NRF_LOG_INFO("In ble_cus_batter_value_update. \r\n"); 
+    if (p_cus == NULL)
+    {
+        return NRF_ERROR_NULL;
+    }
+
+    uint32_t err_code = NRF_SUCCESS;
+    ble_gatts_value_t gatts_value;
+
+    // Initialize value struct.
+    memset(&gatts_value, 0, sizeof(gatts_value));
+
+    gatts_value.len     = sizeof(uint16_t);
+    gatts_value.offset  = 0;
+    gatts_value.p_value = current_value;
+
+    // Update database.
+    err_code = sd_ble_gatts_value_set(p_cus->conn_handle,
+                                      p_cus->battery_value_handles.value_handle,
+                                      &gatts_value);
+    if (err_code != NRF_SUCCESS)
+    {
+        return err_code;
+    }
+
+    // Send value if connected and notifying.
+    if ((p_cus->conn_handle != BLE_CONN_HANDLE_INVALID)) 
+    {
+        ble_gatts_hvx_params_t hvx_params;
+
+        memset(&hvx_params, 0, sizeof(hvx_params));
+
+        hvx_params.handle = p_cus->battery_value_handles.value_handle;
+        hvx_params.type   = BLE_GATT_HVX_NOTIFICATION;
+        hvx_params.offset = gatts_value.offset;
+        hvx_params.p_len  = &gatts_value.len;
+        hvx_params.p_data = gatts_value.p_value;
+
+        err_code = sd_ble_gatts_hvx(p_cus->conn_handle, &hvx_params);
+        NRF_LOG_INFO("sd_ble_gatts_hvx result: %x. \r\n", err_code); 
+    }
+    else
+    {
+        err_code = NRF_ERROR_INVALID_STATE;
+        NRF_LOG_INFO("sd_ble_gatts_hvx result: NRF_ERROR_INVALID_STATE. \r\n"); 
+    }
+    p_cus->current_value_battery = (*current_value << 8) + *(current_value + 1);
+
+    return err_code;
+}
+

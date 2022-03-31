@@ -236,7 +236,7 @@ static  VL53L5CX_Configuration sensor_config = {
 /** ADC **/
 #include <nrfx_saadc.h>
 #define SAADC_CHANNEL_COUNT   1
-#define SAADC_SAMPLE_INTERVAL_MS 250
+#define SAADC_SAMPLE_INTERVAL_MS 1000
 
 static volatile bool is_ready = true;
 static nrf_saadc_value_t samples[SAADC_CHANNEL_COUNT];
@@ -250,7 +250,10 @@ static void event_handler(nrfx_saadc_evt_t const * p_event)
     {
         for(int i = 0; i < p_event->data.done.size; i++)
         {
+            m_cus.current_value_battery = p_event->data.done.p_buffer[i];
+            uint8_t temp_array [2] = {m_cus.current_value_battery<<8, m_cus.current_value_battery};
             NRF_LOG_INFO("CH%d: %d", i, p_event->data.done.p_buffer[i]);
+            ble_cus_battery_value_update(&m_cus, temp_array, sizeof(uint16_t), m_cus.battery_value_handles);
         }
         is_ready = true;
     }

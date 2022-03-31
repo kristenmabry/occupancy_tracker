@@ -70,10 +70,12 @@ struct ble_cus_s
     uint16_t                      service_handle;                 /**< Handle of Custom Service (as provided by the BLE stack). */
     ble_gatts_char_handles_t      custom_value_handles;           /**< Handles related to the Custom Value characteristic. */
     ble_gatts_char_handles_t      ceiling_value_handles;
+    ble_gatts_char_handles_t      battery_value_handles;
     uint16_t                      conn_handle;                    /**< Handle of the current connection (as provided by the BLE stack, is BLE_CONN_HANDLE_INVALID if not in a connection). */
     uint8_t                       uuid_type; 
     uint16_t                      current_value;
     uint16_t                      current_value_2;
+    uint16_t                      current_value_battery;
 };
 
 /**@brief Function for initializing the Custom Service.
@@ -116,3 +118,5 @@ uint32_t ble_cus_custom_value_update(ble_cus_t * p_cus, uint8_t * custom_value);
 #endif // BLE_CUS_H__
 
 uint32_t ble_cus_ceiling_value_update(ble_cus_t * p_cus, uint8_t * ceiling_value);
+
+uint32_t ble_cus_battery_value_update(ble_cus_t * p_cus, uint8_t * current_value, uint8_t len, ble_gatts_char_handles_t value_handles);

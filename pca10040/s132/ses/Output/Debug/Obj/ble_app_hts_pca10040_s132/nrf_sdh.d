@@ -44,7 +44,6 @@ Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_sdh.o: \
  ../../../../../../components/softdevice/s132/headers/nrf_error_soc.h \
  F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\examples\ble_peripheral\occupancy_tracker\pca10040\s132\ses\nrf_nvic.h \
  ../../../../../../components/softdevice/s132/headers/nrf_error_soc.h \
- F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\examples\ble_peripheral\occupancy_tracker\pca10040\s132\ses\sdk_config.h \
  ../../../../../../components/libraries/util/app_error.h \
  C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 5.64/include/stdio.h \
  ../../../../../../components/libraries/util/app_error_weak.h \

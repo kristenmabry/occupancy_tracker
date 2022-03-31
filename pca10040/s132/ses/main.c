@@ -66,11 +66,9 @@
 #include "ble_srv_common.h"
 #include "ble_advdata.h"
 #include "ble_advertising.h"
-#include "ble_bas.h"
 #include "ble_hts.h"
 #include "ble_dis.h"
 #include "ble_conn_params.h"
-#include "sensorsim.h"
 #include "nrf_sdh.h"
 #include "nrf_sdh_soc.h"
 #include "nrf_sdh_ble.h"
@@ -89,7 +87,6 @@
 #include "nrf_log_default_backends.h"
 
 #include "nrf_drv_twi.h"
-#include "nrf_drv_gpiote.h"
 #include "vl53l5cx_api.h"
 
 #include "vl53l5cx_plugin_detection_thresholds.h"
@@ -137,6 +134,7 @@
 
 
 
+
 #define DEVICE_NAME                     "Lidar"                                     /**< Name of device. Will be included in the advertising data. */
 #define MANUFACTURER_NAME               "NordicSemiconductor"                       /**< Manufacturer. Will be passed to Device Information Service. */
 #define MODEL_NUM                       "NS-HTS-EXAMPLE"                            /**< Model number. Will be passed to Device Information Service. */
@@ -149,17 +147,6 @@
 #define APP_ADV_INTERVAL                40                                          /**< The advertising interval (in units of 0.625 ms. This value corresponds to 25 ms). */
 
 #define APP_ADV_DURATION                18000                                       /**< The advertising duration (180 seconds) in units of 10 milliseconds. */
-
-#define BATTERY_LEVEL_MEAS_INTERVAL     APP_TIMER_TICKS(500)                       /**< Battery level measurement interval (ticks). */
-#define MIN_BATTERY_LEVEL               81                                          /**< Minimum battery level as returned by the simulated measurement function. */
-#define MAX_BATTERY_LEVEL               100                                         /**< Maximum battery level as returned by the simulated measurement function. */
-#define BATTERY_LEVEL_INCREMENT         1                                           /**< Value by which the battery level is incremented/decremented for each call to the simulated measurement function. */
-
-#define TEMP_TYPE_AS_CHARACTERISTIC     0                                           /**< Determines if temperature type is given as characteristic (1) or as a field of measurement (0). */
-
-#define MIN_CELCIUS_DEGREES             3688                                        /**< Minimum temperature in celcius for use in the simulated measurement function (multiplied by 100 to avoid floating point arithmetic). */
-#define MAX_CELCIUS_DEGRESS             3972                                        /**< Maximum temperature in celcius for use in the simulated measurement function (multiplied by 100 to avoid floating point arithmetic). */
-#define CELCIUS_DEGREES_INCREMENT       36                                          /**< Value by which temperature is incremented/decremented for each call to the simulated measurement function (multiplied by 100 to avoid floating point arithmetic). */
 
 #define MIN_CONN_INTERVAL               MSEC_TO_UNITS(500, UNIT_1_25_MS)            /**< Minimum acceptable connection interval (0.5 seconds) */
 #define MAX_CONN_INTERVAL               MSEC_TO_UNITS(1000, UNIT_1_25_MS)           /**< Maximum acceptable connection interval (1 second). */
@@ -180,45 +167,40 @@
 #define SEC_PARAM_MAX_KEY_SIZE          16                                          /**< Maximum encryption key size. */
 
 #define READ_VL53L5CX_INTERVAL          APP_TIMER_TICKS(50)                        /**< Perform VL53L5CX read and update occupancy variable - 100ms*/
-#define SYSTEM_RESET_INTERVAL           APP_TIMER_TICKS(1500)                       // Attempt system reset after 1000ms of inaction in ranging loop
-#define NOTIFICATION_INTERVAL           APP_TIMER_TICKS(10000)  
-#define SECONDARY_RESET_INTERVAL        APP_TIMER_TICKS(15000)
+#define SYSTEM_RESET_INTERVAL           APP_TIMER_TICKS(1500)                       // Attempt system reset after 1000ms of inaction from sensor in ranging loop
+#define NOTIFICATION_INTERVAL           APP_TIMER_TICKS(10000)                      // Time between notification messages
+#define SECONDARY_RESET_INTERVAL        APP_TIMER_TICKS(15000)                      // Time until attempting to reinitilize the VL53L5CX sensor after not recieving a response
 
 #define DEAD_BEEF                       0xDEADBEEF                                  /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
 
 #define TWI_INSTANCE_ID     0     // twi instance
 #define CEILING_HEIGHT      2200  // height from sensor to floor
-#define RANGING_FREQUENCY   20     // frequency (Hz) of new ranging data (1-15 for 8x8) (1-60 for 4x4)
+#define RANGING_FREQUENCY   20    // frequency (Hz) of new ranging data (1-15 for 8x8) (1-60 for 4x4)
 #define MOTION_MINIMUM      400   // minimum distance for motion indication (at least <400mm && 1500mm from maximum)
 #define MOTION_MAXIMUM      1800  // maximum distance for motion indication (max 4000mm && 1500mm from minimum
 #define PERSON_MIN_HEIGHT   1500  // minimum height to increase occupancy
-#define INTEGRATION_TIME    10    // 
-#define MEM_BUFF_SIZE                   512
-#define LPn_PIN             15
+#define INTEGRATION_TIME    10    // Time (ms) spent integrating each 4x4 data
+#define MEM_BUFF_SIZE       512   // Buffer amount for Queue
+#define LPn_PIN             15    // LPn connection to VL53l5CX
 
-APP_TIMER_DEF(m_notification_timer_id);                                                  /**< Battery timer. */
-BLE_BAS_DEF(m_bas);                                                                 /**< Structure used to identify the battery service. */
-BLE_HTS_DEF(m_hts);                                                                 /**< Structure used to identify the health thermometer service. */
+APP_TIMER_DEF(m_notification_timer_id);                                             /**< Notification timer. */
+//BLE_BAS_DEF(m_bas);                                                                 /**< Structure used to identify the battery service. */
+//BLE_HTS_DEF(m_hts);                                                                 /**< Structure used to identify the health thermometer service. */
 NRF_BLE_GATT_DEF(m_gatt);                                                           /**< GATT module instance. */
 NRF_BLE_QWR_DEF(m_qwr);                                                             /**< Context for the Queued Write module.*/
 BLE_ADVERTISING_DEF(m_advertising);                                                 /**< Advertising module instance. */
 NRF_BLE_GQ_DEF(m_ble_gatt_queue,                                                    /**< BLE GATT Queue instance. */
                NRF_SDH_BLE_PERIPHERAL_LINK_COUNT,
                NRF_BLE_GQ_QUEUE_SIZE);
-APP_TIMER_DEF(m_vl53l5cx_timer_id);
+APP_TIMER_DEF(m_vl53l5cx_timer_id);                                             // context for vl53l5cx read handler
 BLE_CUS_DEF(m_cus);                                                             /**< Context for the Queued Write module.*/
-APP_TIMER_DEF(m_system_reset_timer_id);                                              // timeout
+APP_TIMER_DEF(m_system_reset_timer_id);                                         // timeout on start
 APP_TIMER_DEF(m_test_timer);
 NRF_BLE_BMS_DEF(m_bms);                                                         //!< Structure used to identify the Bond Management service.
-//APP_TIMER_DEF(m_notification_timer_id);
 
 
 static uint16_t          m_conn_handle = BLE_CONN_HANDLE_INVALID;                   /**< Handle of the current connection. */
 static bool              m_hts_meas_ind_conf_pending = false;                       /**< Flag to keep track of when an indication confirmation is pending. */
-static sensorsim_cfg_t   m_battery_sim_cfg;                                         /**< Battery Level sensor simulator configuration. */
-static sensorsim_state_t m_battery_sim_state;                                       /**< Battery Level sensor simulator state. */
-static sensorsim_cfg_t   m_temp_celcius_sim_cfg;                                    /**< Temperature simulator configuration. */
-static sensorsim_state_t m_temp_celcius_sim_state;                                  /**< Temperature simulator state. */
 static ble_conn_state_user_flag_id_t m_bms_bonds_to_delete;                     //!< Flags used to identify bonds that should be deleted.
 static uint8_t                       m_qwr_mem[MEM_BUFF_SIZE];      
 
@@ -230,11 +212,9 @@ static ble_uuid_t m_adv_uuids[] =                                               
 };
 
 static uint8_t isReady;
-//static uint16_t count;
 static uint8_t flag;
 static uint16_t ceiling_height = CEILING_HEIGHT;  // 16 since 4m is 12bits, initially default but can be changed by user over ble
-
-static uint8_t person_entry = 0, check = 1, person_exit = 0, person_entry_2, person_exit_2;
+static uint8_t person_entry = 0, person_exit = 0, person_entry_2, person_exit_2;
 
 static void advertising_start(bool erase_bonds);
 //static void temperature_measurement_send(void);
@@ -248,17 +228,61 @@ static  VL53L5CX_Configuration sensor_config = {
           .address = 0x29,
           .m_twi = m_twi,
         },
-	/* Results streamcount, value auto-incremented at each range */
-	//.streamcount = 0,
-	/* Size of data read though I2C */
-	//uint32_t	        data_read_size;
-	/* Offset buffer */
-	//uint8_t		        offset_data[VL53L5CX_OFFSET_BUFFER_SIZE];
-	/* Xtalk buffer */
-	//uint8_t		        xtalk_data[VL53L5CX_XTALK_BUFFER_SIZE];
-	/* Temporary buffer used for internal driver processing */
-	 //uint8_t	        temp_buffer[VL53L5CX_TEMPORARY_BUFFER_SIZE];
   };
+
+
+
+
+/** ADC **/
+#include <nrfx_saadc.h>
+#define SAADC_CHANNEL_COUNT   1
+#define SAADC_SAMPLE_INTERVAL_MS 250
+
+static volatile bool is_ready = true;
+static nrf_saadc_value_t samples[SAADC_CHANNEL_COUNT];
+static nrfx_saadc_channel_t channels[SAADC_CHANNEL_COUNT] = {NRFX_SAADC_DEFAULT_CHANNEL_SE(NRF_SAADC_INPUT_AIN0, 0)};
+
+APP_TIMER_DEF(m_sample_timer_id);     /**< Handler for repeated timer used to blink LED 1. */
+ 
+static void event_handler(nrfx_saadc_evt_t const * p_event)
+{
+    if (p_event->type == NRFX_SAADC_EVT_DONE)
+    {
+        for(int i = 0; i < p_event->data.done.size; i++)
+        {
+            NRF_LOG_INFO("CH%d: %d", i, p_event->data.done.p_buffer[i]);
+        }
+        is_ready = true;
+    }
+}
+
+/**@brief Timeout handler for the repeated timer.
+ */
+static void sample_timer_handler(void * p_context)
+{
+    if(is_ready)
+    {
+        ret_code_t err_code;
+
+        err_code = nrfx_saadc_simple_mode_set((1<<0), NRF_SAADC_RESOLUTION_12BIT, NRF_SAADC_OVERSAMPLE_DISABLED, event_handler);
+        APP_ERROR_CHECK(err_code);
+        
+        err_code = nrfx_saadc_buffer_set(samples, SAADC_CHANNEL_COUNT);
+        APP_ERROR_CHECK(err_code);
+
+        err_code = nrfx_saadc_mode_trigger();
+        APP_ERROR_CHECK(err_code);
+
+        is_ready = false;
+    }
+}
+
+
+
+
+
+
+
 
 /**@brief Callback function for asserts in the SoftDevice.
  *
@@ -331,6 +355,10 @@ static void pm_evt_handler(pm_evt_t const * p_evt)
             break;
     }
 }
+
+/**  @brief Attempts to reinitialize the Vl53l5cx sensor when data isn't recieved after certain amount of time
+*
+*/
 
 static void sensor_reset_handler()
 {
@@ -538,47 +566,6 @@ void read_lidar_data() {
   }
 }
 
-/**@brief Function for performing a battery measurement, and update the Battery Level characteristic in the Battery Service.
- */
-static void battery_level_update(void)
-{
-    ret_code_t err_code;
-    //uint8_t  battery_level;
-
-    //battery_level = (uint8_t)sensorsim_measure(&m_battery_sim_state, &m_battery_sim_cfg);
-    uint8_t temp_array[2] = {m_cus.current_value>>8, m_cus.current_value}; // initial ceiling height of 2200
-    err_code = ble_cus_custom_value_update(&m_cus, temp_array);
-    //err_code = ble_bas_battery_level_update(&m_bas, count, BLE_CONN_HANDLE_ALL);
-    if ((err_code != NRF_SUCCESS) &&
-        (err_code != NRF_ERROR_INVALID_STATE) &&
-        (err_code != NRF_ERROR_RESOURCES) &&
-        (err_code != NRF_ERROR_BUSY) &&
-        (err_code != BLE_ERROR_GATTS_SYS_ATTR_MISSING)
-       )
-    {
-        APP_ERROR_HANDLER(err_code);
-    }
-}
-
-
-
-/**@brief Function for handling the Battery measurement timer timeout.
- *
- * @details This function will be called each time the battery level measurement timer expires.
- *
- * @param[in] p_context   Pointer used for passing some arbitrary information (context) from the
- *                        app_start_timer() call to the timeout handler.
- */
-static void battery_level_meas_timeout_handler(void * p_context)
-{
-    UNUSED_PARAMETER(p_context);
-    battery_level_update();
-
-}
-
-static void occupancy_meas_timeout_handler()
-{}
-
 /**@brief Function for handling the Battery measurement timer timeout.
  *
  * @details This function will be called each time the vl53l5cx_read timer expires
@@ -603,40 +590,6 @@ static void reset_system_handler()
   sd_nvic_SystemReset();
 
 
-}
-
-/**@brief Function for populating simulated health thermometer measurement.
- */
-static void hts_sim_measurement(ble_hts_meas_t * p_meas)
-{
-    static ble_date_time_t time_stamp = { 2012, 12, 5, 11, 50, 0 };
-
-    uint32_t celciusX100;
-
-    p_meas->temp_in_fahr_units = false;
-    p_meas->time_stamp_present = true;
-    p_meas->temp_type_present  = (TEMP_TYPE_AS_CHARACTERISTIC ? false : true);
-
-    celciusX100 = sensorsim_measure(&m_temp_celcius_sim_state, &m_temp_celcius_sim_cfg);
-
-    p_meas->temp_in_celcius.exponent = -2;
-    p_meas->temp_in_celcius.mantissa = celciusX100;
-    p_meas->temp_in_fahr.exponent    = -2;
-    p_meas->temp_in_fahr.mantissa    = (32 * 100) + ((celciusX100 * 9) / 5);
-    p_meas->time_stamp               = time_stamp;
-    p_meas->temp_type                = BLE_HTS_TEMP_TYPE_FINGER;
-
-    // update simulated time stamp
-    time_stamp.seconds += 27;
-    if (time_stamp.seconds > 59)
-    {
-        time_stamp.seconds -= 60;
-        time_stamp.minutes++;
-        if (time_stamp.minutes > 59)
-        {
-            time_stamp.minutes = 0;
-        }
-    }
 }
 
 /**@brief Function for handling the Battery measurement timer timeout.
@@ -672,11 +625,6 @@ static void timers_init(void)
     APP_ERROR_CHECK(err_code);
 
     // Create timers.
-    //err_code = app_timer_create(&m_battery_timer_id,
-    //                            APP_TIMER_MODE_REPEATED,
-    //                            battery_level_meas_timeout_handler);
-    //APP_ERROR_CHECK(err_code);
-
     err_code = app_timer_create(&m_notification_timer_id, APP_TIMER_MODE_REPEATED, notification_timeout_handler);
     APP_ERROR_CHECK(err_code);
     err_code = app_timer_create(&m_test_timer, APP_TIMER_MODE_REPEATED, sensor_reset_handler);
@@ -685,6 +633,10 @@ static void timers_init(void)
     APP_ERROR_CHECK(err_code);
 
     err_code = app_timer_create(&m_system_reset_timer_id, APP_TIMER_MODE_SINGLE_SHOT, reset_system_handler);
+    APP_ERROR_CHECK(err_code);
+
+    // ADC
+    err_code = app_timer_create(&m_sample_timer_id, APP_TIMER_MODE_REPEATED, sample_timer_handler);
     APP_ERROR_CHECK(err_code);
 
 }
@@ -754,70 +706,6 @@ void bms_evt_handler(nrf_ble_bms_t * p_ess, nrf_ble_bms_evt_t * p_evt)
             APP_ERROR_CHECK(err_code);
     }
 }
-
-
-
-
-
-/**@brief Function for simulating and sending one Temperature Measurement.
- */
-//static void temperature_measurement_send(void)
-//{
-//    ble_hts_meas_t simulated_meas;
-//    ret_code_t     err_code;
-
-//    if (!m_hts_meas_ind_conf_pending)
-//    {
-//        hts_sim_measurement(&simulated_meas);
-
-//        err_code = ble_hts_measurement_send(&m_hts, &simulated_meas);
-
-//        switch (err_code)
-//        {
-//            case NRF_SUCCESS:
-//                // Measurement was successfully sent, wait for confirmation.
-//                m_hts_meas_ind_conf_pending = true;
-//                break;
-
-//            case NRF_ERROR_INVALID_STATE:
-//                // Ignore error.
-//                break;
-
-//            default:
-//                APP_ERROR_HANDLER(err_code);
-//                break;
-//        }
-//    }
-//}
-
-
-/**@brief Function for handling the Health Thermometer Service events.
- *
- * @details This function will be called for all Health Thermometer Service events which are passed
- *          to the application.
- *
- * @param[in] p_hts  Health Thermometer Service structure.
- * @param[in] p_evt  Event received from the Health Thermometer Service.
- */
-static void on_hts_evt(ble_hts_t * p_hts, ble_hts_evt_t * p_evt)
-{
-    switch (p_evt->evt_type)
-    {
-        case BLE_HTS_EVT_INDICATION_ENABLED:
-            // Indication has been enabled, send a single temperature measurement
-            //temperature_measurement_send();
-            break;
-
-        case BLE_HTS_EVT_INDICATION_CONFIRMED:
-            m_hts_meas_ind_conf_pending = false;
-            break;
-
-        default:
-            // No implementation needed.
-            break;
-    }
-}
-
 
 /**@brief Function for handling Queued Write Module errors.
  *
@@ -979,7 +867,6 @@ static void services_init(void)
 {
     ret_code_t         err_code;
     ble_hts_init_t     hts_init;
-    ble_bas_init_t     bas_init;
     ble_dis_init_t     dis_init;
     nrf_ble_qwr_init_t qwr_init = {0};
     ble_dis_sys_id_t   sys_id;
@@ -1035,24 +922,6 @@ static void services_init(void)
     err_code = nrf_ble_bms_init(&m_bms, &bms_init);
     APP_ERROR_CHECK(err_code);
 
-
-
-    //// Initialize Battery Service.
-    //memset(&bas_init, 0, sizeof(bas_init));
-
-    //// Here the sec level for the Battery Service can be changed/increased.
-    //bas_init.bl_rd_sec        = SEC_OPEN;
-    //bas_init.bl_cccd_wr_sec   = SEC_OPEN;
-    //bas_init.bl_report_rd_sec = SEC_OPEN;
-
-    //bas_init.evt_handler          = NULL;
-    //bas_init.support_notification = true;
-    //bas_init.p_report_ref         = NULL;
-    //bas_init.initial_batt_level   = 100;
-
-    //err_code = ble_bas_init(&m_bas, &bas_init);
-    //APP_ERROR_CHECK(err_code);
-
     // Initialize Device Information Service.
     memset(&dis_init, 0, sizeof(dis_init));
 
@@ -1070,27 +939,6 @@ static void services_init(void)
 }
 
 
-/**@brief Function for initializing the sensor simulators.
- */
-static void sensor_simulator_init(void)
-{
-    m_battery_sim_cfg.min          = MIN_BATTERY_LEVEL;
-    m_battery_sim_cfg.max          = MAX_BATTERY_LEVEL;
-    m_battery_sim_cfg.incr         = BATTERY_LEVEL_INCREMENT;
-    m_battery_sim_cfg.start_at_max = true;
-
-    sensorsim_init(&m_battery_sim_state, &m_battery_sim_cfg);
-
-    // Temperature is in celcius (it is multiplied by 100 to avoid floating point arithmetic).
-    m_temp_celcius_sim_cfg.min          = MIN_CELCIUS_DEGREES;
-    m_temp_celcius_sim_cfg.max          = MAX_CELCIUS_DEGRESS;
-    m_temp_celcius_sim_cfg.incr         = CELCIUS_DEGREES_INCREMENT;
-    m_temp_celcius_sim_cfg.start_at_max = false;
-
-    sensorsim_init(&m_temp_celcius_sim_state, &m_temp_celcius_sim_cfg);
-}
-
-
 /**@brief Function for starting application timers.
  */
 static void application_timers_start(void)
@@ -1098,9 +946,11 @@ static void application_timers_start(void)
     ret_code_t err_code = 0;
 
     // Start application timers.
-    //err_code = app_timer_start(m_battery_timer_id, BATTERY_LEVEL_MEAS_INTERVAL, NULL);
     err_code |= app_timer_start(m_vl53l5cx_timer_id, READ_VL53L5CX_INTERVAL, NULL);
     APP_ERROR_CHECK(err_code);
+
+    // ADC
+    err_code = app_timer_start(m_sample_timer_id, APP_TIMER_TICKS(SAADC_SAMPLE_INTERVAL_MS), NULL);
 }
 
 
@@ -1295,51 +1145,51 @@ static void ble_stack_init(void)
 }
 
 
-/**@brief Function for handling events from the BSP module.
- *
- * @param[in]   event   Event generated by button press.
- */
-static void bsp_event_handler(bsp_event_t event)
-{
-    ret_code_t err_code;
+///**@brief Function for handling events from the BSP module.
+// *
+// * @param[in]   event   Event generated by button press.
+// */
+//static void bsp_event_handler(bsp_event_t event)
+//{
+//    ret_code_t err_code;
 
-    switch (event)
-    {
-        case BSP_EVENT_SLEEP:
-            sleep_mode_enter();
-            break;
+//    switch (event)
+//    {
+//        case BSP_EVENT_SLEEP:
+//            sleep_mode_enter();
+//            break;
 
-        case BSP_EVENT_DISCONNECT:
-            err_code = sd_ble_gap_disconnect(m_conn_handle,
-                                             BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
-            if (err_code != NRF_ERROR_INVALID_STATE)
-            {
-                APP_ERROR_CHECK(err_code);
-            }
-            break;
+//        case BSP_EVENT_DISCONNECT:
+//            err_code = sd_ble_gap_disconnect(m_conn_handle,
+//                                             BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
+//            if (err_code != NRF_ERROR_INVALID_STATE)
+//            {
+//                APP_ERROR_CHECK(err_code);
+//            }
+//            break;
 
-        case BSP_EVENT_WHITELIST_OFF:
-            if (m_conn_handle == BLE_CONN_HANDLE_INVALID)
-            {
-                err_code = ble_advertising_restart_without_whitelist(&m_advertising);
-                if (err_code != NRF_ERROR_INVALID_STATE)
-                {
-                    APP_ERROR_CHECK(err_code);
-                }
-            }
-            break;
+//        case BSP_EVENT_WHITELIST_OFF:
+//            if (m_conn_handle == BLE_CONN_HANDLE_INVALID)
+//            {
+//                err_code = ble_advertising_restart_without_whitelist(&m_advertising);
+//                if (err_code != NRF_ERROR_INVALID_STATE)
+//                {
+//                    APP_ERROR_CHECK(err_code);
+//                }
+//            }
+//            break;
 
-        case BSP_EVENT_KEY_0:
-            if (m_conn_handle != BLE_CONN_HANDLE_INVALID)
-            {
-                //temperature_measurement_send();
-            }
-            break;
+//        case BSP_EVENT_KEY_0:
+//            if (m_conn_handle != BLE_CONN_HANDLE_INVALID)
+//            {
+//                //temperature_measurement_send();
+//            }
+//            break;
 
-        default:
-            break;
-    }
-}
+//        default:
+//            break;
+//    }
+//}
 
 
 /**@brief Function for the Peer Manager initialization.
@@ -1424,19 +1274,19 @@ static void advertising_init(void)
  *
  * @param[out] p_erase_bonds  Will be true if the clear bonding button was pressed to wake the application up.
  */
-static void buttons_leds_init(bool * p_erase_bonds)
-{
-    ret_code_t err_code;
-    bsp_event_t startup_event;
+//static void buttons_leds_init(bool * p_erase_bonds)
+//{
+//    ret_code_t err_code;
+//    bsp_event_t startup_event;
 
-    err_code = bsp_init(BSP_INIT_LEDS | BSP_INIT_BUTTONS, bsp_event_handler);
-    APP_ERROR_CHECK(err_code);
+//    err_code = bsp_init(BSP_INIT_LEDS | BSP_INIT_BUTTONS, bsp_event_handler);
+//    APP_ERROR_CHECK(err_code);
 
-    err_code = bsp_btn_ble_init(NULL, &startup_event);
-    APP_ERROR_CHECK(err_code);
+//    err_code = bsp_btn_ble_init(NULL, &startup_event);
+//    APP_ERROR_CHECK(err_code);
 
-    *p_erase_bonds = (startup_event == BSP_EVENT_CLEAR_BONDING_DATA);
-}
+//    *p_erase_bonds = (startup_event == BSP_EVENT_CLEAR_BONDING_DATA);
+//}
 
 
 /**@brief Function for initializing the nrf log module.
@@ -1513,25 +1363,8 @@ void twi_init(void)
 
 void vl53l5cx_sensor_init(void)
 {
-  //uint8_t streamcount = 0;
   sensor_config.platform.address = 0x29;
   sensor_config.platform.m_twi; 
- //     /* Platform, filled by customer into the 'platform.h' file */
- //       .platform = {
- //         .address = 0x29,
- //         .m_twi = m_twi,
- //       },
-	///* Results streamcount, value auto-incremented at each range */
-	////.streamcount = 0,
-	///* Size of data read though I2C */
-	////uint32_t	        data_read_size;
-	///* Offset buffer */
-	////uint8_t		        offset_data[VL53L5CX_OFFSET_BUFFER_SIZE];
-	///* Xtalk buffer */
-	////uint8_t		        xtalk_data[VL53L5CX_XTALK_BUFFER_SIZE];
-	///* Temporary buffer used for internal driver processing */
-	// //uint8_t	        temp_buffer[VL53L5CX_TEMPORARY_BUFFER_SIZE];
- // };
 
   VL53L5CX_ResultsData sensor_data = {
     
@@ -1550,43 +1383,12 @@ void vl53l5cx_sensor_init(void)
   if (status) printf("Sensor failed alive test with: %u\n", status);
 
   status |= vl53l5cx_init(&sensor_config);
-  //if (status) printf("Initialization failed with: %u\n", status);
-  
-  /**** Steps and order? ****/
-  /* Resolution
-  /* Ranging Mode
-  /* Ranging frequency
-  /* Target order
-  /* Integration time */
-  //status |= vl53l5cx_stop_ranging(&sensor_config);
+  if (status) printf("Initialization failed with: %u\n", status);
 
-  //status |= vl53l5cx_start_ranging(&sensor_config);   /* Test ranging with defaults */
-  //if (status) printf("Start Ranging Failed with: %u\n", status);
-
-  //status |= vl53l5cx_get_ranging_data(&sensor_config, &sensor_data);
-
-  //status |= vl53l5cx_stop_ranging(&sensor_config);
 
   /*********************************/
   /*   Program motion indicator    */
   /*********************************/
-
-  //status = vl53l5cx_motion_indicator_init(&sensor_config, &motion_config, VL53L5CX_RESOLUTION_4X4);
-  //  if(status)
-  //    printf("Motion indicator init failed with status : %u\n", status);
-
-  ///* (Optional) Change the min and max distance used to detect motions. The
-  // * difference between min and max must never be >1500mm, and minimum never be <400mm,
-  // * otherwise the function below returns error 127 */
-  //status = vl53l5cx_motion_indicator_set_distance_motion(&sensor_config, &motion_config, MOTION_MINIMUM, MOTION_MAXIMUM);
-  //  if(status)
-  //    printf("Motion indicator set distance motion failed with status : %u\n", status);
-
-  /* If user want to change the resolution, he also needs to update the motion indicator resolution */
-  //status = vl53l5cx_set_resolution(&sensor_config, VL53L5CX_RESOLUTION_4X4);
-  //status = vl53l5cx_motion_indicator_set_resolution(&sensor_config, &motion_config, VL53L5CX_RESOLUTION_4X4);
-
-  ///* Increase ranging frequency for the example */
   status = vl53l5cx_set_ranging_frequency_hz(&sensor_config, RANGING_FREQUENCY); // Set ranging frequency
     if(status)
       printf("vl53l5cx_set_ranging_frequency_hz failed, status %u\n", status);
@@ -1605,54 +1407,6 @@ void vl53l5cx_sensor_init(void)
       printf("Frequency get failed: %u\n", status);
 
   /*********************************/
-  /*  Program detection thresholds */
-  /*********************************/
-
-  // set up detection threshold
-  VL53L5CX_DetectionThresholds thresholds[VL53L5CX_NB_THRESHOLDS];
-  memset(&thresholds, 0, sizeof(thresholds));
-
-//// 4x4
-//  for(int i = 0; i < 16; i++){
-//     /* The first wanted thresholds is GREATER_THAN mode. Please note that the
-//     * first one must always be set with a mathematic_operation
-//     * VL53L5CX_OPERATION_NONE.
-//     * For this example, the signal thresholds is set to 150 kcps/spads
-//     * (the format is automatically updated inside driver)
-//     */
-//    //thresholds[2*i].zone_num = i;
-//    //thresholds[2*i].measurement = VL53L5CX_SIGNAL_PER_SPAD_KCPS;
-//    //thresholds[2*i].type = VL53L5CX_GREATER_THAN_MAX_CHECKER;
-//    //thresholds[2*i].mathematic_operation = VL53L5CX_OPERATION_NONE;
-//    //thresholds[2*i].param_low_thresh = 10;
-//    //thresholds[2*i].param_high_thresh = 10;
-
-//    /* The second wanted checker is IN_WINDOW mode. We will set a
-//     * mathematical thresholds VL53L5CX_OPERATION_OR, to add the previous
-//     * checker to this one.
-//     * For this example, distance thresholds are set between 200mm and
-//     * 400mm (the format is automatically updated inside driver).
-//     */
-//    thresholds[2*i+1].zone_num = i;
-//    thresholds[2*i+1].measurement = VL53L5CX_DISTANCE_MM;
-//    thresholds[2*i+1].type = VL53L5CX_IN_WINDOW;
-//    thresholds[2*i+1].mathematic_operation = VL53L5CX_OPERATION_OR;
-//    thresholds[2*i+1].param_low_thresh = 100;
-//    thresholds[2*i+1].param_high_thresh = 500;
-//    }
-
-//    /* The last thresholds must be clearly indicated. As we have 32
-//    * checkers (16 zones x 2), the last one is the 31 */
-//    thresholds[31].zone_num = VL53L5CX_LAST_THRESHOLD | thresholds[16].zone_num;
-
-//    /* Send array of thresholds to the sensor */
-//    status |= vl53l5cx_set_detection_thresholds(&sensor_config, thresholds);
-
-//    /* Enable detection thresholds */
-//    status |= vl53l5cx_set_detection_thresholds_enable(&sensor_config, 1);
-
-
-  /*********************************/
   /*         Ranging loop          */
   /*********************************/
   /* Start a ranging session */
@@ -1662,10 +1416,8 @@ void vl53l5cx_sensor_init(void)
 
   app_timer_start(m_system_reset_timer_id, SYSTEM_RESET_INTERVAL, NULL);  // reset system after 1000ms
 
-
   uint8_t loop, i = 0;
   VL53L5CX_ResultsData 	Results;
-  //uint8_t person_entry = 0, check = 1, person_exit = 0, person_entry_2, person_exit_2;
   loop = 0;
   while(loop == 0)
    	{
@@ -1822,30 +1574,14 @@ void vl53l5cx_sensor_init(void)
                             person_entry_2 = 0;
                             person_exit_2 = 0;
                           }
-
-   			// NRF_LOG_INFO("");
    			loop++;
    		}
-
 		/* Wait a few ms to avoid too high polling (function in platform
 		 * file, not in API) */
    		WaitMs(&(sensor_config.platform), 10);
    	}
   printf("done");
   app_timer_stop(m_system_reset_timer_id);  // stop system reset
-
-}
-
-
-
-
-
-// For INT PIN interupts
-void in_pin_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action) // pin is which pin triggered it, actions is if it was a high to low or low to high interupt
-{
-  //if(action == GPIOTE_CONFIG_POLARITY_LoToHi) {
-        printf("interupt occurred");
-      //}
 }
 
 static void gpio_init()
@@ -1857,80 +1593,20 @@ static void gpio_init()
     nrf_gpio_pin_set(14);
     nrf_gpio_cfg_output(13); // I2C_Rst
     nrf_gpio_pin_clear(13);
-
- //interupt pin 12 = INT but int doesn't set currently
-  //ret_code_t err_code;
-
-  //err_code = nrf_drv_gpiote_init();
-  //APP_ERROR_CHECK(err_code);
-
-  //nrf_drv_gpiote_in_config_t in_config = GPIOTE_CONFIG_IN_SENSE_TOGGLE(true);
-  //in_config.pull = NRF_GPIO_PIN_PULLDOWN;
-
-  //err_code = nrf_drv_gpiote_in_init(12, &in_config, in_pin_handler);  // INT on pin 12
-  //APP_ERROR_CHECK(err_code);
-
-  //nrf_drv_gpiote_in_event_enable(12, true);
 }
 
-// FROM: https://github.com/NordicPlayground/nrf51-TIMER-examples/blob/master/timer_example_timer_mode/main.c
-//  https://devzone.nordicsemi.com/f/nordic-q-a/35230/timer-interrupts-nrf
-//void start_timer(void)
-//{		
-//    NRF_TIMER0->TASKS_STOP = 1; // Stop timer
-//    NRF_TIMER0->MODE = TIMER_MODE_MODE_Timer; // taken from Nordic dev zone
-//    NRF_TIMER0->BITMODE = (TIMER_BITMODE_BITMODE_24Bit << TIMER_BITMODE_BITMODE_Pos);
-//    NRF_TIMER0->PRESCALER = 8; // 1us resolution
-//    NRF_TIMER0->TASKS_CLEAR = 1; // Clear timer
-//    NRF_TIMER0->CC[0] = 62500;
-//    NRF_TIMER0->INTENSET = TIMER_INTENSET_COMPARE0_Enabled << TIMER_INTENSET_COMPARE0_Pos; // taken from Nordic dev zone
-//    NRF_TIMER0->SHORTS = (TIMER_SHORTS_COMPARE0_CLEAR_Enabled << TIMER_SHORTS_COMPARE0_CLEAR_Pos);
-//    //attachInterrupt(TIMER1_IRQn, TIMER1_Interrupt); // also used in variant.cpp to configure the RTC1
-//    NVIC_EnableIRQ(TIMER0_IRQn);
-//    NRF_TIMER0->TASKS_START = 1; // Start TIMER
-//}
-
-
-		
-/** RTC0 Interupt Handler run when RTC interupt is triggered
- */
-
-
- void saadc_init(void)
+// ADC
+static void saadc_init()
 {
-	// A variable to hold the error code
-  ret_code_t err_code;
-
-  // Create a config struct and assign it default values along with the Pin number for ADC Input
-  // Configure the input as Single Ended(One Pin Reading)
-  // Make sure you allocate the right pin.
-  nrf_saadc_channel_config_t channel_config = NRFX_SAADC_DEFAULT_CHANNEL_CONFIG_SE(NRF_SAADC_INPUT_AIN0);
-
-  // Initialize the saadc 
-  // first parameter is for configuring the adc resolution and other features, we will see in future tutorial
-  //on how to work with it. right now just pass a simple null value
-//err_code = nrf_drv_saadc_init(NULL, saadc_callback_handler);
-  APP_ERROR_CHECK(err_code);
-
-// Initialize the Channel which will be connected to that specific pin.
-  err_code = nrfx_saadc_channel_init(0, &channel_config);
-  APP_ERROR_CHECK(err_code);
-
-  
-
+    ret_code_t err_code;
+    err_code = nrfx_saadc_init(NRFX_SAADC_CONFIG_IRQ_PRIORITY);
+    APP_ERROR_CHECK(err_code);
+ 
+    err_code = nrfx_saadc_channels_config(channels, SAADC_CHANNEL_COUNT);
+    APP_ERROR_CHECK(err_code);
 }
 
- void RTC0_IRQHandler(void) {
-     nrf_rtc_event_clear(NRF_RTC0,NRF_RTC_EVENT_TICK);
-     uint8_t isReady;
-     vl53l5cx_check_data_ready(&sensor_config, &isReady);
-     if(isReady) 
-     {
-       read_lidar_data();
-      
-      
-    }
-}
+
 
 /**@brief Function for application main entry.
  */
@@ -1941,17 +1617,14 @@ int main(void)
     // BLE init
     log_init();
     timers_init();
-    buttons_leds_init(&erase_bonds);
     power_management_init();
     ble_stack_init();
     gap_params_init();
     gatt_init();
     advertising_init();
     services_init();
-    sensor_simulator_init();
     conn_params_init();
     peer_manager_init();
-    //saadc_init();
 
     // Start execution.
     NRF_LOG_INFO("Health Thermometer example started.");
@@ -1959,7 +1632,7 @@ int main(void)
 
     /* Sensor init */
     // initial ceiling height 
-    uint8_t temp_array[2] = {CEILING_HEIGHT>>8, CEILING_HEIGHT}; // initial ceiling height of 2200
+    uint8_t temp_array[2] = {(CEILING_HEIGHT>>8)&0xFF, (CEILING_HEIGHT&0xFF)}; // initial ceiling height of 2200
     ble_cus_ceiling_value_update(&m_cus, temp_array);
 
     twi_init();
@@ -1969,6 +1642,7 @@ int main(void)
         NRF_LOG_FLUSH();
 
     vl53l5cx_sensor_init();
+    saadc_init();
     //start_timer();
     application_timers_start();
     // Enter main loop.
@@ -1978,7 +1652,6 @@ int main(void)
         
     }
 }
-
 
 /**
  * @}

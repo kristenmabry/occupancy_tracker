@@ -65,7 +65,6 @@ Output/Debug/Obj/ble_app_hts_pca10040_s132/peer_manager_handler.o: \
  ../../../../../../components/libraries/atomic/nrf_atomic.h \
  ../../../../../../components/libraries/fds/fds.h \
  ../../../../../../components/libraries/strerror/nrf_strerror.h \
- F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\examples\ble_peripheral\occupancy_tracker\pca10040\s132\ses\sdk_config.h \
  ../../../../../../components/libraries/log/nrf_log.h \
  ../../../../../../components/libraries/experimental_section_vars/nrf_section.h \
  ../../../../../../components/libraries/util/nordic_common.h \

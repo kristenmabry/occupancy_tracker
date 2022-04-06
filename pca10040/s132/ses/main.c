@@ -132,6 +132,7 @@
 #include "nrf_log_ctrl.h"
 #include "nrf_log_default_backends.h"
 
+#include "nrf_drv_gpiote.h"
 
 
 
@@ -170,6 +171,7 @@
 #define SYSTEM_RESET_INTERVAL           APP_TIMER_TICKS(1500)                       // Attempt system reset after 1000ms of inaction from sensor in ranging loop
 #define NOTIFICATION_INTERVAL           APP_TIMER_TICKS(10000)                      // Time between notification messages
 #define SECONDARY_RESET_INTERVAL        APP_TIMER_TICKS(15000)                      // Time until attempting to reinitilize the VL53L5CX sensor after not recieving a response
+#define DONE_RANGING_INTERVAL           APP_TIMER_TICKS(100)                      // Time until attempting to reinitilize the VL53L5CX sensor after not recieving a response
 
 #define DEAD_BEEF                       0xDEADBEEF                                  /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
 
@@ -179,9 +181,14 @@
 #define MOTION_MINIMUM      400   // minimum distance for motion indication (at least <400mm && 1500mm from maximum)
 #define MOTION_MAXIMUM      1800  // maximum distance for motion indication (max 4000mm && 1500mm from minimum
 #define PERSON_MIN_HEIGHT   1500  // minimum height to increase occupancy
-#define INTEGRATION_TIME    10    // Time (ms) spent integrating each 4x4 data
+#define INTEGRATION_TIME    5    // Time (ms) spent integrating each 4x4 data
 #define MEM_BUFF_SIZE       512   // Buffer amount for Queue
 #define LPn_PIN             15    // LPn connection to VL53l5CX
+
+#define PIN_IN                13  // interupt pin
+#define HIGH_SPEED_FREQUENCY  20  // speed (Hz) of sensor when active ranging
+#define LOW_SPEED_FREQUENCY   10  // speed (Hz) of sensor while waiting for person to enter
+
 
 APP_TIMER_DEF(m_notification_timer_id);                                             /**< Notification timer. */
 //BLE_BAS_DEF(m_bas);                                                                 /**< Structure used to identify the battery service. */
@@ -197,6 +204,7 @@ BLE_CUS_DEF(m_cus);                                                             
 APP_TIMER_DEF(m_system_reset_timer_id);                                         // timeout on start
 APP_TIMER_DEF(m_test_timer);
 NRF_BLE_BMS_DEF(m_bms);                                                         //!< Structure used to identify the Bond Management service.
+APP_TIMER_DEF(m_done_ranging_id); // for testing if final ranging data
 
 
 static uint16_t          m_conn_handle = BLE_CONN_HANDLE_INVALID;                   /**< Handle of the current connection. */
@@ -216,8 +224,11 @@ static uint8_t flag;
 static uint16_t ceiling_height = CEILING_HEIGHT;  // 16 since 4m is 12bits, initially default but can be changed by user over ble
 static uint8_t person_entry = 0, person_exit = 0, person_entry_2, person_exit_2;
 
+
+static uint8_t check, init, abc;
+
 static void advertising_start(bool erase_bonds);
-//static void temperature_measurement_send(void);
+static void done_state_handle(void);
 static void vl53l5cx_sensor_init();
 
 static const nrf_drv_twi_t m_twi = NRF_DRV_TWI_INSTANCE(TWI_INSTANCE_ID);  // give device twi id
@@ -252,8 +263,8 @@ static void event_handler(nrfx_saadc_evt_t const * p_event)
         {
             m_cus.current_value_battery = p_event->data.done.p_buffer[i];
             uint8_t temp_array [2] = {m_cus.current_value_battery<<8, m_cus.current_value_battery};
-            NRF_LOG_INFO("CH%d: %d", i, p_event->data.done.p_buffer[i]);
-            ble_cus_battery_value_update(&m_cus, temp_array, sizeof(uint16_t), m_cus.battery_value_handles);
+            //NRF_LOG_INFO("CH%d: %d", i, p_event->data.done.p_buffer[i]);
+            //ble_cus_battery_value_update(&m_cus, temp_array, sizeof(uint16_t), m_cus.battery_value_handles);
         }
         is_ready = true;
     }
@@ -406,16 +417,16 @@ void read_lidar_data() {
     /* As the sensor is set in 4x4 mode by default, we have a total
      * of 16 zones to print. For this example, only the data of first zone are
      * print */
-    // NRF_LOG_INFO("Print data no : %3u\n", sensor_config.streamcount);
-    //uint8_t i;
-    //for(i = 0; i < 16; i++)
-    //{                  //"Zone : %3d, Status : %3u, Distance : %4d mm\n" Results.target_status
-    //                   //"Zone : %3d, Motion : %3d, Distance : %4d mm\n" Results.motion_indicator.motion
-    //        NRF_LOG_INFO("Zone : %3d, Status : %3u, Distance : %4d mm\n",
-    //                i,
-    //                 Results.target_status[VL53L5CX_NB_TARGET_PER_ZONE*i],
-    //                (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*i]));
-    //}
+     NRF_LOG_INFO("Print data no : %3u\n", sensor_config.streamcount);
+    uint8_t i;
+    for(i = 0; i < 16; i++)
+    {                  //"Zone : %3d, Status : %3u, Distance : %4d mm\n" Results.target_status
+                       //"Zone : %3d, Motion : %3d, Distance : %4d mm\n" Results.motion_indicator.motion
+            NRF_LOG_INFO("Zone : %3d, Status : %3u, Distance : %4d mm\n",
+                    i,
+                     Results.target_status[VL53L5CX_NB_TARGET_PER_ZONE*i],
+                    (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*i]));
+    }
 
     /* Update local Ceiling height to same as bluetooth*/
     ceiling_height = m_cus.current_value_2;
@@ -565,7 +576,7 @@ void read_lidar_data() {
 
         
       }
-  
+
   }
 }
 
@@ -632,7 +643,7 @@ static void timers_init(void)
     APP_ERROR_CHECK(err_code);
     err_code = app_timer_create(&m_test_timer, APP_TIMER_MODE_REPEATED, sensor_reset_handler);
     APP_ERROR_CHECK(err_code);
-    err_code = app_timer_create(&m_vl53l5cx_timer_id, APP_TIMER_MODE_REPEATED, vl53l5cx_read_handler);
+    //err_code = app_timer_create(&m_vl53l5cx_timer_id, APP_TIMER_MODE_REPEATED, vl53l5cx_read_handler);
     APP_ERROR_CHECK(err_code);
 
     err_code = app_timer_create(&m_system_reset_timer_id, APP_TIMER_MODE_SINGLE_SHOT, reset_system_handler);
@@ -641,6 +652,11 @@ static void timers_init(void)
     // ADC
     err_code = app_timer_create(&m_sample_timer_id, APP_TIMER_MODE_REPEATED, sample_timer_handler);
     APP_ERROR_CHECK(err_code);
+
+    // Done ranging
+    err_code = app_timer_create(&m_done_ranging_id, APP_TIMER_MODE_REPEATED, done_state_handle);
+    APP_ERROR_CHECK(err_code);
+
 
 }
 
@@ -949,7 +965,7 @@ static void application_timers_start(void)
     ret_code_t err_code = 0;
 
     // Start application timers.
-    err_code |= app_timer_start(m_vl53l5cx_timer_id, READ_VL53L5CX_INTERVAL, NULL);
+    //err_code |= app_timer_start(m_vl53l5cx_timer_id, READ_VL53L5CX_INTERVAL, NULL);
     APP_ERROR_CHECK(err_code);
 
     // ADC
@@ -1273,25 +1289,6 @@ static void advertising_init(void)
 }
 
 
-/**@brief Function for initializing buttons and leds.
- *
- * @param[out] p_erase_bonds  Will be true if the clear bonding button was pressed to wake the application up.
- */
-//static void buttons_leds_init(bool * p_erase_bonds)
-//{
-//    ret_code_t err_code;
-//    bsp_event_t startup_event;
-
-//    err_code = bsp_init(BSP_INIT_LEDS | BSP_INIT_BUTTONS, bsp_event_handler);
-//    APP_ERROR_CHECK(err_code);
-
-//    err_code = bsp_btn_ble_init(NULL, &startup_event);
-//    APP_ERROR_CHECK(err_code);
-
-//    *p_erase_bonds = (startup_event == BSP_EVENT_CLEAR_BONDING_DATA);
-//}
-
-
 /**@brief Function for initializing the nrf log module.
  */
 static void log_init(void)
@@ -1381,6 +1378,9 @@ void vl53l5cx_sensor_init(void)
   uint8_t status;
   uint8_t ranging_started;
   VL53L5CX_Motion_Configuration 	motion_config;	/* Motion configuration*/
+  uint8_t loop, i = 0;
+  VL53L5CX_ResultsData 	Results;
+  loop = 0;
  
   status |= vl53l5cx_is_alive(&sensor_config, &isAlive);
   if (status) printf("Sensor failed alive test with: %u\n", status);
@@ -1392,6 +1392,53 @@ void vl53l5cx_sensor_init(void)
   /*********************************/
   /*   Program motion indicator    */
   /*********************************/
+
+  /* In this example, we want 2 thresholds per zone for a 4x4 resolution */
+  /* Create array of thresholds (size cannot be changed) */
+  VL53L5CX_DetectionThresholds thresholds[VL53L5CX_NB_THRESHOLDS];
+          /* Set all values to 0 */
+  memset(&thresholds, 0, sizeof(thresholds));
+  /* Add thresholds for all zones (16 zones in resolution 4x4, or 64 in 8x8) */
+  for(i = 0; i < 16; i++){
+          /* The first wanted thresholds is GREATER_THAN mode. Please note that the
+           * first one must always be set with a mathematic_operation
+           * VL53L5CX_OPERATION_NONE.
+           * For this example, the signal thresholds is set to 150 kcps/spads
+           * (the format is automatically updated inside driver)
+           */
+          thresholds[2*i].zone_num = i;
+          thresholds[2*i].measurement = VL53L5CX_SIGNAL_PER_SPAD_KCPS;
+          thresholds[2*i].type = VL53L5CX_GREATER_THAN_MAX_CHECKER;
+          thresholds[2*i].mathematic_operation = VL53L5CX_OPERATION_NONE;
+          thresholds[2*i].param_low_thresh = 150;
+          thresholds[2*i].param_high_thresh = 150;
+
+          /* The second wanted checker is IN_WINDOW mode. We will set a
+           * mathematical thresholds VL53L5CX_OPERATION_OR, to add the previous
+           * checker to this one.
+           * For this example, distance thresholds are set between 200mm and
+           * 400mm (the format is automatically updated inside driver).
+           */
+          thresholds[2*i+1].zone_num = i;
+          thresholds[2*i+1].measurement = VL53L5CX_DISTANCE_MM;
+          thresholds[2*i+1].type = VL53L5CX_IN_WINDOW;
+          thresholds[2*i+1].mathematic_operation = VL53L5CX_OPERATION_OR;
+          thresholds[2*i+1].param_low_thresh = 10;
+          thresholds[2*i+1].param_high_thresh = CEILING_HEIGHT-PERSON_MIN_HEIGHT;
+  }
+
+  /* The last thresholds must be clearly indicated. As we have 32
+   * checkers (16 zones x 2), the last one is the 31 */
+  thresholds[31].zone_num = VL53L5CX_LAST_THRESHOLD | thresholds[31].zone_num;
+
+  /* Send array of thresholds to the sensor */
+  vl53l5cx_set_detection_thresholds(&sensor_config, thresholds);
+
+  /* Enable detection thresholds */
+  vl53l5cx_set_detection_thresholds_enable(&sensor_config, 1);
+
+
+
   status = vl53l5cx_set_ranging_frequency_hz(&sensor_config, RANGING_FREQUENCY); // Set ranging frequency
     if(status)
       printf("vl53l5cx_set_ranging_frequency_hz failed, status %u\n", status);
@@ -1419,9 +1466,7 @@ void vl53l5cx_sensor_init(void)
 
   app_timer_start(m_system_reset_timer_id, SYSTEM_RESET_INTERVAL, NULL);  // reset system after 1000ms
 
-  uint8_t loop, i = 0;
-  VL53L5CX_ResultsData 	Results;
-  loop = 0;
+
   while(loop == 0)
    	{
    		status = vl53l5cx_check_data_ready(&sensor_config, &isReady);
@@ -1584,7 +1629,53 @@ void vl53l5cx_sensor_init(void)
    		WaitMs(&(sensor_config.platform), 10);
    	}
   printf("done");
+  init = 1;
   app_timer_stop(m_system_reset_timer_id);  // stop system reset
+}
+
+
+/**
+* Enters when the pin handler hasn't been trigger after enough time, updates the values
+*/
+void done_state_handle()
+{
+      // No person present - clear flags
+        if(person_exit){
+         m_cus.current_value++; // person passed through and area is clear
+         }
+        if(person_exit_2){
+         m_cus.current_value--; // person passed through and area is clear
+        }
+        person_entry = 0;
+        person_exit = 0;
+        person_entry_2 = 0;
+        person_exit_2 = 0;
+        if(abc == 0) {
+          vl53l5cx_set_ranging_frequency_hz(&sensor_config, LOW_SPEED_FREQUENCY);
+          abc = 1;
+        }
+        app_timer_stop(m_done_ranging_id);
+        uint8_t temp_array[2] = {m_cus.current_value>>8, m_cus.current_value}; // initial ceiling height of 2200
+        ble_cus_custom_value_update(&m_cus, temp_array);
+}
+
+
+// Handler for a INT pin (gpio) interupt, ranges on the low to high pin change
+void in_pin_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
+{
+    if(init == 1) {
+        if(abc == 1) {
+          vl53l5cx_set_ranging_frequency_hz(&sensor_config, HIGH_SPEED_FREQUENCY);
+          abc = 0;
+        }
+        if(check == 0) {
+          read_lidar_data();
+        }
+        app_timer_stop(m_done_ranging_id);
+        check++;
+        check = check%2;
+        app_timer_start(m_done_ranging_id, DONE_RANGING_INTERVAL, NULL);
+    }
 }
 
 static void gpio_init()
@@ -1594,8 +1685,23 @@ static void gpio_init()
     nrf_gpio_pin_set(15);
     nrf_gpio_cfg_output(14); // PwrEn
     nrf_gpio_pin_set(14);
-    nrf_gpio_cfg_output(13); // I2C_Rst
-    nrf_gpio_pin_clear(13);
+    nrf_gpio_cfg_output(12); // I2C_Rst
+    nrf_gpio_pin_clear(12);
+
+
+
+    ret_code_t err_code;
+
+    err_code = nrf_drv_gpiote_init();
+    APP_ERROR_CHECK(err_code);
+
+    nrf_drv_gpiote_in_config_t in_config = GPIOTE_CONFIG_IN_SENSE_TOGGLE(true);
+    in_config.pull = NRF_GPIO_PIN_PULLUP;
+
+    err_code = nrf_drv_gpiote_in_init(PIN_IN, &in_config, in_pin_handler);
+    APP_ERROR_CHECK(err_code);
+
+    nrf_drv_gpiote_in_event_enable(PIN_IN, true);
 }
 
 // ADC
@@ -1638,6 +1744,9 @@ int main(void)
     uint8_t temp_array[2] = {(CEILING_HEIGHT>>8)&0xFF, (CEILING_HEIGHT&0xFF)}; // initial ceiling height of 2200
     ble_cus_ceiling_value_update(&m_cus, temp_array);
 
+    // initial occupancy
+    uint8_t temp_array_2[2] = {m_cus.current_value>>8, m_cus.current_value}; // initial ceiling height of 2200
+    ble_cus_custom_value_update(&m_cus, temp_array_2);
     twi_init();
 
     gpio_init();

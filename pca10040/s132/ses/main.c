@@ -136,9 +136,9 @@
 
 
 
-#define DEVICE_NAME                     "Lidar"                                     /**< Name of device. Will be included in the advertising data. */
-#define MANUFACTURER_NAME               "NordicSemiconductor"                       /**< Manufacturer. Will be passed to Device Information Service. */
-#define MODEL_NUM                       "NS-HTS-EXAMPLE"                            /**< Model number. Will be passed to Device Information Service. */
+#define DEVICE_NAME                     "Occupancy Tracker"                                     /**< Name of device. Will be included in the advertising data. */
+#define MANUFACTURER_NAME               "Boise State University"                       /**< Manufacturer. Will be passed to Device Information Service. */
+#define MODEL_NUM                       "BSU_OCCU_TRACK"                            /**< Model number. Will be passed to Device Information Service. */
 #define MANUFACTURER_ID                 0x1122334455                                /**< Manufacturer ID, part of System ID. Will be passed to Device Information Service. */
 #define ORG_UNIQUE_ID                   0x667788                                    /**< Organizational Unique ID, part of System ID. Will be passed to Device Information Service. */
 
@@ -400,8 +400,6 @@ void read_lidar_data() {
     flag = 1;
     err_code = app_timer_start(m_test_timer, NOTIFICATION_INTERVAL, NULL);  // if the lidar isn't responding for 1 sec
   }
-  
-  //APP_ERROR_CHECK(err_code);
 
   vl53l5cx_check_data_ready(&sensor_config, &isReady);
   if(isReady == 1) 
@@ -462,45 +460,9 @@ void read_lidar_data() {
           (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*5]) < PERSON_MIN_HEIGHT &&
           (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*9]) < PERSON_MIN_HEIGHT &&
           (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*13]) < PERSON_MIN_HEIGHT) )// &&
-
-          //((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*2]) < PERSON_MIN_HEIGHT &&
-          //(ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*6]) < PERSON_MIN_HEIGHT &&
-          //(ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*10]) < PERSON_MIN_HEIGHT &&
-          //(ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*14]) < PERSON_MIN_HEIGHT) )
           {
             person_exit = 1;
           }
-      }
-
-    // No person present - clear flags
-    if(/* 3 */ 
-      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*3]) < PERSON_MIN_HEIGHT && 
-      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*7]) < PERSON_MIN_HEIGHT &&
-      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) < PERSON_MIN_HEIGHT &&
-      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) < PERSON_MIN_HEIGHT &&
-
-      /* 1 */ ((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) < PERSON_MIN_HEIGHT &&
-      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*4]) < PERSON_MIN_HEIGHT &&
-      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*8]) < PERSON_MIN_HEIGHT &&
-      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*12]) < PERSON_MIN_HEIGHT) &&
-
-       /* 2 */ ((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*1]) < PERSON_MIN_HEIGHT &&
-      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*5]) < PERSON_MIN_HEIGHT &&
-      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*9]) < PERSON_MIN_HEIGHT &&
-      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*13]) < PERSON_MIN_HEIGHT) &&
-
-      ((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*2]) < PERSON_MIN_HEIGHT &&
-      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*6]) < PERSON_MIN_HEIGHT &&
-      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*10]) < PERSON_MIN_HEIGHT &&
-      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*14]) < PERSON_MIN_HEIGHT) )
-      {
-        if(person_exit){
-         m_cus.current_value++; // person passed through and area is clear
-         uint8_t temp_array[2] = {m_cus.current_value>>8, m_cus.current_value}; // initial ceiling height of 2200
-         ble_cus_custom_value_update(&m_cus, temp_array);
-         }
-        person_entry = 0;
-        person_exit = 0;
       }
 
       /* Exit - pin side to non pin side */
@@ -530,11 +492,6 @@ void read_lidar_data() {
           (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) < PERSON_MIN_HEIGHT &&
           (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) < PERSON_MIN_HEIGHT) &&
 
-          // /* 2 */ ((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*1]) < PERSON_MIN_HEIGHT &&
-          //(ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*5]) < PERSON_MIN_HEIGHT &&
-          //(ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*9]) < PERSON_MIN_HEIGHT &&
-          //(ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*13]) < PERSON_MIN_HEIGHT) &&
-
           ((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*2]) < PERSON_MIN_HEIGHT &&
           (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*6]) < PERSON_MIN_HEIGHT &&
           (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*10]) < PERSON_MIN_HEIGHT &&
@@ -542,39 +499,6 @@ void read_lidar_data() {
           {
             person_exit_2 = 1;
           }
-      }
-
-    // No person present - clear flags
-    if(/* 3 */ 
-      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*3]) < PERSON_MIN_HEIGHT && 
-      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*7]) < PERSON_MIN_HEIGHT &&
-      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) < PERSON_MIN_HEIGHT &&
-      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) < PERSON_MIN_HEIGHT &&
-
-      /* 1 */ ((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) < PERSON_MIN_HEIGHT &&
-      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*4]) < PERSON_MIN_HEIGHT &&
-      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*8]) < PERSON_MIN_HEIGHT &&
-      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*12]) < PERSON_MIN_HEIGHT) &&
-
-       /* 2 */ ((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*1]) < PERSON_MIN_HEIGHT &&
-      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*5]) < PERSON_MIN_HEIGHT &&
-      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*9]) < PERSON_MIN_HEIGHT &&
-      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*13]) < PERSON_MIN_HEIGHT) &&
-
-      ((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*2]) < PERSON_MIN_HEIGHT &&
-      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*6]) < PERSON_MIN_HEIGHT &&
-      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*10]) < PERSON_MIN_HEIGHT &&
-      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*14]) < PERSON_MIN_HEIGHT) )
-      {
-        if(person_exit_2) {
-         m_cus.current_value--; // person passed through and area is clear
-         uint8_t temp_array[2] = {m_cus.current_value>>8, m_cus.current_value}; // initial ceiling height of 2200
-         ble_cus_custom_value_update(&m_cus, temp_array);
-         }
-        person_entry_2 = 0;
-        person_exit_2 = 0;
-
-        
       }
 
   }

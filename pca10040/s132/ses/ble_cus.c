@@ -353,9 +353,9 @@ static uint32_t ble_value_char_add(ble_cus_t * p_cus, const ble_cus_init_t * p_c
 
     attr_char_value.p_uuid    = &ble_uuid;
     attr_char_value.p_attr_md = &attr_md;
-    attr_char_value.init_len  = sizeof(uint8_t)*2;
+    attr_char_value.init_len  = sizeof(uint8_t);
     attr_char_value.init_offs = 0;
-    attr_char_value.max_len   = sizeof(uint8_t)*2;
+    attr_char_value.max_len   = sizeof(uint8_t);
 
     err_code = sd_ble_gatts_characteristic_add(p_cus->service_handle, &char_md,
                                                &attr_char_value,
@@ -545,7 +545,7 @@ uint32_t ble_cus_battery_value_update(ble_cus_t * p_cus, uint8_t * current_value
     // Initialize value struct.
     memset(&gatts_value, 0, sizeof(gatts_value));
 
-    gatts_value.len     = sizeof(uint16_t);
+    gatts_value.len     = sizeof(uint8_t);
     gatts_value.offset  = 0;
     gatts_value.p_value = current_value;
 
@@ -579,7 +579,7 @@ uint32_t ble_cus_battery_value_update(ble_cus_t * p_cus, uint8_t * current_value
         err_code = NRF_ERROR_INVALID_STATE;
         NRF_LOG_INFO("sd_ble_gatts_hvx result: NRF_ERROR_INVALID_STATE. \r\n"); 
     }
-    p_cus->current_value_battery = (*current_value << 8) + *(current_value + 1);
+    p_cus->current_value_battery = *(current_value + 1);
 
     return err_code;
 }

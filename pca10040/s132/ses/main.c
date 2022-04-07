@@ -185,7 +185,7 @@
 #define MEM_BUFF_SIZE       512   // Buffer amount for Queue
 #define LPn_PIN             15    // LPn connection to VL53l5CX
 
-#define PIN_IN                13  // interupt pin
+#define PIN_IN                12  // interupt pin
 #define HIGH_SPEED_FREQUENCY  20  // speed (Hz) of sensor when active ranging
 #define LOW_SPEED_FREQUENCY   10  // speed (Hz) of sensor while waiting for person to enter
 
@@ -260,10 +260,14 @@ static void event_handler(nrfx_saadc_evt_t const * p_event)
     {
         for(int i = 0; i < p_event->data.done.size; i++)
         {
-            m_cus.current_value_battery = p_event->data.done.p_buffer[i];
-            uint8_t temp_array [2] = {m_cus.current_value_battery<<8, m_cus.current_value_battery};
-            //NRF_LOG_INFO("CH%d: %d", i, p_event->data.done.p_buffer[i]);
-            //ble_cus_battery_value_update(&m_cus, temp_array, sizeof(uint16_t), m_cus.battery_value_handles);
+            uint16_t tempers = p_event->data.done.p_buffer[i];
+            float f1 = tempers;
+            f1 = (((f1*3.6/4096)-2.2)*100/1);
+            //uint8_t *back = (uint8_t*)(&f1);
+            //NRF_LOG_INFO("%d", *back);
+            NRF_LOG_INFO(" a: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(f1));
+            uint8_t temp_array [2] = {(uint8_t)f1};
+            ble_cus_battery_value_update(&m_cus, temp_array, sizeof(uint16_t), m_cus.battery_value_handles);
         }
         is_ready = true;
     }
@@ -413,8 +417,8 @@ void read_lidar_data() {
     /* As the sensor is set in 4x4 mode by default, we have a total
      * of 16 zones to print. For this example, only the data of first zone are
      * print */
-     NRF_LOG_INFO("Print data no : %3u\n", sensor_config.streamcount);
-    uint8_t i;
+    // NRF_LOG_INFO("Print data no : %3u\n", sensor_config.streamcount);
+    //uint8_t i;
     //for(i = 0; i < 16; i++)
     //{                  //"Zone : %3d, Status : %3u, Distance : %4d mm\n" Results.target_status
     //                   //"Zone : %3d, Motion : %3d, Distance : %4d mm\n" Results.motion_indicator.motion
@@ -1584,7 +1588,7 @@ void done_state_handle()
       person_entry_2 = 0;
       person_exit_2 = 0;
       if(abc == 0) {
-        vl53l5cx_set_ranging_frequency_hz(&sensor_config, LOW_SPEED_FREQUENCY);
+        vl53l5cx_set_ranging_frequency_hz(&sensor_config, HIGH_SPEED_FREQUENCY);
         abc = 1;
       }
       app_timer_stop(m_done_ranging_id);
@@ -1623,8 +1627,8 @@ static void gpio_init()
     nrf_gpio_pin_set(15);
     nrf_gpio_cfg_output(14); // PwrEn
     nrf_gpio_pin_set(14);
-    nrf_gpio_cfg_output(12); // I2C_Rst
-    nrf_gpio_pin_clear(12);
+    nrf_gpio_cfg_output(13); // I2C_Rst
+    nrf_gpio_pin_clear(13);
 
 
 

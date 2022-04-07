@@ -185,7 +185,7 @@
           <configuration Name="Release" build_exclude_from_build="No" />
         </file>
         <file file_name="vl53l5cx_plugin_motion_indicator.h">
-          <configuration Name="Release" build_exclude_from_build="Yes" />
+          <configuration Name="Release" build_exclude_from_build="No" />
         </file>
         <file file_name="vl53l5cx_plugin_xtalk.h">
           <configuration Name="Release" build_exclude_from_build="Yes" />
@@ -198,7 +198,7 @@
           <configuration Name="Release" build_exclude_from_build="No" />
         </file>
         <file file_name="vl53l5cx_plugin_motion_indicator.c">
-          <configuration Name="Release" build_exclude_from_build="Yes" />
+          <configuration Name="Release" build_exclude_from_build="No" />
         </file>
         <file file_name="vl53l5cx_plugin_xtalk.c">
           <configuration Name="Release" build_exclude_from_build="Yes" />

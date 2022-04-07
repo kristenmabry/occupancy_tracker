@@ -2,8 +2,6 @@
 <session>
  <Bookmarks/>
  <Breakpoints groups="Breakpoints" active_group="Breakpoints">
-  <BreakpointListItem trigger="" line="1155" counter="0" hardwareBreakpoint="" isFunctionBreakpoint="false" action="" expression="" group="Breakpoints" type="Breakpoint" state="4" filename="main.c" useHWbreakpoint="false"/>
-  <BreakpointListItem trigger="" line="1280" counter="0" hardwareBreakpoint="" isFunctionBreakpoint="false" action="" expression="" group="Breakpoints" type="Breakpoint" state="4" filename="main.c" useHWbreakpoint="false"/>
   <BreakpointListItem trigger="" line="1815" counter="0" hardwareBreakpoint="" isFunctionBreakpoint="false" action="" expression="" group="Breakpoints" type="Breakpoint" state="4" filename="../../../main.c" useHWbreakpoint="false"/>
   <BreakpointListItem trigger="" line="5" counter="0" hardwareBreakpoint="" isFunctionBreakpoint="false" action="" expression="" group="Breakpoints" type="Breakpoint" state="4" filename="occupancy_tracker.h" useHWbreakpoint="false"/>
   <Exceptions set="MemManage;UsageFault_Coprocessor;UsageFault_CheckingError;UsageFault_StateError;BusFault;ExceptionEntryReturnFault;HardFault"/>
@@ -56,19 +54,18 @@
  </TraceWindow>
  <Watch1>
   <Watches active="1" update="Twice a Second">
-   <Watchpoint expression="count" name="count" radix="-1" linenumber="2005" filename="../../../main.c"/>
-   <Watchpoint expression="current_value" name="current_value" radix="16" linenumber="1485" filename="main.c"/>
-   <Watchpoint expression="m_cus" name="m_cus" radix="-1" linenumber="1485" filename="main.c"/>
-   <Watchpoint expression="gatts_value" name="gatts_value" radix="16" linenumber="433" filename="ble_cus.c"/>
-   <Watchpoint expression="ceiling_height" name="ceiling_height" radix="10" linenumber="414" filename="main.c"/>
-   <Watchpoint expression="Results" name="Results" radix="16" linenumber="386" filename="main.c"/>
-   <Watchpoint expression="person_entry" name="person_entry" radix="-1" linenumber="211" filename="main.c"/>
-   <Watchpoint expression="person_exit" name="person_exit" radix="-1" linenumber="211" filename="main.c"/>
-   <Watchpoint expression="person_entry_2" name="person_entry_2" radix="-1" linenumber="211" filename="main.c"/>
-   <Watchpoint expression="person_exit_2" name="person_exit_2" radix="-1" linenumber="211" filename="main.c"/>
-   <Watchpoint expression="temp_array" name="temp_array" radix="-1" linenumber="413" filename="main.c"/>
-   <Watchpoint expression="m_test_timer" name="m_test_timer" radix="-1" linenumber="384" filename="main.c"/>
-   <Watchpoint expression="flag" name="flag" radix="16" linenumber="393" filename="main.c"/>
+   <Watchpoint expression="m_cus" name="m_cus" radix="-1" linenumber="1443" filename="main.c"/>
+   <Watchpoint expression="ceiling_height" name="ceiling_height" radix="10" linenumber="421" filename="main.c"/>
+   <Watchpoint expression="person_entry" name="person_entry" radix="-1" linenumber="217" filename="main.c"/>
+   <Watchpoint expression="person_exit" name="person_exit" radix="-1" linenumber="217" filename="main.c"/>
+   <Watchpoint expression="person_entry_2" name="person_entry_2" radix="-1" linenumber="217" filename="main.c"/>
+   <Watchpoint expression="person_exit_2" name="person_exit_2" radix="-1" linenumber="217" filename="main.c"/>
+   <Watchpoint expression="flag" name="flag" radix="16" linenumber="402" filename="main.c"/>
+   <Watchpoint expression="check" name="check" radix="-1" linenumber="1598" filename="main.c"/>
+   <Watchpoint expression="init" name="init" radix="-1" linenumber="226" filename="main.c"/>
+   <Watchpoint expression="m_done_ranging_id" name="m_done_ranging_id" radix="-1" linenumber="1597" filename="main.c"/>
+   <Watchpoint expression="update_array" name="update_array" radix="-1" linenumber="513" filename="main.c"/>
+   <Watchpoint expression="thresholds" name="thresholds" radix="-1" linenumber="1319" filename="main.c"/>
   </Watches>
  </Watch1>
  <Watch2>
@@ -81,10 +78,8 @@
   <Watches active="0" update="Never"/>
  </Watch4>
  <Files>
-  <SessionOpenFile windowGroup="DockEditLeft" x="59" y="255" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="main.c" selected="0" top="223" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="55" y="322" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="ble_cus.c" selected="1" top="358" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="55" y="77" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="ble_cus.h" selected="0" top="55" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="390" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="nrfx_twi.c" selected="0" top="371" codecName=""/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="68" y="1277" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="main.c" selected="1" top="1258" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="27" y="153" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../../../../components/libraries/log/src/nrf_log_internal.h" selected="0" top="112" codecName="Default"/>
  </Files>
  <ARMCrossStudioWindow activeProject="ble_app_hts_pca10040_s132" fileDialogDefaultFilter="*" autoConnectTarget="J-Link" buildConfiguration="Release" sessionSettings="" debugSearchFileMap="C:/Nordic_Semi/Nordic_Semi/nRF5_SDK_17.1.0_ddde560/external/segger_rtt/SEGGER_RTT.c&#xa;&#xa;C:/Nordic_Semi/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker/pca10040/s132/ses/nrf_drv_twi.c&#xa;&#xa;C:/Nordic_Semi/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker/pca10040/s132/ses/nrfx_twi.c&#xa;&#xa;C:/Users/bwill/ncs/v1.7.0/toolchain/segger_embedded_studio/source/thumb_crt0.s&#xa;&#xa;F:/Downloads/nrf_sdk/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker/pca10040/s132/ses/app_button.c&#xa;&#xa;F:/Downloads/nrf_sdk/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker/pca10040/s132/ses/app_error.c&#xa;&#xa;F:/Downloads/nrf_sdk/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker/pca10040/s132/ses/app_error_weak.c&#xa;&#xa;F:/Downloads/nrf_sdk/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker/pca10040/s132/ses/app_timer2.c&#xa;" fileDialogInitialDirectory="F:/Downloads/nrf_sdk/nRF5_SDK_17.1.0_ddde560/modules/nrfx/drivers/include" debugSearchPath="" autoConnectCapabilities="3711"/>
 </session>

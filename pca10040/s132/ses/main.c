@@ -171,7 +171,7 @@
 #define SYSTEM_RESET_INTERVAL           APP_TIMER_TICKS(1500)                       // Attempt system reset after 1000ms of inaction from sensor in ranging loop
 #define NOTIFICATION_INTERVAL           APP_TIMER_TICKS(10000)                      // Time between notification messages
 #define SECONDARY_RESET_INTERVAL        APP_TIMER_TICKS(15000)                      // Time until attempting to reinitilize the VL53L5CX sensor after not recieving a response
-#define DONE_RANGING_INTERVAL           APP_TIMER_TICKS(100)                      // Time until attempting to reinitilize the VL53L5CX sensor after not recieving a response
+#define DONE_RANGING_INTERVAL           APP_TIMER_TICKS(10)                      // Time until attempting to reinitilize the VL53L5CX sensor after not recieving a response
 
 #define DEAD_BEEF                       0xDEADBEEF                                  /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
 
@@ -191,8 +191,6 @@
 
 
 APP_TIMER_DEF(m_notification_timer_id);                                             /**< Notification timer. */
-//BLE_BAS_DEF(m_bas);                                                                 /**< Structure used to identify the battery service. */
-//BLE_HTS_DEF(m_hts);                                                                 /**< Structure used to identify the health thermometer service. */
 NRF_BLE_GATT_DEF(m_gatt);                                                           /**< GATT module instance. */
 NRF_BLE_QWR_DEF(m_qwr);                                                             /**< Context for the Queued Write module.*/
 BLE_ADVERTISING_DEF(m_advertising);                                                 /**< Advertising module instance. */
@@ -240,8 +238,9 @@ static  VL53L5CX_Configuration sensor_config = {
           .m_twi = m_twi,
         },
   };
-
-
+VL53L5CX_Motion_Configuration 	motion_config;	/* Motion configuration*/
+  VL53L5CX_DetectionThresholds thresholds[VL53L5CX_NB_THRESHOLDS];
+uint16_t update_array[16] = {0,0,0,0,  0,0,0,0,  0,0,0,0,  0,0,0,0};
 
 
 /** ADC **/
@@ -409,7 +408,6 @@ void read_lidar_data() {
     if(flag == 1) {  
       flag = 0;
       err_code = app_timer_stop(m_test_timer);
-
     }
 
     /* As the sensor is set in 4x4 mode by default, we have a total
@@ -417,14 +415,15 @@ void read_lidar_data() {
      * print */
      NRF_LOG_INFO("Print data no : %3u\n", sensor_config.streamcount);
     uint8_t i;
-    for(i = 0; i < 16; i++)
-    {                  //"Zone : %3d, Status : %3u, Distance : %4d mm\n" Results.target_status
-                       //"Zone : %3d, Motion : %3d, Distance : %4d mm\n" Results.motion_indicator.motion
-            NRF_LOG_INFO("Zone : %3d, Status : %3u, Distance : %4d mm\n",
-                    i,
-                     Results.target_status[VL53L5CX_NB_TARGET_PER_ZONE*i],
-                    (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*i]));
-    }
+    //for(i = 0; i < 16; i++)
+    //{                  //"Zone : %3d, Status : %3u, Distance : %4d mm\n" Results.target_status
+    //                   //"Zone : %3d, Motion : %3d, Distance : %4d mm\n" Results.motion_indicator.motion
+    //        NRF_LOG_INFO("Zone : %3d, Status : %3u, Distance : %4d mm, Motion : %3lu\n",
+    //                i,
+    //                 Results.target_status[VL53L5CX_NB_TARGET_PER_ZONE*i],
+    //                (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*i]),
+    //                Results.motion_indicator.motion[motion_config.map_id[i]]);
+    //}
 
     /* Update local Ceiling height to same as bluetooth*/
     ceiling_height = m_cus.current_value_2;
@@ -500,6 +499,44 @@ void read_lidar_data() {
             person_exit_2 = 1;
           }
       }
+
+      // Updating Detection Threshold
+      //for(i = 0; i < 16; i++)
+      //{
+      //    if(ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*i] >= CEILING_HEIGHT-PERSON_MIN_HEIGHT) // if in detection area
+      //    {
+      //        if(Results.motion_indicator.motion[motion_config.map_id[i]] <= 10)  // and not moving enough
+      //        {
+      //          update_array[i] += 1; 
+      //          if(update_array[i] > 100) 
+      //          {
+      //            vl53l5cx_set_detection_thresholds_enable(&sensor_config, 0);  // disable while changing
+      //            for(i = 0; i < 16; i++)
+      //            {
+      //              thresholds[2*i+1].param_low_thresh = 5;
+      //              thresholds[2*i+1].param_high_thresh = 5;
+      //              vl53l5cx_set_detection_thresholds(&sensor_config, thresholds);
+      //            }
+      //              //vl53l5cx_get_detection_thresholds();
+      //            vl53l5cx_set_detection_thresholds_enable(&sensor_config, 1);  //reenable
+
+      //            NRF_LOG_INFO("Print data no : %3u\n", sensor_config.streamcount);
+      //            for(i = 0; i < 16; i++)
+      //            {                  //"Zone : %3d, Status : %3u, Distance : %4d mm\n" Results.target_status
+      //                               //"Zone : %3d, Motion : %3d, Distance : %4d mm\n" Results.motion_indicator.motion
+      //                    NRF_LOG_INFO("Zone : %3d, Status : %3u, Distance : %4d mm, Motion : %3lu\n",
+      //                            i,
+      //                             Results.target_status[VL53L5CX_NB_TARGET_PER_ZONE*i],
+      //                            (Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*i]),
+      //                            Results.motion_indicator.motion[motion_config.map_id[i]]);
+      //            }
+      //          }
+      //        }
+
+      //    }
+      //}
+
+
 
   }
 }
@@ -1087,54 +1124,6 @@ static void ble_stack_init(void)
     NRF_SDH_BLE_OBSERVER(m_ble_observer, APP_BLE_OBSERVER_PRIO, ble_evt_handler, NULL);
 }
 
-
-///**@brief Function for handling events from the BSP module.
-// *
-// * @param[in]   event   Event generated by button press.
-// */
-//static void bsp_event_handler(bsp_event_t event)
-//{
-//    ret_code_t err_code;
-
-//    switch (event)
-//    {
-//        case BSP_EVENT_SLEEP:
-//            sleep_mode_enter();
-//            break;
-
-//        case BSP_EVENT_DISCONNECT:
-//            err_code = sd_ble_gap_disconnect(m_conn_handle,
-//                                             BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
-//            if (err_code != NRF_ERROR_INVALID_STATE)
-//            {
-//                APP_ERROR_CHECK(err_code);
-//            }
-//            break;
-
-//        case BSP_EVENT_WHITELIST_OFF:
-//            if (m_conn_handle == BLE_CONN_HANDLE_INVALID)
-//            {
-//                err_code = ble_advertising_restart_without_whitelist(&m_advertising);
-//                if (err_code != NRF_ERROR_INVALID_STATE)
-//                {
-//                    APP_ERROR_CHECK(err_code);
-//                }
-//            }
-//            break;
-
-//        case BSP_EVENT_KEY_0:
-//            if (m_conn_handle != BLE_CONN_HANDLE_INVALID)
-//            {
-//                //temperature_measurement_send();
-//            }
-//            break;
-
-//        default:
-//            break;
-//    }
-//}
-
-
 /**@brief Function for the Peer Manager initialization.
  */
 static void peer_manager_init(void)
@@ -1301,7 +1290,6 @@ void vl53l5cx_sensor_init(void)
   uint8_t isAlive;
   uint8_t status;
   uint8_t ranging_started;
-  VL53L5CX_Motion_Configuration 	motion_config;	/* Motion configuration*/
   uint8_t loop, i = 0;
   VL53L5CX_ResultsData 	Results;
   loop = 0;
@@ -1314,12 +1302,12 @@ void vl53l5cx_sensor_init(void)
 
 
   /*********************************/
-  /*   Program motion indicator    */
+  /*   Program detection threshold */
   /*********************************/
 
   /* In this example, we want 2 thresholds per zone for a 4x4 resolution */
   /* Create array of thresholds (size cannot be changed) */
-  VL53L5CX_DetectionThresholds thresholds[VL53L5CX_NB_THRESHOLDS];
+
           /* Set all values to 0 */
   memset(&thresholds, 0, sizeof(thresholds));
   /* Add thresholds for all zones (16 zones in resolution 4x4, or 64 in 8x8) */
@@ -1334,8 +1322,8 @@ void vl53l5cx_sensor_init(void)
           thresholds[2*i].measurement = VL53L5CX_SIGNAL_PER_SPAD_KCPS;
           thresholds[2*i].type = VL53L5CX_GREATER_THAN_MAX_CHECKER;
           thresholds[2*i].mathematic_operation = VL53L5CX_OPERATION_NONE;
-          thresholds[2*i].param_low_thresh = 150;
-          thresholds[2*i].param_high_thresh = 150;
+          thresholds[2*i].param_low_thresh = 1000;
+          thresholds[2*i].param_high_thresh = 1000;
 
           /* The second wanted checker is IN_WINDOW mode. We will set a
            * mathematical thresholds VL53L5CX_OPERATION_OR, to add the previous
@@ -1361,8 +1349,29 @@ void vl53l5cx_sensor_init(void)
   /* Enable detection thresholds */
   vl53l5cx_set_detection_thresholds_enable(&sensor_config, 1);
 
+	/*********************************/
+	/*   Program motion indicator    */
+	/*********************************/
 
+	/* Create motion indicator with resolution 4x4 */
+	status = vl53l5cx_motion_indicator_init(&sensor_config, &motion_config, VL53L5CX_RESOLUTION_4X4);
+	if(status)
+	{
+		printf("Motion indicator init failed with status : %u\n", status);
+		//return status;
+	}
 
+	/* (Optional) Change the min and max distance used to detect motions. The
+	 * difference between min and max must never be >1500mm, and minimum never be <400mm,
+	 * otherwise the function below returns error 127 */
+	status = vl53l5cx_motion_indicator_set_distance_motion(&sensor_config, &motion_config, 1000, 2000);
+	if(status)
+	{
+		printf("Motion indicator set distance motion failed with status : %u\n", status);
+		//return status;
+	}
+
+        ///////
   status = vl53l5cx_set_ranging_frequency_hz(&sensor_config, RANGING_FREQUENCY); // Set ranging frequency
     if(status)
       printf("vl53l5cx_set_ranging_frequency_hz failed, status %u\n", status);
@@ -1563,24 +1572,29 @@ void vl53l5cx_sensor_init(void)
 */
 void done_state_handle()
 {
-      // No person present - clear flags
-        if(person_exit){
-         m_cus.current_value++; // person passed through and area is clear
-         }
-        if(person_exit_2){
-         m_cus.current_value--; // person passed through and area is clear
-        }
-        person_entry = 0;
-        person_exit = 0;
-        person_entry_2 = 0;
-        person_exit_2 = 0;
-        if(abc == 0) {
-          vl53l5cx_set_ranging_frequency_hz(&sensor_config, LOW_SPEED_FREQUENCY);
-          abc = 1;
-        }
-        app_timer_stop(m_done_ranging_id);
-        uint8_t temp_array[2] = {m_cus.current_value>>8, m_cus.current_value}; // initial ceiling height of 2200
-        ble_cus_custom_value_update(&m_cus, temp_array);
+    // No person present - clear flags
+      if(person_exit){
+       m_cus.current_value++; // person passed through and area is clear
+       }
+      if(person_exit_2){
+       m_cus.current_value--; // person passed through and area is clear
+      }
+      person_entry = 0;
+      person_exit = 0;
+      person_entry_2 = 0;
+      person_exit_2 = 0;
+      if(abc == 0) {
+        vl53l5cx_set_ranging_frequency_hz(&sensor_config, LOW_SPEED_FREQUENCY);
+        abc = 1;
+      }
+      app_timer_stop(m_done_ranging_id);
+      uint8_t temp_array[2] = {m_cus.current_value>>8, m_cus.current_value}; // initial ceiling height of 2200
+      ble_cus_custom_value_update(&m_cus, temp_array);
+
+      //for(uint8_t i = 0; i < 16; i++)
+      //{
+      //    update_array[i] = 0;
+      //}
 }
 
 

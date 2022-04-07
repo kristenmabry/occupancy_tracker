@@ -171,7 +171,7 @@
 #define SYSTEM_RESET_INTERVAL           APP_TIMER_TICKS(1500)                       // Attempt system reset after 1000ms of inaction from sensor in ranging loop
 #define NOTIFICATION_INTERVAL           APP_TIMER_TICKS(10000)                      // Time between notification messages
 #define SECONDARY_RESET_INTERVAL        APP_TIMER_TICKS(15000)                      // Time until attempting to reinitilize the VL53L5CX sensor after not recieving a response
-#define DONE_RANGING_INTERVAL           APP_TIMER_TICKS(10)                      // Time until attempting to reinitilize the VL53L5CX sensor after not recieving a response
+#define DONE_RANGING_INTERVAL           APP_TIMER_TICKS(100)                      // Time until attempting to reinitilize the VL53L5CX sensor after not recieving a response
 
 #define DEAD_BEEF                       0xDEADBEEF                                  /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
 

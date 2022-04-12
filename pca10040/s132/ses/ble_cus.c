@@ -101,6 +101,30 @@ static void on_write(ble_cus_t * p_cus, ble_evt_t const * p_ble_evt)
         
         //nrf_gpio_pin_toggle(LED_4);
         p_cus->current_value_2 = (*p_evt_write->data << 8) + *(p_evt_write->data + 1);
+        int ceiling_height = p_cus->current_value_2;
+
+
+        uint8_t error = 0;
+    vl53l5cx_stop_ranging(&p_cus->sensor_config);
+
+    error |= vl53l5cx_set_detection_thresholds_enable(&p_cus->sensor_config, 0);
+    memset(&p_cus->thresholds, 0, sizeof(p_cus->thresholds));
+    /* Add thresholds for all zones (16 zones in resolution 4x4, or 64 in 8x8) */
+    for(int i = 0; i < 16; i++)
+    {
+          p_cus->thresholds[2*i+1].zone_num = i;
+          p_cus->thresholds[2*i+1].measurement = VL53L5CX_DISTANCE_MM;
+          p_cus->thresholds[2*i+1].type = VL53L5CX_IN_WINDOW;
+          p_cus->thresholds[2*i+1].mathematic_operation = VL53L5CX_OPERATION_OR;
+          p_cus->thresholds[2*i+1].param_low_thresh = 10;
+          p_cus->thresholds[2*i+1].param_high_thresh = ceiling_height-1500;
+    }
+    p_cus->thresholds[31].zone_num = VL53L5CX_LAST_THRESHOLD | p_cus->thresholds[31].zone_num;
+    error |= vl53l5cx_set_detection_thresholds(&p_cus->sensor_config, p_cus->thresholds);
+    error |= vl53l5cx_set_detection_thresholds_enable(&p_cus->sensor_config, 1);
+
+    vl53l5cx_start_ranging(&p_cus->sensor_config);
+
         /*
         if(*p_evt_write->data == 0x01)
         {
@@ -533,7 +557,7 @@ uint32_t ble_cus_ceiling_value_update(ble_cus_t * p_cus, uint8_t * ceiling_value
 // not changable with others since uses p_cus->current_value
 uint32_t ble_cus_battery_value_update(ble_cus_t * p_cus, uint8_t * current_value, uint8_t len, ble_gatts_char_handles_t value_handles)
 {
-    NRF_LOG_INFO("In ble_cus_batter_value_update. \r\n"); 
+    //NRF_LOG_INFO("In ble_cus_batter_value_update. \r\n"); 
     if (p_cus == NULL)
     {
         return NRF_ERROR_NULL;
@@ -572,12 +596,12 @@ uint32_t ble_cus_battery_value_update(ble_cus_t * p_cus, uint8_t * current_value
         hvx_params.p_data = gatts_value.p_value;
 
         err_code = sd_ble_gatts_hvx(p_cus->conn_handle, &hvx_params);
-        NRF_LOG_INFO("sd_ble_gatts_hvx result: %x. \r\n", err_code); 
+        //NRF_LOG_INFO("sd_ble_gatts_hvx result: %x. \r\n", err_code); 
     }
     else
     {
         err_code = NRF_ERROR_INVALID_STATE;
-        NRF_LOG_INFO("sd_ble_gatts_hvx result: NRF_ERROR_INVALID_STATE. \r\n"); 
+        //NRF_LOG_INFO("sd_ble_gatts_hvx result: NRF_ERROR_INVALID_STATE. \r\n"); 
     }
     p_cus->current_value_battery = *(current_value + 1);
 

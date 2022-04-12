@@ -9,6 +9,9 @@
 #include <stdbool.h>
 #include "ble.h"
 #include "ble_srv_common.h"
+#include "vl53l5cx_plugin_detection_thresholds.h"
+#include "vl53l5cx_api.h"
+
 
 /**@brief   Macro for defining a ble_hrs instance.
  *
@@ -76,6 +79,8 @@ struct ble_cus_s
     uint16_t                      current_value;
     uint16_t                      current_value_2;
     uint16_t                      current_value_battery;
+    VL53L5CX_DetectionThresholds  thresholds[VL53L5CX_NB_THRESHOLDS];
+    VL53L5CX_Configuration        sensor_config;
 };
 
 /**@brief Function for initializing the Custom Service.

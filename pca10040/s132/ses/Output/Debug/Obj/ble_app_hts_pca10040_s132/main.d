@@ -55,14 +55,13 @@ Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o: \
  ../../../../../../components/libraries/util/nrf_assert.h \
  ../../../../../../components/ble/ble_advertising/ble_advertising.h \
  ../../../../../../components/softdevice/s132/headers/ble_gattc.h \
- ../../../../../../components/ble/ble_services/ble_bas/ble_bas.h \
+ ../../../../../../components/ble/ble_services/ble_hts/ble_hts.h \
+ ../../../../../../components/ble/common/ble_date_time.h \
  ../../../../../../components/softdevice/common/nrf_sdh_ble.h \
  ../../../../../../components/libraries/experimental_section_vars/nrf_section_iter.h \
  ../../../../../../components/libraries/experimental_section_vars/nrf_section.h \
  ../../../../../../components/libraries/util/nrf_assert.h \
  ../../../../../../components/libraries/util/sdk_errors.h \
- ../../../../../../components/ble/ble_services/ble_hts/ble_hts.h \
- ../../../../../../components/ble/common/ble_date_time.h \
  ../../../../../../components/ble/nrf_ble_gq/nrf_ble_gq.h \
  ../../../../../../components/libraries/memobj/nrf_memobj.h \
  C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 5.64/include/stdlib.h \
@@ -79,7 +78,6 @@ Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o: \
  ../../../../../../components/ble/ble_services/ble_dis/ble_dis.h \
  ../../../../../../components/ble/common/ble_conn_params.h \
  ../../../../../../components/ble/common/ble_srv_common.h \
- ../../../../../../components/libraries/sensorsim/sensorsim.h \
  ../../../../../../components/softdevice/common/nrf_sdh.h \
  ../../../../../../components/softdevice/common/nrf_sdh_soc.h \
  ../../../../../../components/libraries/timer/app_timer.h \
@@ -132,16 +130,13 @@ Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o: \
  ../../../../../../modules/nrfx/hal/nrf_twim.h \
  ../../../../../../modules/nrfx/drivers/include/nrfx_twi.h \
  ../../../../../../modules/nrfx/hal/nrf_twi.h \
- ../../../../../../integration/nrfx/legacy/nrf_drv_gpiote.h \
- ../../../../../../modules/nrfx/drivers/include/nrfx_gpiote.h \
- ../../../../../../modules/nrfx/hal/nrf_gpiote.h \
- ../../../../../../modules/nrfx/hal/nrf_gpio.h \
  F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\examples\ble_peripheral\occupancy_tracker\pca10040\s132\ses\vl53l5cx_api.h \
  F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\examples\ble_peripheral\occupancy_tracker\pca10040\s132\ses\platform.h \
  F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\examples\ble_peripheral\occupancy_tracker\pca10040\s132\ses\vl53l5cx_plugin_detection_thresholds.h \
  F:\Downloads\nrf_sdk\nRF5_SDK_17.1.0_ddde560\examples\ble_peripheral\occupancy_tracker\pca10040\s132\ses\vl53l5cx_plugin_motion_indicator.h \
  ../../../../../../modules/nrfx/drivers/include/nrfx_saadc.h \
  ../../../../../../modules/nrfx/hal/nrf_saadc.h \
+ ../../../../../../modules/nrfx/drivers/include/nrfx_saadc_v2.h \
  ../../../../../../modules/nrfx/hal/nrf_clock.h \
  ../../../../../../modules/nrfx/hal/nrf_rtc.h \
  ../../../../../../components/libraries/bsp/bsp.h \
@@ -153,4 +148,8 @@ Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o: \
  ../../../../../../components/softdevice/s132/headers/nrf_error_sdm.h \
  ../../../../../../integration/nrfx/legacy/nrf_drv_timer.h \
  ../../../../../../modules/nrfx/drivers/include/nrfx_timer.h \
- ../../../../../../modules/nrfx/hal/nrf_timer.h
+ ../../../../../../modules/nrfx/hal/nrf_timer.h \
+ ../../../../../../integration/nrfx/legacy/nrf_drv_gpiote.h \
+ ../../../../../../modules/nrfx/drivers/include/nrfx_gpiote.h \
+ ../../../../../../modules/nrfx/hal/nrf_gpiote.h \
+ ../../../../../../modules/nrfx/hal/nrf_gpio.h

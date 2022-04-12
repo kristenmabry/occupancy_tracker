@@ -53,6 +53,7 @@ Output/Debug/Obj/ble_app_hts_pca10040_s132/nrfx_saadc.o: \
  ../../../../../../modules/nrfx/drivers/nrfx_errors.h \
  ../../../../../../modules/nrfx/drivers/include/nrfx_saadc.h \
  ../../../../../../modules/nrfx/hal/nrf_saadc.h \
+ ../../../../../../modules/nrfx/drivers/include/nrfx_saadc_v2.h \
  ../../../../../../integration/nrfx/nrfx_log.h \
  ../../../../../../components/libraries/log/nrf_log.h \
  ../../../../../../components/libraries/util/sdk_common.h \

@@ -1,7 +1,7 @@
 % NEW
 clc
 serialportlist("available") % find which ports are being open
-% s = serialport("COM3", 115200, "StopBits", 1);
+s = serialport("COM1", 115200, "StopBits", 1);
 configureCallback(s,"byte",912,@readSerialData) % callback function setup
 %
 
@@ -9,7 +9,7 @@ configureCallback(s,"byte",912,@readSerialData) % callback function setup
 x = input("press 1 to start: ")
 
 while x ~= 2    
-A = [1 1 0 220 1 100 100 501 1 100 2 220 1 1 1 1];
+A = [600 600 600 600 0 0 0 0 0 1500 1500 0 0 0 0 0];
 
 array = [A(1,1:4); A(1,5:8); A(1,9:12); A(1,13:16)]
 

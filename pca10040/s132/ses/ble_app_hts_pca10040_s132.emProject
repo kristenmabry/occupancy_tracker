@@ -129,6 +129,8 @@
       </file>
       <file file_name="../config/sdk_config.h" />
       <file file_name="../../../../../../modules/nrfx/drivers/include/nrfx_saadc_v2.h" />
+      <file file_name="read_write_memory.c" />
+      <file file_name="read_write_memory.h" />
     </folder>
     <folder Name="nRF_Segger_RTT">
       <file file_name="../../../../../../external/segger_rtt/SEGGER_RTT.c" />

@@ -5,7 +5,7 @@
 #include "nrf_gpio.h"
 #include "boards.h"
 #include "nrf_log.h"
-#include "occupancy_tracker.h"
+#include "read_write_memory.h"
 
 /**@brief Function for handling the Connect event.
  *
@@ -54,6 +54,7 @@ static void on_write(ble_cus_t * p_cus, ble_evt_t const * p_ble_evt)
     {
         
         //nrf_gpio_pin_toggle(LED_4);
+        ble_cus_custom_value_update(p_cus, p_evt_write->data);
         p_cus->current_value = (*p_evt_write->data << 8) + *(p_evt_write->data + 1);
         /*
         if(*p_evt_write->data == 0x01)
@@ -100,7 +101,9 @@ static void on_write(ble_cus_t * p_cus, ble_evt_t const * p_ble_evt)
     {
         
         //nrf_gpio_pin_toggle(LED_4);
-        p_cus->current_value_2 = (*p_evt_write->data << 8) + *(p_evt_write->data + 1);
+        //uint8_t temp_array[2] = {(*p_evt_write->data << 8) , *(p_evt_write->data + 1)};
+        ble_cus_ceiling_value_update(p_cus, p_evt_write->data);
+        //p_cus->current_value_2 = (*p_evt_write->data << 8) + *(p_evt_write->data + 1);
         int ceiling_height = p_cus->current_value_2;
 
 
@@ -124,6 +127,9 @@ static void on_write(ble_cus_t * p_cus, ble_evt_t const * p_ble_evt)
     error |= vl53l5cx_set_detection_thresholds_enable(&p_cus->sensor_config, 1);
 
     vl53l5cx_start_ranging(&p_cus->sensor_config);
+
+
+
 
         /*
         if(*p_evt_write->data == 0x01)
@@ -495,6 +501,17 @@ uint32_t ble_cus_custom_value_update(ble_cus_t * p_cus, uint8_t * custom_value)
         NRF_LOG_INFO("sd_ble_gatts_hvx result: NRF_ERROR_INVALID_STATE. \r\n"); 
     }
     
+    __ALIGN(4) uint8_t temp_array[4] = {(*custom_value) , *(custom_value + 1), 0x00, 0x00};
+    p_cus->current_value = (*custom_value << 8) + *(custom_value + 1);
+
+    err_code = kls_fds_find_and_delete(CEIL_FILE_ID_FDS, CEIL_REC_KEY_FDS);
+    APP_ERROR_CHECK(err_code);
+
+    err_code = kls_fds_write(CEIL_FILE_ID_FDS, CEIL_REC_KEY_FDS, temp_array);
+    APP_ERROR_CHECK(err_code);
+
+    //NRF_LOG_INFO("%d", (*custom_value << 8) + *(custom_value + 1));
+
 
     return err_code;
 }
@@ -549,7 +566,18 @@ uint32_t ble_cus_ceiling_value_update(ble_cus_t * p_cus, uint8_t * ceiling_value
         err_code = NRF_ERROR_INVALID_STATE;
         NRF_LOG_INFO("sd_ble_gatts_hvx result: NRF_ERROR_INVALID_STATE. \r\n"); 
     }
+
+
+    __ALIGN(4) uint8_t temp_array[4] = {(*ceiling_value) , *(ceiling_value + 1), 0x00, 0x00};
     p_cus->current_value_2 = (*ceiling_value << 8) + *(ceiling_value + 1);
+
+    err_code = kls_fds_find_and_delete(OCCU_FILE_ID_FDS, OCCU_REC_KEY_FDS);
+    APP_ERROR_CHECK(err_code);
+
+    err_code = kls_fds_write(OCCU_FILE_ID_FDS, OCCU_REC_KEY_FDS, temp_array);
+    APP_ERROR_CHECK(err_code);
+
+    //NRF_LOG_INFO("%d", (*ceiling_value << 8) + *(ceiling_value + 1));
 
     return err_code;
 }
@@ -604,6 +632,8 @@ uint32_t ble_cus_battery_value_update(ble_cus_t * p_cus, uint8_t * current_value
         //NRF_LOG_INFO("sd_ble_gatts_hvx result: NRF_ERROR_INVALID_STATE. \r\n"); 
     }
     p_cus->current_value_battery = *(current_value + 1);
+
+
 
     return err_code;
 }

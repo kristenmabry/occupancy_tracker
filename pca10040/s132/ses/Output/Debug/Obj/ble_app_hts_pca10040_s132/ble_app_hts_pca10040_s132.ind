@@ -52,6 +52,7 @@
 "Output/Debug/Obj/ble_app_hts_pca10040_s132/main.o"
 "Output/Debug/Obj/ble_app_hts_pca10040_s132/ble_cus.o"
 "Output/Debug/Obj/ble_app_hts_pca10040_s132/nrfx_saadc.o"
+"Output/Debug/Obj/ble_app_hts_pca10040_s132/read_write_memory.o"
 "Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT.o"
 "Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT_Syscalls_SES.o"
 "Output/Debug/Obj/ble_app_hts_pca10040_s132/SEGGER_RTT_printf.o"

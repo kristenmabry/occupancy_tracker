@@ -5,7 +5,7 @@
 #include "nrf_gpio.h"
 #include "boards.h"
 #include "nrf_log.h"
-#include "occupancy_tracker.h"
+#include "read_write_memory.h"
 
 /**@brief Function for handling the Connect event.
  *
@@ -52,8 +52,8 @@ static void on_write(ble_cus_t * p_cus, ble_evt_t const * p_ble_evt)
     // Custom Value Characteristic Written to.
     if (p_evt_write->handle == p_cus->custom_value_handles.value_handle)
     {
-        
-        //nrf_gpio_pin_toggle(LED_4);
+        __ALIGN(4) uint8_t temp_array[2] = {p_evt_write->data[0], p_evt_write->data[1]};
+        ble_cus_custom_value_update(p_cus, temp_array);
         p_cus->current_value = (*p_evt_write->data << 8) + *(p_evt_write->data + 1);
         /*
         if(*p_evt_write->data == 0x01)
@@ -100,30 +100,37 @@ static void on_write(ble_cus_t * p_cus, ble_evt_t const * p_ble_evt)
     {
         
         //nrf_gpio_pin_toggle(LED_4);
+        __ALIGN(4) uint8_t temp_array[2] = {p_evt_write->data[0], p_evt_write->data[1]};
+        ble_cus_ceiling_value_update(p_cus, temp_array);
         p_cus->current_value_2 = (*p_evt_write->data << 8) + *(p_evt_write->data + 1);
+
+
         int ceiling_height = p_cus->current_value_2;
 
 
         uint8_t error = 0;
-    vl53l5cx_stop_ranging(&p_cus->sensor_config);
+        vl53l5cx_stop_ranging(&p_cus->sensor_config);
 
-    error |= vl53l5cx_set_detection_thresholds_enable(&p_cus->sensor_config, 0);
-    memset(&p_cus->thresholds, 0, sizeof(p_cus->thresholds));
-    /* Add thresholds for all zones (16 zones in resolution 4x4, or 64 in 8x8) */
-    for(int i = 0; i < 16; i++)
-    {
-          p_cus->thresholds[2*i+1].zone_num = i;
-          p_cus->thresholds[2*i+1].measurement = VL53L5CX_DISTANCE_MM;
-          p_cus->thresholds[2*i+1].type = VL53L5CX_IN_WINDOW;
-          p_cus->thresholds[2*i+1].mathematic_operation = VL53L5CX_OPERATION_OR;
-          p_cus->thresholds[2*i+1].param_low_thresh = 10;
-          p_cus->thresholds[2*i+1].param_high_thresh = ceiling_height-1500;
-    }
-    p_cus->thresholds[31].zone_num = VL53L5CX_LAST_THRESHOLD | p_cus->thresholds[31].zone_num;
-    error |= vl53l5cx_set_detection_thresholds(&p_cus->sensor_config, p_cus->thresholds);
-    error |= vl53l5cx_set_detection_thresholds_enable(&p_cus->sensor_config, 1);
+        error |= vl53l5cx_set_detection_thresholds_enable(&p_cus->sensor_config, 0);
+        memset(&p_cus->thresholds, 0, sizeof(p_cus->thresholds));
+        /* Add thresholds for all zones (16 zones in resolution 4x4, or 64 in 8x8) */
+        for(int i = 0; i < 16; i++)
+        {
+              p_cus->thresholds[2*i+1].zone_num = i;
+              p_cus->thresholds[2*i+1].measurement = VL53L5CX_DISTANCE_MM;
+              p_cus->thresholds[2*i+1].type = VL53L5CX_IN_WINDOW;
+              p_cus->thresholds[2*i+1].mathematic_operation = VL53L5CX_OPERATION_OR;
+              p_cus->thresholds[2*i+1].param_low_thresh = 10;
+              p_cus->thresholds[2*i+1].param_high_thresh = ceiling_height-1500;
+        }
+        p_cus->thresholds[31].zone_num = VL53L5CX_LAST_THRESHOLD | p_cus->thresholds[31].zone_num;
+        error |= vl53l5cx_set_detection_thresholds(&p_cus->sensor_config, p_cus->thresholds);
+        error |= vl53l5cx_set_detection_thresholds_enable(&p_cus->sensor_config, 1);
 
-    vl53l5cx_start_ranging(&p_cus->sensor_config);
+        vl53l5cx_start_ranging(&p_cus->sensor_config);
+
+
+
 
         /*
         if(*p_evt_write->data == 0x01)
@@ -464,6 +471,18 @@ uint32_t ble_cus_custom_value_update(ble_cus_t * p_cus, uint8_t * custom_value)
     gatts_value.offset  = 0;
     gatts_value.p_value = custom_value;
 
+    __ALIGN(4) uint8_t temp_array[2] = {custom_value[0], custom_value[1], 0x00, 0x00};
+
+    err_code = kls_fds_find_and_delete(OCCU_FILE_ID_FDS, OCCU_REC_KEY_FDS);
+    APP_ERROR_CHECK(err_code);
+
+    err_code = kls_fds_write(OCCU_FILE_ID_FDS, OCCU_REC_KEY_FDS, temp_array);
+    APP_ERROR_CHECK(err_code);
+
+    NRF_LOG_INFO("Wrote: %x %x", temp_array[0], temp_array[1]);
+    p_cus->current_value = (custom_value[0] << 8) + custom_value[1];
+
+
     // Update database.
     err_code = sd_ble_gatts_value_set(p_cus->conn_handle,
                                       p_cus->custom_value_handles.value_handle,
@@ -494,7 +513,7 @@ uint32_t ble_cus_custom_value_update(ble_cus_t * p_cus, uint8_t * custom_value)
         err_code = NRF_ERROR_INVALID_STATE;
         NRF_LOG_INFO("sd_ble_gatts_hvx result: NRF_ERROR_INVALID_STATE. \r\n"); 
     }
-    
+
 
     return err_code;
 }
@@ -519,6 +538,18 @@ uint32_t ble_cus_ceiling_value_update(ble_cus_t * p_cus, uint8_t * ceiling_value
     gatts_value.offset  = 0;
     gatts_value.p_value = ceiling_value;
 
+    __ALIGN(4) uint8_t temp_array[4] = {ceiling_value[0], ceiling_value[1], 0x00, 0x00};
+
+    err_code = kls_fds_find_and_delete(CEIL_FILE_ID_FDS, CEIL_REC_KEY_FDS);
+    APP_ERROR_CHECK(err_code);
+
+    err_code = kls_fds_write(CEIL_FILE_ID_FDS, CEIL_REC_KEY_FDS, temp_array);
+    APP_ERROR_CHECK(err_code);
+
+    NRF_LOG_INFO("Wrote: %x %x", temp_array[0], temp_array[1]);
+    p_cus->current_value_2 = (ceiling_value[0] << 8) + ceiling_value[1];
+
+
     // Update database.
     err_code = sd_ble_gatts_value_set(p_cus->conn_handle,
                                       p_cus->ceiling_value_handles.value_handle,
@@ -527,6 +558,8 @@ uint32_t ble_cus_ceiling_value_update(ble_cus_t * p_cus, uint8_t * ceiling_value
     {
         return err_code;
     }
+
+
 
     // Send value if connected and notifying.
     if ((p_cus->conn_handle != BLE_CONN_HANDLE_INVALID)) 
@@ -549,7 +582,8 @@ uint32_t ble_cus_ceiling_value_update(ble_cus_t * p_cus, uint8_t * ceiling_value
         err_code = NRF_ERROR_INVALID_STATE;
         NRF_LOG_INFO("sd_ble_gatts_hvx result: NRF_ERROR_INVALID_STATE. \r\n"); 
     }
-    p_cus->current_value_2 = (*ceiling_value << 8) + *(ceiling_value + 1);
+
+
 
     return err_code;
 }
@@ -604,6 +638,8 @@ uint32_t ble_cus_battery_value_update(ble_cus_t * p_cus, uint8_t * current_value
         //NRF_LOG_INFO("sd_ble_gatts_hvx result: NRF_ERROR_INVALID_STATE. \r\n"); 
     }
     p_cus->current_value_battery = *(current_value + 1);
+
+
 
     return err_code;
 }

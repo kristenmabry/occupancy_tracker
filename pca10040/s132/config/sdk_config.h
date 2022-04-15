@@ -3399,7 +3399,7 @@
  
 
 #ifndef NRFX_SAADC_CONFIG_LP_MODE
-#define NRFX_SAADC_CONFIG_LP_MODE 0
+#define NRFX_SAADC_CONFIG_LP_MODE 1
 #endif
 
 // <o> NRFX_SAADC_CONFIG_IRQ_PRIORITY  - Interrupt priority
@@ -3420,7 +3420,7 @@
 // <e> NRFX_SAADC_CONFIG_LOG_ENABLED - Enables logging in the module.
 //==========================================================
 #ifndef NRFX_SAADC_CONFIG_LOG_ENABLED
-#define NRFX_SAADC_CONFIG_LOG_ENABLED 0
+#define NRFX_SAADC_CONFIG_LOG_ENABLED 1
 #endif
 // <o> NRFX_SAADC_CONFIG_LOG_LEVEL  - Default Severity level
  
@@ -7261,7 +7261,7 @@
 // <i> Selected pin will be set when CPU is in sleep mode.
 //==========================================================
 #ifndef NRF_PWR_MGMT_CONFIG_DEBUG_PIN_ENABLED
-#define NRF_PWR_MGMT_CONFIG_DEBUG_PIN_ENABLED 0
+#define NRF_PWR_MGMT_CONFIG_DEBUG_PIN_ENABLED 1
 #endif
 // <o> NRF_PWR_MGMT_SLEEP_DEBUG_PIN  - Pin number
  
@@ -7300,7 +7300,7 @@
 // <4294967295=> Not connected 
 
 #ifndef NRF_PWR_MGMT_SLEEP_DEBUG_PIN
-#define NRF_PWR_MGMT_SLEEP_DEBUG_PIN 31
+#define NRF_PWR_MGMT_SLEEP_DEBUG_PIN 22
 #endif
 
 // </e>

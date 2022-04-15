@@ -134,6 +134,7 @@
 
 #include "nrf_drv_gpiote.h"
 
+#include "read_write_memory.h"
 
 
 #define DEVICE_NAME                     "Occupancy Tracker"                                     /**< Name of device. Will be included in the advertising data. */
@@ -177,7 +178,7 @@
 
 #define TWI_INSTANCE_ID     0     // twi instance
 #define CEILING_HEIGHT      2200  // height from sensor to floor
-#define RANGING_FREQUENCY   20    // frequency (Hz) of new ranging data (1-15 for 8x8) (1-60 for 4x4)
+#define RANGING_FREQUENCY   11    // frequency (Hz) of new ranging data (1-15 for 8x8) (1-60 for 4x4)
 #define MOTION_MINIMUM      400   // minimum distance for motion indication (at least <400mm && 1500mm from maximum)
 #define MOTION_MAXIMUM      1800  // maximum distance for motion indication (max 4000mm && 1500mm from minimum
 #define PERSON_MIN_HEIGHT   1500  // minimum height to increase occupancy
@@ -186,7 +187,7 @@
 #define LPn_PIN             15    // LPn connection to VL53l5CX
 
 #define PIN_IN                12  // interupt pin
-#define HIGH_SPEED_FREQUENCY  20  // speed (Hz) of sensor when active ranging
+#define HIGH_SPEED_FREQUENCY  16  // speed (Hz) of sensor when active ranging
 #define LOW_SPEED_FREQUENCY   10  // speed (Hz) of sensor while waiting for person to enter
 
 
@@ -262,7 +263,7 @@ static void event_handler(nrfx_saadc_evt_t const * p_event)
         {
             uint16_t tempers = p_event->data.done.p_buffer[i];
             float f1 = tempers;
-            f1 = (((f1*3.6/4096)-2.2)*100/1);
+            f1 = (((f1*3.6/4096)-3.3)*100/0.3);
             //uint8_t *back = (uint8_t*)(&f1);
             //NRF_LOG_INFO("%d", *back);
             //NRF_LOG_INFO(" a: " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(f1));
@@ -297,23 +298,23 @@ static void sample_timer_handler(void * p_context)
 
 /** FLASH */
 
-/***  Used for testing FDS ***/
-static volatile uint8_t write_flag_fds_test = 0; 
-#define FILE_ID_FDS_TEST     0x1111
-#define REC_KEY_FDS_TEST     0x2222
+///***  Used for testing FDS ***/
+//static volatile uint8_t write_flag_fds_test = 0; 
+//#define FILE_ID_FDS_TEST     0x1111
+//#define REC_KEY_FDS_TEST     0x2222
 
-/**@brief Function for handling File Data Storage events.
- *
- * @param[in] p_evt  Peer Manager event.
- * @param[in] cmd
- */
-static void fds_evt_handler(fds_evt_t const * const p_evt)
-{
-    if (p_evt->id == FDS_EVT_GC)
-    {
-        NRF_LOG_DEBUG("GC completed\n");
-    }
-}
+///**@brief Function for handling File Data Storage events.
+// *
+// * @param[in] p_evt  Peer Manager event.
+// * @param[in] cmd
+// */
+//static void fds_evt_handler(fds_evt_t const * const p_evt)
+//{
+//    if (p_evt->id == FDS_EVT_GC)
+//    {
+//        NRF_LOG_DEBUG("GC completed\n");
+//    }
+//}
 
 
 
@@ -435,7 +436,7 @@ void read_lidar_data() {
     /* As the sensor is set in 4x4 mode by default, we have a total
      * of 16 zones to print. For this example, only the data of first zone are
      * print */
-    NRF_LOG_INFO("Print data no : %3u\n", sensor_config.streamcount);
+    //NRF_LOG_INFO("Print data no : %3u\n", sensor_config.streamcount);
     uint8_t i;
     //for(i = 0; i < 16; i++)
     //{                  //"Zone : %3d, Status : %3u, Distance : %4d mm\n" Results.target_status
@@ -622,7 +623,7 @@ static void timers_init(void)
     APP_ERROR_CHECK(err_code);
 
     // Create timers.
-    err_code = app_timer_create(&m_notification_timer_id, APP_TIMER_MODE_REPEATED, notification_timeout_handler);
+    //err_code = app_timer_create(&m_notification_timer_id, APP_TIMER_MODE_REPEATED, notification_timeout_handler);
     APP_ERROR_CHECK(err_code);
     err_code = app_timer_create(&m_test_timer, APP_TIMER_MODE_REPEATED, sensor_reset_handler);
     APP_ERROR_CHECK(err_code);
@@ -739,7 +740,7 @@ static void on_cus_evt(ble_cus_t     * p_cus_service,
     {
         case BLE_CUS_EVT_NOTIFICATION_ENABLED:
             
-             err_code = app_timer_start(m_notification_timer_id, NOTIFICATION_INTERVAL, NULL);
+             //err_code = app_timer_start(m_notification_timer_id, NOTIFICATION_INTERVAL, NULL);
              APP_ERROR_CHECK(err_code);
              break;
 
@@ -1178,8 +1179,8 @@ static void peer_manager_init(void)
     err_code = pm_register(pm_evt_handler);
     APP_ERROR_CHECK(err_code);
 
-    err_code = fds_register(fds_evt_handler);
-    APP_ERROR_CHECK(err_code);
+    //err_code = fds_register(fds_evt_handler);
+    //APP_ERROR_CHECK(err_code);
 }
 
 
@@ -1307,7 +1308,7 @@ void vl53l5cx_sensor_init(void)
   VL53L5CX_ResultsData sensor_data = {
     
   };
-  
+          nrf_gpio_pin_toggle(25);
   /*********************************/
   /*      Initialization           */
   /*********************************/
@@ -1421,6 +1422,9 @@ void vl53l5cx_sensor_init(void)
   /*********************************/
   /* Start a ranging session */
   status = vl53l5cx_set_integration_time_ms(&sensor_config, INTEGRATION_TIME);  // 10ms
+
+  nrf_gpio_pin_toggle(31);
+
   status = vl53l5cx_start_ranging(&sensor_config);
   NRF_LOG_INFO("Start ranging loop\n");
 
@@ -1437,15 +1441,15 @@ void vl53l5cx_sensor_init(void)
    			/* As the sensor is set in 4x4 mode by default, we have a total
 			 * of 16 zones to print. For this example, only the data of first zone are
 			 * print */
-   			// NRF_LOG_INFO("Print data no : %3u\n", sensor_config.streamcount);
-   			for(i = 0; i < 16; i++)
-   			{                  //"Zone : %3d, Status : %3u, Distance : %4d mm\n" Results.target_status
-                                           //"Zone : %3d, Motion : %3d, Distance : %4d mm\n" Results.motion_indicator.motion
-				NRF_LOG_INFO("Zone : %3d, Status : %3u, Distance : %4d mm\n",
-					i,
-					 Results.target_status[VL53L5CX_NB_TARGET_PER_ZONE*i],
-					(ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*i]));
-   			}
+   			 NRF_LOG_INFO("Print data no : %3u\n", sensor_config.streamcount);
+   	//		for(i = 0; i < 16; i++)
+   	//		{                  //"Zone : %3d, Status : %3u, Distance : %4d mm\n" Results.target_status
+    //                                       //"Zone : %3d, Motion : %3d, Distance : %4d mm\n" Results.motion_indicator.motion
+				//NRF_LOG_INFO("Zone : %3d, Status : %3u, Distance : %4d mm\n",
+				//	i,
+				//	 Results.target_status[VL53L5CX_NB_TARGET_PER_ZONE*i],
+				//	(ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*i]));
+   	//		}
                         /* Entry - not pin side to pin side */
                         // person just in area 1
                         if((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) > PERSON_MIN_HEIGHT || 
@@ -1611,8 +1615,10 @@ void done_state_handle()
       person_entry_2 = 0;
       person_exit_2 = 0;
       if(abc == 0) {
-        vl53l5cx_set_ranging_frequency_hz(&sensor_config, HIGH_SPEED_FREQUENCY);
+        vl53l5cx_stop_ranging(&sensor_config);
+        vl53l5cx_set_ranging_frequency_hz(&sensor_config, LOW_SPEED_FREQUENCY);
         abc = 1;
+        vl53l5cx_start_ranging(&sensor_config);
       }
       app_timer_stop(m_done_ranging_id);
       uint8_t temp_array[2] = {m_cus.current_value>>8, m_cus.current_value}; // initial ceiling height of 2200
@@ -1630,7 +1636,10 @@ void in_pin_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
 {
     if(init == 1) {
         if(abc == 1) {
+          vl53l5cx_stop_ranging(&sensor_config);
           vl53l5cx_set_ranging_frequency_hz(&sensor_config, HIGH_SPEED_FREQUENCY);
+          vl53l5cx_start_ranging(&sensor_config);
+
           abc = 0;
         }
         if(check == 0) {
@@ -1681,202 +1690,6 @@ static void saadc_init()
 }
 
 
-// Flash
-#include "fds.h"
-static void my_fds_evt_handler(fds_evt_t const * const p_fds_evt)
-{
-    switch (p_fds_evt->id)
-    {
-        case FDS_EVT_INIT:
-            if (p_fds_evt->result != NRF_SUCCESS)
-            {
-                // Initialization failed.
-            }
-            break;
-				case FDS_EVT_WRITE:
-						if (p_fds_evt->result == NRF_SUCCESS)
-						{
-							write_flag_fds_test=1;
-						}
-						break;
-        default:
-            break;
-    }
-}
-static ret_code_t fds_test_write(void)
-{
-		
-		//static uint32_t const m_deadbeef[2] = {0xDEADBEEF,0xBAADF00D};
-		static uint8_t const m_deadbeef[4] = {0x1,0x2,0x3,0x4};
-		fds_record_t        record;
-		fds_record_desc_t   record_desc;
-
-		// Set up data.
-		
-		// Set up record.
-		record.file_id              = FILE_ID_FDS_TEST;
-		record.key              		= REC_KEY_FDS_TEST;
-		record.data.p_data       = &m_deadbeef;
-		//record.data.length_words   = sizeof(m_deadbeef)/sizeof(uint32_t);
-		record.data.length_words   = sizeof(m_deadbeef)/sizeof(uint8_t);
-				
-		ret_code_t ret = fds_record_write(&record_desc, &record);
-		if (ret != NRF_SUCCESS)
-		{
-				return ret;
-		}
-		 NRF_LOG_INFO("Writing Record ID = %d \r\n",record_desc.record_id);
-		return NRF_SUCCESS;
-}
-
-static ret_code_t fds_read(void)
-{
-
-		fds_flash_record_t  flash_record;
-		fds_record_desc_t   record_desc;
-		fds_find_token_t    ftok ={0};//Important, make sure you zero init the ftok token
-		//uint32_t *data;
-		uint8_t *data;
-		uint32_t err_code;
-		
-		NRF_LOG_INFO("Start searching... \r\n");
-		// Loop until all records with the given key and file ID have been found.
-		while (fds_record_find(FILE_ID_FDS_TEST, REC_KEY_FDS_TEST, &record_desc, &ftok) == NRF_SUCCESS)
-		{
-				err_code = fds_record_open(&record_desc, &flash_record);
-				if ( err_code != NRF_SUCCESS)
-				{
-					return err_code;		
-				}
-				
-				NRF_LOG_INFO("Found Record ID = %d\r\n",record_desc.record_id);
-				NRF_LOG_INFO("Data = ");
-				//data = (uint32_t *) flash_record.p_data;
-				data = (uint8_t *) flash_record.p_data;
-				for (uint8_t i=0;i<flash_record.p_header->length_words;i++)
-				{
-					NRF_LOG_INFO("0x%8x ",data[i]);
-				}
-				NRF_LOG_INFO("\r\n");
-				// Access the record through the flash_record structure.
-				// Close the record when done.
-				err_code = fds_record_close(&record_desc);
-				if (err_code != NRF_SUCCESS)
-				{
-					return err_code;	
-				}
-		}
-		return NRF_SUCCESS;
-		
-}
-static ret_code_t kls_fds_write(uint32_t write_file_id, uint32_t write_record_key , uint8_t write_data[])
-{		
-		static uint8_t m_deadbeef[10] = {0};
-		
-		memcpy(m_deadbeef, write_data, sizeof(m_deadbeef));
-		
-		fds_record_t        record;
-		fds_record_desc_t   record_desc;
-	
-		// Set up record.
-		record.file_id              = write_file_id;
-		record.key              		= write_record_key;
-		record.data.p_data       		= &m_deadbeef;
-		record.data.length_words   	= sizeof(m_deadbeef)/sizeof(uint8_t);
-				
-		ret_code_t ret = fds_record_write(&record_desc, &record);
-		if (ret != NRF_SUCCESS)
-		{
-				return ret;
-		}
-		 NRF_LOG_INFO("Writing Record ID = %d \r\n",record_desc.record_id);
-		return NRF_SUCCESS;
-	
-}
-	
-
-static ret_code_t kls_fds_read(uint32_t read_file_id, uint32_t relevant_record_key , uint8_t read_data[])
-{	
-		fds_flash_record_t  flash_record;
-		fds_record_desc_t   record_desc;
-		fds_find_token_t    ftok ={0};//Important, make sure you zero init the ftok token
-		uint8_t *data;
-		uint32_t err_code;
-		
-		NRF_LOG_INFO("Start searching... \r\n");
-		// Loop until all records with the given key and file ID have been found.
-		while (fds_record_find(read_file_id, relevant_record_key, &record_desc, &ftok) == NRF_SUCCESS)
-		{
-				err_code = fds_record_open(&record_desc, &flash_record);
-				if ( err_code != NRF_SUCCESS)
-				{
-					return err_code;		
-				}
-				
-				NRF_LOG_INFO("Found Record ID = %d\r\n",record_desc.record_id);
-
-				data = (uint8_t *) flash_record.p_data;
-				for (uint8_t i=0;i<flash_record.p_header->length_words;i++)
-				{
-					read_data[i] = data[i];
-				}
-			
-		
-				NRF_LOG_HEXDUMP_INFO(read_data, sizeof(read_data));
-				// Access the record through the flash_record structure.
-				// Close the record when done.
-				err_code = fds_record_close(&record_desc);
-				if (err_code != NRF_SUCCESS)
-				{
-					return err_code;	
-				}
-		}
-		return NRF_SUCCESS;	
-}
-
-
-static ret_code_t fds_test_find_and_delete (void)
-{
-
-		fds_record_desc_t   record_desc;
-		fds_find_token_t    ftok;
-	
-		ftok.page=0;
-		ftok.p_addr=NULL;
-		// Loop and find records with same ID and rec key and mark them as deleted. 
-		while (fds_record_find(FILE_ID_FDS_TEST, REC_KEY_FDS_TEST, &record_desc, &ftok) == NRF_SUCCESS)
-		{
-			fds_record_delete(&record_desc);
-			NRF_LOG_INFO("Deleted record ID: %d \r\n",record_desc.record_id);
-		}
-		// call the garbage collector to empty them, don't need to do this all the time, this is just for demonstration
-		ret_code_t ret = fds_gc();
-		if (ret != NRF_SUCCESS)
-		{
-				return ret;
-		}
-		return NRF_SUCCESS;
-}
-
-static ret_code_t fds_test_init (void)
-{
-	
-		ret_code_t ret = fds_register(my_fds_evt_handler);
-		if (ret != NRF_SUCCESS)
-		{
-					return ret;
-				
-		}
-		ret = fds_init();
-		if (ret != NRF_SUCCESS)
-		{
-				return ret;
-		}
-		
-		return NRF_SUCCESS;
-		
-}
-
 
 
 /**@brief Function for application main entry.
@@ -1885,11 +1698,40 @@ int main(void)
 {
     bool erase_bonds;
 
+    nrf_gpio_cfg_output(31);
 
-
+    nrf_gpio_cfg_output(25);
 
     // BLE init
     log_init();
+
+          uint32_t err_code;
+          err_code = fds_test_init();
+          //uint8_t temp_array_3[10] = {0x43, 0x21, 0x00, 0x98, 0x76, 0x54, 0x32, 0x10, 0x11, 0x09};
+          //err_code = kls_fds_write(CEIL_FILE_ID_FDS, CEIL_FILE_ID_FDS, temp_array_3);
+
+        __ALIGN(4) static uint8_t temp_array_4[4];
+
+        err_code = kls_fds_read(CEIL_FILE_ID_FDS, CEIL_REC_KEY_FDS, temp_array_4);
+        NRF_LOG_INFO("Read ceil from flash: %x %x", temp_array_4[0], temp_array_4[1]);
+        APP_ERROR_CHECK(err_code);
+    //uint8_t temp_array[2] = {(CEILING_HEIGHT>>8)&0xFF, (CEILING_HEIGHT&0xFF)}; // initial ceiling height of 2200
+    //if(temp_array_4[0] <= 0x06) temp_array_4[0] = 0x06;
+    ble_cus_ceiling_value_update(&m_cus, temp_array_4);
+
+    // initial occupancy
+        __ALIGN(4) static uint8_t temp_array_x[4];
+        //err_code = kls_fds_write(CEIL_FILE_ID_FDS, CEIL_REC_KEY_FDS, temp_array_x);
+        err_code = kls_fds_read(OCCU_FILE_ID_FDS, OCCU_REC_KEY_FDS, temp_array_x);
+        APP_ERROR_CHECK(err_code);
+        NRF_LOG_INFO("Read occu from flash: %x %x", temp_array_x[0], temp_array_x[1]);
+    //__ALIGN(4) static uint8_t temp_array_2[2] = {(0x00), 0x00}; // initial ceiling height of 2200
+    ble_cus_custom_value_update(&m_cus, temp_array_x);
+    
+    //err_code = kls_fds_read(OCCU_FILE_ID_FDS, OCCU_REC_KEY_FDS, temp_array_x);
+    //APP_ERROR_CHECK(err_code);
+    //NRF_LOG_INFO("%4d", temp_array_x);
+
     timers_init();
     power_management_init();
     ble_stack_init();
@@ -1904,39 +1746,18 @@ int main(void)
     NRF_LOG_INFO("Health Thermometer example started.");
     advertising_start(erase_bonds);
 
-    /* Sensor init */
-    // initial ceiling height 
-    uint8_t temp_array[2] = {(CEILING_HEIGHT>>8)&0xFF, (CEILING_HEIGHT&0xFF)}; // initial ceiling height of 2200
-    ble_cus_ceiling_value_update(&m_cus, temp_array);
 
-    // initial occupancy
-    uint8_t temp_array_2[2] = {m_cus.current_value>>8, m_cus.current_value}; // initial ceiling height of 2200
-    ble_cus_custom_value_update(&m_cus, temp_array_2);
     twi_init();
-
     gpio_init();
         NRF_LOG_INFO("GPIO initilized");
         NRF_LOG_FLUSH();
-
-
-    // Flash
-    		uint32_t err_code;
-                err_code =fds_test_init();
-		APP_ERROR_CHECK(err_code);
-		err_code = fds_test_find_and_delete();
-		APP_ERROR_CHECK(err_code);
-		//err_code =fds_test_write();
-                  uint8_t temp_array_3[2] = {0x43, 0x21};
-                  err_code = kls_fds_write(FILE_ID_FDS_TEST, REC_KEY_FDS_TEST, temp_array_3);
-		APP_ERROR_CHECK(err_code);
-		//wait until the write is finished. 
-		while (write_flag_fds_test==0);
-		err_code = fds_read();
-		APP_ERROR_CHECK(err_code);
-
-
-
     vl53l5cx_sensor_init();
+
+
+
+
+
+
     saadc_init();
     //start_timer();
     application_timers_start();

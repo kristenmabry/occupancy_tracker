@@ -464,6 +464,17 @@ uint32_t ble_cus_custom_value_update(ble_cus_t * p_cus, uint8_t * custom_value)
     uint32_t err_code = NRF_SUCCESS;
     ble_gatts_value_t gatts_value;
 
+    __ALIGN(4) uint8_t temp_array[4] = {(*custom_value) , *(custom_value + 1)};
+    p_cus->current_value = (*custom_value << 8) + *(custom_value + 1);
+
+    err_code = kls_fds_find_and_delete(OCCU_FILE_ID_FDS, OCCU_REC_KEY_FDS);
+    APP_ERROR_CHECK(err_code);
+
+    err_code = kls_fds_write(OCCU_FILE_ID_FDS, OCCU_REC_KEY_FDS, temp_array);
+    APP_ERROR_CHECK(err_code);
+
+    NRF_LOG_INFO("Flash Write: %d", (*custom_value << 8) + *(custom_value + 1));
+
     // Initialize value struct.
     memset(&gatts_value, 0, sizeof(gatts_value));
 
@@ -513,6 +524,8 @@ uint32_t ble_cus_custom_value_update(ble_cus_t * p_cus, uint8_t * custom_value)
         err_code = NRF_ERROR_INVALID_STATE;
         NRF_LOG_INFO("sd_ble_gatts_hvx result: NRF_ERROR_INVALID_STATE. \r\n"); 
     }
+    
+
 
 
     return err_code;
@@ -530,6 +543,18 @@ uint32_t ble_cus_ceiling_value_update(ble_cus_t * p_cus, uint8_t * ceiling_value
 
     uint32_t err_code = NRF_SUCCESS;
     ble_gatts_value_t gatts_value;
+
+    __ALIGN(4) uint8_t temp_array[4] = {(*ceiling_value) , *(ceiling_value + 1), 0x00, 0x00};
+    p_cus->current_value_2 = (*ceiling_value << 8) + *(ceiling_value + 1);
+
+    err_code = kls_fds_find_and_delete(CEIL_FILE_ID_FDS, CEIL_REC_KEY_FDS);
+    APP_ERROR_CHECK(err_code);
+
+    err_code = kls_fds_write(CEIL_FILE_ID_FDS, CEIL_REC_KEY_FDS, temp_array);
+    APP_ERROR_CHECK(err_code);
+
+    NRF_LOG_INFO("Flash Write: %d", (*ceiling_value << 8) + *(ceiling_value + 1));
+
 
     // Initialize value struct.
     memset(&gatts_value, 0, sizeof(gatts_value));
@@ -584,6 +609,10 @@ uint32_t ble_cus_ceiling_value_update(ble_cus_t * p_cus, uint8_t * ceiling_value
     }
 
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 2ae458801842c7f4bc89b60b64063aeb4e931c7e
 
     return err_code;
 }

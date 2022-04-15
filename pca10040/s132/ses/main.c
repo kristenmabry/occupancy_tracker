@@ -178,7 +178,7 @@
 
 #define TWI_INSTANCE_ID     0     // twi instance
 #define CEILING_HEIGHT      2200  // height from sensor to floor
-#define RANGING_FREQUENCY   11    // frequency (Hz) of new ranging data (1-15 for 8x8) (1-60 for 4x4)
+#define RANGING_FREQUENCY   20    // frequency (Hz) of new ranging data (1-15 for 8x8) (1-60 for 4x4)
 #define MOTION_MINIMUM      400   // minimum distance for motion indication (at least <400mm && 1500mm from maximum)
 #define MOTION_MAXIMUM      1800  // maximum distance for motion indication (max 4000mm && 1500mm from minimum
 #define PERSON_MIN_HEIGHT   1500  // minimum height to increase occupancy
@@ -187,8 +187,8 @@
 #define LPn_PIN             15    // LPn connection to VL53l5CX
 
 #define PIN_IN                12  // interupt pin
-#define HIGH_SPEED_FREQUENCY  16  // speed (Hz) of sensor when active ranging
-#define LOW_SPEED_FREQUENCY   10  // speed (Hz) of sensor while waiting for person to enter
+#define HIGH_SPEED_FREQUENCY  20  // speed (Hz) of sensor when active ranging
+#define LOW_SPEED_FREQUENCY   20  // speed (Hz) of sensor while waiting for person to enter
 
 
 APP_TIMER_DEF(m_notification_timer_id);                                             /**< Notification timer. */
@@ -1615,10 +1615,10 @@ void done_state_handle()
       person_entry_2 = 0;
       person_exit_2 = 0;
       if(abc == 0) {
-        vl53l5cx_stop_ranging(&sensor_config);
+        //vl53l5cx_stop_ranging(&sensor_config);
         vl53l5cx_set_ranging_frequency_hz(&sensor_config, LOW_SPEED_FREQUENCY);
         abc = 1;
-        vl53l5cx_start_ranging(&sensor_config);
+        //vl53l5cx_start_ranging(&sensor_config);
       }
       app_timer_stop(m_done_ranging_id);
       uint8_t temp_array[2] = {m_cus.current_value>>8, m_cus.current_value}; // initial ceiling height of 2200
@@ -1636,9 +1636,9 @@ void in_pin_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
 {
     if(init == 1) {
         if(abc == 1) {
-          vl53l5cx_stop_ranging(&sensor_config);
+          //vl53l5cx_stop_ranging(&sensor_config);
           vl53l5cx_set_ranging_frequency_hz(&sensor_config, HIGH_SPEED_FREQUENCY);
-          vl53l5cx_start_ranging(&sensor_config);
+          //vl53l5cx_start_ranging(&sensor_config);
 
           abc = 0;
         }

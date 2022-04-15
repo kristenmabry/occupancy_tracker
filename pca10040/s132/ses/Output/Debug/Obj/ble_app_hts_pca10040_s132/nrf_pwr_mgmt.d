@@ -77,4 +77,5 @@ Output/Debug/Obj/ble_app_hts_pca10040_s132/nrf_pwr_mgmt.o: \
  ../../../../../../components/libraries/strerror/nrf_strerror.h \
  ../../../../../../components/libraries/log/src/nrf_log_internal.h \
  ../../../../../../components/libraries/log/nrf_log_types.h \
- ../../../../../../components/softdevice/common/nrf_sdh.h
+ ../../../../../../components/softdevice/common/nrf_sdh.h \
+ ../../../../../../modules/nrfx/hal/nrf_gpio.h

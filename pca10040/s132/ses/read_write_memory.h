@@ -27,7 +27,7 @@ static volatile uint8_t write_flag_fds_test = 0;
 #define REC_KEY_FDS_TEST     0x2222
 
 #define OCCU_FILE_ID_FDS      0x1234
-#define OCCU_REC_KEY_FDS      0x4321     
+#define OCCU_REC_KEY_FDS      0x2121     
 
 #define CEIL_FILE_ID_FDS      0x1000
 #define CEIL_REC_KEY_FDS      0x1616

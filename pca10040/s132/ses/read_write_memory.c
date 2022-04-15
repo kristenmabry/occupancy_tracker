@@ -178,11 +178,11 @@ ret_code_t fds_test_find_and_delete (void)
 			NRF_LOG_INFO("Deleted record ID: %d \r\n",record_desc.record_id);
 		}
 		// call the garbage collector to empty them, don't need to do this all the time, this is just for demonstration
-		//ret_code_t ret = fds_gc();
-		//if (ret != NRF_SUCCESS)
-		//{
-				//return ret;
-		//}
+		ret_code_t ret = fds_gc();
+		if (ret != NRF_SUCCESS)
+		{
+				return ret;
+		}
 		return NRF_SUCCESS;
 }
 
@@ -202,11 +202,11 @@ ret_code_t kls_fds_find_and_delete (uint32_t read_file_id, uint32_t relevant_rec
 			NRF_LOG_INFO("Deleted record ID: %d \r\n",record_desc.record_id);
 		}
 		// call the garbage collector to empty them, don't need to do this all the time, this is just for demonstration
-		//ret_code_t ret = fds_gc();
-		//if (ret != NRF_SUCCESS)
-		//{
-				//return ret;
-		//}
+		ret_code_t ret = fds_gc();
+		if (ret != NRF_SUCCESS)
+		{
+				return ret;
+		}
 		return NRF_SUCCESS;
 }
 
@@ -222,11 +222,6 @@ ret_code_t fds_test_init (void)
 		}
 		ret = fds_init();
 		if (ret != NRF_SUCCESS)
-		{
-				return ret;
-		}
-                ret = fds_gc();
-                if (ret != NRF_SUCCESS)
 		{
 				return ret;
 		}

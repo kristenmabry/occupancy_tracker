@@ -32,6 +32,9 @@ static volatile uint8_t write_flag_fds_test = 0;
 #define CEIL_FILE_ID_FDS      0x1000
 #define CEIL_REC_KEY_FDS      0x1616
 
+#define LOWP_FILE_ID_FDS      0x2143
+#define LOWP_REC_KEY_FDS      0x3412
+
 void my_fds_evt_handler(fds_evt_t const * const p_fds_evt);
 
 

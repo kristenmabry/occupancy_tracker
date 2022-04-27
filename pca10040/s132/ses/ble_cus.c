@@ -104,8 +104,8 @@ static void on_write(ble_cus_t * p_cus, ble_evt_t const * p_ble_evt)
         ble_cus_ceiling_value_update(p_cus, temp_array);
         p_cus->current_value_2 = (*p_evt_write->data << 8) + *(p_evt_write->data + 1);
 
-        if(p_cus->low_power_value == 0)
-        {
+        //if(p_cus->low_power_value == 0)
+        //{
           int ceiling_height = p_cus->current_value_2;
 
 
@@ -129,7 +129,7 @@ static void on_write(ble_cus_t * p_cus, ble_evt_t const * p_ble_evt)
           error |= vl53l5cx_set_detection_thresholds_enable(&p_cus->sensor_config, 1);
 
           vl53l5cx_start_ranging(&p_cus->sensor_config);
-        }
+        //}
     }
 
   /* Low Power */

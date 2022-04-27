@@ -54,26 +54,26 @@
   <Trace enabled="Yes"/>
  </TraceWindow>
  <Watch1>
-  <Watches active="1" update="Each Second">
-   <Watchpoint expression="m_cus" name="m_cus" radix="-1" linenumber="1451" filename="main.c"/>
+  <Watches active="1" update="Twice a Second">
+   <Watchpoint expression="m_cus" name="m_cus" radix="-1" linenumber="1515" filename="main.c"/>
    <Watchpoint expression="ceiling_height" name="ceiling_height" radix="10" linenumber="426" filename="main.c"/>
    <Watchpoint expression="person_entry" name="person_entry" radix="-1" linenumber="218" filename="main.c"/>
    <Watchpoint expression="person_exit" name="person_exit" radix="-1" linenumber="218" filename="main.c"/>
    <Watchpoint expression="person_entry_2" name="person_entry_2" radix="-1" linenumber="218" filename="main.c"/>
    <Watchpoint expression="person_exit_2" name="person_exit_2" radix="-1" linenumber="218" filename="main.c"/>
    <Watchpoint expression="flag" name="flag" radix="16" linenumber="407" filename="main.c"/>
-   <Watchpoint expression="check" name="check" radix="-1" linenumber="1606" filename="main.c"/>
+   <Watchpoint expression="check" name="check" radix="-1" linenumber="1670" filename="main.c"/>
    <Watchpoint expression="init" name="init" radix="-1" linenumber="227" filename="main.c"/>
-   <Watchpoint expression="m_done_ranging_id" name="m_done_ranging_id" radix="-1" linenumber="1605" filename="main.c"/>
+   <Watchpoint expression="m_done_ranging_id" name="m_done_ranging_id" radix="-1" linenumber="1670" filename="main.c"/>
    <Watchpoint expression="update_array" name="update_array" radix="-1" linenumber="518" filename="main.c"/>
-   <Watchpoint expression="thresholds" name="thresholds" radix="-1" linenumber="1324" filename="main.c"/>
+   <Watchpoint expression="thresholds" name="thresholds" radix="-1" linenumber="1388" filename="main.c"/>
    <Watchpoint expression="current_value_battery" name="current_value_battery" radix="16" linenumber="269" filename="main.c"/>
    <Watchpoint expression="p_event" name="p_event" radix="-1" linenumber="267" filename="main.c"/>
    <Watchpoint expression="tempers" name="tempers" radix="16" linenumber="267" filename="main.c"/>
    <Watchpoint expression="back" name="back" radix="16" linenumber="272" filename="main.c"/>
-   <Watchpoint expression="temp_array_4" name="temp_array_4" radix="16" linenumber="1792" filename="main.c"/>
-   <Watchpoint expression="read_data" name="read_data" radix="16" linenumber="1815" filename="main.c"/>
-   <Watchpoint expression="write_flag_fds_test" name="write_flag_fds_test" radix="-1" linenumber="1760" filename="main.c"/>
+   <Watchpoint expression="temp_array_4" name="temp_array_4" radix="16" linenumber="1856" filename="main.c"/>
+   <Watchpoint expression="read_data" name="read_data" radix="16" linenumber="1879" filename="main.c"/>
+   <Watchpoint expression="write_flag_fds_test" name="write_flag_fds_test" radix="-1" linenumber="1824" filename="main.c"/>
   </Watches>
  </Watch1>
  <Watch2>
@@ -86,12 +86,11 @@
   <Watches active="0" update="Never"/>
  </Watch4>
  <Files>
-  <SessionOpenFile windowGroup="DockEditLeft" x="30" y="1686" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="main.c" selected="1" top="1667" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="4" y="503" useTextEdit="1" openedFrom="C:/Nordic_Semi/Nordic_Semi/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker-3/pca10040/s132/ses/main.c" useBinaryEdit="0" left="0" path="ble_cus.c" selected="0" top="489" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="10" y="131" useTextEdit="1" openedFrom="C:/Nordic_Semi/Nordic_Semi/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker-3/pca10040/s132/ses/main.c" useBinaryEdit="0" left="0" path="ble_cus.c" selected="0" top="88" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="3" y="104" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="ble_cus.h" selected="0" top="0" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="376" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="nrfx_twi.c" selected="0" top="720" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="340" useTextEdit="1" openedFrom="C:/Nordic_Semi/Nordic_Semi/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker-3/pca10040/s132/ses/main.c" useBinaryEdit="0" left="0" path="../../../../../../components/libraries/pwr_mgmt/nrf_pwr_mgmt.c" selected="0" top="324" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="1" y="351" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../../../../modules/nrfx/hal/nrf_twi.h" selected="0" top="345" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="1" y="357" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../../../../modules/nrfx/hal/nrf_twi.h" selected="0" top="345" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="24" y="32" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="read_write_memory.h" selected="0" top="0" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="2" y="204" useTextEdit="1" openedFrom="C:/Nordic_Semi/Nordic_Semi/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker-3/pca10040/s132/ses/ble_cus.c" useBinaryEdit="0" left="0" path="read_write_memory.c" selected="0" top="173" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="22" y="308" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="vl53l5cx_api.c" selected="0" top="288" codecName="Default"/>
@@ -99,7 +98,8 @@
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="883" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../../../../components/libraries/log/src/nrf_log_frontend.c" selected="0" top="861" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="94" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../../../../components/libraries/log/src/nrf_log_backend_uart.c" selected="0" top="72" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="12" y="243" useTextEdit="1" openedFrom="C:/Nordic_Semi/Nordic_Semi/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker-3/pca10040/s132/ses/ble_cus.c" useBinaryEdit="0" left="0" path="../../../../../../components/softdevice/s132/headers/ble_gatts.h" selected="0" top="221" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="193" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../../../../components/libraries/timer/app_timer2.c" selected="0" top="171" codecName=""/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="193" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../../../../components/libraries/timer/app_timer2.c" selected="0" top="171" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="111" y="495" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="main.c" selected="1" top="459" codecName="Default"/>
  </Files>
- <ARMCrossStudioWindow activeProject="ble_app_hts_pca10040_s132" fileDialogDefaultFilter="*.c" autoConnectTarget="J-Link" buildConfiguration="Release" sessionSettings="" debugSearchFileMap="C:/Nordic_Semi/Nordic_Semi/nRF5_SDK_17.1.0_ddde560/external/segger_rtt/SEGGER_RTT.c&#xa;&#xa;C:/Nordic_Semi/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker/pca10040/s132/ses/nrf_drv_twi.c&#xa;&#xa;C:/Nordic_Semi/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker/pca10040/s132/ses/nrfx_twi.c&#xa;&#xa;C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/source/thumb_crt0.s&#xa;&#xa;C:/Users/bwill/ncs/v1.7.0/toolchain/segger_embedded_studio/source/thumb_crt0.s&#xa;&#xa;F:/Downloads/nrf_sdk/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker/pca10040/s132/ses/app_button.c&#xa;&#xa;F:/Downloads/nrf_sdk/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker/pca10040/s132/ses/app_error.c&#xa;&#xa;F:/Downloads/nrf_sdk/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker/pca10040/s132/ses/app_error_weak.c&#xa;&#xa;F:/Downloads/nrf_sdk/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker/pca10040/s132/ses/app_timer2.c&#xa;&#xa;F:/Downloads/nrf_sdk/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker/pca10040/s132/ses/platform.c&#xa;&#xa;F:/Downloads/nrf_sdk/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker/pca10040/s132/ses/vl53l5cx_api.c&#xa;" fileDialogInitialDirectory="F:/Downloads/nrf_sdk/nRF5_SDK_17.1.0_ddde560/modules/nrfx/drivers/include" debugSearchPath="" autoConnectCapabilities="3711"/>
+ <ARMCrossStudioWindow activeProject="ble_app_hts_pca10040_s132" fileDialogDefaultFilter="*.c" autoConnectTarget="J-Link" buildConfiguration="Debug" sessionSettings="" debugSearchFileMap="C:/Nordic_Semi/Nordic_Semi/nRF5_SDK_17.1.0_ddde560/external/segger_rtt/SEGGER_RTT.c&#xa;&#xa;C:/Nordic_Semi/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker/pca10040/s132/ses/nrf_drv_twi.c&#xa;&#xa;C:/Nordic_Semi/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker/pca10040/s132/ses/nrfx_twi.c&#xa;&#xa;C:/Program Files/SEGGER/SEGGER Embedded Studio for ARM 5.64/source/thumb_crt0.s&#xa;&#xa;C:/Users/bwill/ncs/v1.7.0/toolchain/segger_embedded_studio/source/thumb_crt0.s&#xa;&#xa;F:/Downloads/nrf_sdk/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker/pca10040/s132/ses/app_button.c&#xa;&#xa;F:/Downloads/nrf_sdk/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker/pca10040/s132/ses/app_error.c&#xa;&#xa;F:/Downloads/nrf_sdk/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker/pca10040/s132/ses/app_error_weak.c&#xa;&#xa;F:/Downloads/nrf_sdk/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker/pca10040/s132/ses/app_timer2.c&#xa;&#xa;F:/Downloads/nrf_sdk/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker/pca10040/s132/ses/platform.c&#xa;&#xa;F:/Downloads/nrf_sdk/nRF5_SDK_17.1.0_ddde560/examples/ble_peripheral/occupancy_tracker/pca10040/s132/ses/vl53l5cx_api.c&#xa;" fileDialogInitialDirectory="F:/Downloads/nrf_sdk/nRF5_SDK_17.1.0_ddde560/modules/nrfx/drivers/include" debugSearchPath="" autoConnectCapabilities="3199"/>
 </session>

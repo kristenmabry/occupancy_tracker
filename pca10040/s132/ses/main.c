@@ -182,13 +182,13 @@
 #define MOTION_MINIMUM      400   // minimum distance for motion indication (at least <400mm && 1500mm from maximum)
 #define MOTION_MAXIMUM      1800  // maximum distance for motion indication (max 4000mm && 1500mm from minimum
 #define PERSON_MIN_HEIGHT   1500  // minimum height to increase occupancy
-#define INTEGRATION_TIME    5     // Time (ms) spent integrating each 4x4 data
+#define INTEGRATION_TIME    10     // Time (ms) spent integrating each 4x4 data
 #define MEM_BUFF_SIZE       512   // Buffer amount for Queue
 #define LPn_PIN             15    // LPn connection to VL53l5CX
 
 #define PIN_IN                12  // interupt pin
-#define HIGH_SPEED_FREQUENCY  20  // speed (Hz) of sensor when active ranging
-#define LOW_SPEED_FREQUENCY   20  // speed (Hz) of sensor while waiting for person to enter
+#define HIGH_SPEED_FREQUENCY  30  // speed (Hz) of sensor when active ranging
+#define LOW_SPEED_FREQUENCY   30  // speed (Hz) of sensor while waiting for person to enter
 
 
 APP_TIMER_DEF(m_notification_timer_id);                                             /**< Notification timer. */
@@ -544,6 +544,70 @@ void read_lidar_data() {
       //}
 
 
+    // Using 2x4's
+    /* Entry1 - not pin side to pin side */
+    // person just in area 1
+    //if((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) > PERSON_MIN_HEIGHT || 
+    //  (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*4]) > PERSON_MIN_HEIGHT ||
+    //  (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*8]) > PERSON_MIN_HEIGHT ||
+    //  (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*12]) > PERSON_MIN_HEIGHT)
+    //  { // not in area 2
+    //    if((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*1]) < PERSON_MIN_HEIGHT &&
+    //      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*5]) < PERSON_MIN_HEIGHT &&
+    //      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*9]) < PERSON_MIN_HEIGHT &&
+    //      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*13]) < PERSON_MIN_HEIGHT)
+    //      {
+    //        sub_entry_1 += 1;
+    //      }
+    //  }
+    //// person just in area 3                       
+    //if(((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*1]) > PERSON_MIN_HEIGHT || 
+    //  (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*5]) > PERSON_MIN_HEIGHT ||
+    //  (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*9]) > PERSON_MIN_HEIGHT ||
+    //  (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*13]) > PERSON_MIN_HEIGHT ||
+    //  && sub_entry_1 == 1) 
+    //  { // not in area 1 or 2
+    //    if( /* 1 */ ((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*0]) < PERSON_MIN_HEIGHT &&
+    //      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*4]) < PERSON_MIN_HEIGHT &&
+    //      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*8]) < PERSON_MIN_HEIGHT &&
+    //      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*12]) < PERSON_MIN_HEIGHT) &&
+    //      {
+    //        sub_exit_1 += 1;
+    //      }
+    //  }
+
+    /* Entry2 - not pin side to pin side */
+    // person just in area 1
+    //if((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*2]) > PERSON_MIN_HEIGHT || 
+    //  (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*6]) > PERSON_MIN_HEIGHT ||
+    //  (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*10]) > PERSON_MIN_HEIGHT ||
+    //  (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*14]) > PERSON_MIN_HEIGHT 
+    //  && sub_exit_1)  
+    //  { // not in area 2
+    //    if((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*3]) < PERSON_MIN_HEIGHT &&
+    //      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*7]) < PERSON_MIN_HEIGHT &&
+    //      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) < PERSON_MIN_HEIGHT &&
+    //      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) < PERSON_MIN_HEIGHT)
+    //      {
+    //        sub_entry_2 += 1;
+    //      }
+    //  }
+    //// person just in area 3                       
+    //if(((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*3]) > PERSON_MIN_HEIGHT || 
+    //  (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*7]) > PERSON_MIN_HEIGHT ||
+    //  (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*11]) > PERSON_MIN_HEIGHT ||
+    //  (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*15]) > PERSON_MIN_HEIGHT ||
+    //  && sub_entry_2 == 1) 
+    //  { // not in area 1 or 2
+    //    if( /* 1 */ ((ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*2]) < PERSON_MIN_HEIGHT &&
+    //      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*6]) < PERSON_MIN_HEIGHT &&
+    //      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*10]) < PERSON_MIN_HEIGHT &&
+    //      (ceiling_height-Results.distance_mm[VL53L5CX_NB_TARGET_PER_ZONE*14]) < PERSON_MIN_HEIGHT) &&
+    //      {
+    //        sub_exit_2 += 1;
+    //      }
+    //  }
+
 
   }
 }
@@ -725,7 +789,7 @@ static void on_cus_evt(ble_cus_t     * p_cus_service,
         case BLE_CUS_EVT_NOTIFICATION_ENABLED:
             
              //err_code = app_timer_start(m_notification_timer_id, NOTIFICATION_INTERVAL, NULL);
-             APP_ERROR_CHECK(err_code);
+             //APP_ERROR_CHECK(err_code);
              break;
 
         case BLE_CUS_EVT_NOTIFICATION_DISABLED:
@@ -1063,6 +1127,10 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
             err_code = nrf_ble_qwr_conn_handle_assign(&m_qwr, m_conn_handle);
             APP_ERROR_CHECK(err_code);
+
+            //Update first db on connection
+            uint8_t temp_array_ceil [2] = {(m_cus.current_value_2>>8), m_cus.current_value_2};
+            ble_cus_ceiling_value_update(&m_cus, temp_array_ceil);
             break;
 
         case BLE_GAP_EVT_DISCONNECTED:
@@ -1599,9 +1667,9 @@ void done_state_handle()
       person_entry_2 = 0;
       person_exit_2 = 0;
       if(abc == 0) {
-        vl53l5cx_stop_ranging(&sensor_config);
-        vl53l5cx_set_ranging_frequency_hz(&sensor_config, LOW_SPEED_FREQUENCY);
-        vl53l5cx_start_ranging(&sensor_config);
+        //vl53l5cx_stop_ranging(&sensor_config);
+        //vl53l5cx_set_ranging_frequency_hz(&sensor_config, LOW_SPEED_FREQUENCY);
+        //vl53l5cx_start_ranging(&sensor_config);
         abc = 1;
       }
       app_timer_stop(m_done_ranging_id);
